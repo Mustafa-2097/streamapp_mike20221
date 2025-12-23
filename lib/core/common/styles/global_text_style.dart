@@ -16,7 +16,7 @@ TextStyle getTextStyle({
   );
 }
 
-TextStyle appTextStyleHeading1({
+TextStyle appTextStyleHeading({
   double fontSize = 16,
   FontWeight fontWeight = FontWeight.w400, // Bebas Neue supports only w400
   Color color = const Color(0xff1F1F1F),

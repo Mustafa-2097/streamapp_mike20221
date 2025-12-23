@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'features/on_Boarding/screen/on_boarding.dart';
 
@@ -12,9 +13,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: const OnboardingScreen(),
+    return ScreenUtilInit(
+      designSize: const Size(375, 812), // your UI design size
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return GetMaterialApp(debugShowCheckedModeBanner: false, home: child);
+      },
+      child: const OnboardingScreen(),
     );
   }
 }
