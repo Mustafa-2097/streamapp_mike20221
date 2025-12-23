@@ -11,40 +11,50 @@ class OnboardingSecond extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.black,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 150),
-            child: Center(
-              child: Image.asset(ImagesPath.onboard1, width: 350, height: 350),
-            ),
+          Image.asset(
+            ImagesPath.onboard2,
+            width: double.infinity,
+            fit: BoxFit.cover,
           ),
+
           const SizedBox(height: 20),
-          SizedBox(height: 20),
+
           const Text(
             'Best online courses in the world',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+
+          const SizedBox(height: 20),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              'Now you can learn anywhere, anytime, even if theres no internet',
-              style: TextStyle(fontSize: 16),
+              'Now you can learn anywhere, anytime, even if there’s no internet',
+              style: TextStyle(fontSize: 16, color: Colors.white),
               textAlign: TextAlign.center,
             ),
           ),
 
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
+
           Image.asset(IconsPath.slider1, width: 30, height: 30),
-          SizedBox(height: 40),
+
+          const SizedBox(height: 40),
+
           CustomButton(
-            text: "Next",
+            text: "Get Started",
             onPressed: () {
-              Get.to(OnboardingThird());
+              Get.to(const OnboardingThird());
             },
           ),
         ],
