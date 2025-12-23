@@ -15,9 +15,9 @@ class CustomButton extends StatelessWidget {
     required this.onPressed,
     this.leading,
     this.vertical = 12.0,
-    this.color = const Color(0xFF1B6EF7),
+    this.color = Colors.white,
 
-    this.textColor = Colors.white,
+    this.textColor = Colors.black,
   });
 
   @override
@@ -26,7 +26,7 @@ class CustomButton extends StatelessWidget {
       onTap: onPressed,
       child: Container(
         width: 360,
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(
           color: color ?? AppColors.primaryButtonColor,

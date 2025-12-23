@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/const/icons_path.dart';
 import '../../../core/const/images_path.dart';
 import 'onboarding_second.dart';
 
@@ -18,7 +17,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 60), () {
+    Timer(const Duration(seconds: 5), () {
       Get.off(() => const OnboardingSecond());
     });
   }
@@ -26,30 +25,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          const Spacer(),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF3A0F0F), // dark reddish top
+              Color(0xFF0B0B0B), // near black
+              Color(0xFF000000), // pure black bottom
+            ],
+          ),
+        ),
+        child: Column(
+          children: [
+            const Spacer(),
 
-          // Center content
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(ImagesPath.logo, width: 223, height: 190),
-                const SizedBox(height: 20),
-              ],
+            Center(
+              child: Image.asset(ImagesPath.logo, width: 223, height: 190),
             ),
-          ),
 
-          const Spacer(),
+            const Spacer(),
 
-          // Loading indicator at bottom
-          const Padding(
-            padding: EdgeInsets.only(bottom: 30),
-            child: CircularProgressIndicator(),
-          ),
-        ],
+            const Padding(
+              padding: EdgeInsets.only(bottom: 30),
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }
