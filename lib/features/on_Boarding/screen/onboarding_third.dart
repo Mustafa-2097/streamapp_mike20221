@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:testapp/core/common/widgets/custom_button.dart';
 import 'package:testapp/core/const/icons_path.dart';
 import 'package:testapp/core/const/images_path.dart';
-import 'package:testapp/features/auth/signup/screen/signup_screen.dart';
+import 'package:testapp/features/on_Boarding/screen/onboarding4.dart';
 
 class OnboardingThird extends StatelessWidget {
   const OnboardingThird({super.key});
@@ -54,7 +54,7 @@ class OnboardingThird extends StatelessWidget {
           CustomButton(
             text: "Get Started",
             onPressed: () {
-              Get.to(SignUpScreen());
+              Get.to(OnboardingScreenFourth());
             },
           ),
         ],

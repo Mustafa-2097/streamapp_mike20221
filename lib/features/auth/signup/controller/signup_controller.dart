@@ -9,18 +9,26 @@ class SignUpController extends GetxController {
   final emailController = TextEditingController();
   final nameController = TextEditingController();
   final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController(); // Added
 
   // Observables
   final isPasswordHidden = true.obs;
   final isPasswordStrong = false.obs;
 
   // Password validation
-  void validatePassword(String value) {
-    final hasMinLength = value.length >= 8;
-    final hasLetters = value.contains(RegExp(r'[A-Za-z]'));
-    final hasNumbers = value.contains(RegExp(r'[0-9]'));
+  // void validatePassword(String value) {
+  //   final hasMinLength = value.length >= 8;
+  //   final hasLetters = value.contains(RegExp(r'[A-Za-z]'));
+  //   final hasNumbers = value.contains(RegExp(r'[0-9]'));
 
-    isPasswordStrong.value = hasMinLength && hasLetters && hasNumbers;
+  //   isPasswordStrong.value = hasMinLength && hasLetters && hasNumbers;
+  // }
+
+  void validatePassword(String value) {
+    isPasswordStrong.value =
+        value.length >= 8 &&
+        value.contains(RegExp(r'[A-Za-z]')) &&
+        value.contains(RegExp(r'\d'));
   }
 
   void togglePasswordVisibility() {
@@ -30,8 +38,16 @@ class SignUpController extends GetxController {
   void signUp() {
     if (emailController.text.isEmpty ||
         nameController.text.isEmpty ||
-        passwordController.text.isEmpty) {
+        passwordController.text.isEmpty ||
+        confirmPasswordController.text.isEmpty) {
+      // Updated
       Get.snackbar("Error", "All fields are required");
+      return;
+    }
+
+    if (passwordController.text != confirmPasswordController.text) {
+      // Check confirm password
+      Get.snackbar("Error", "Passwords do not match");
       return;
     }
 
@@ -96,6 +112,7 @@ class SignUpController extends GetxController {
     emailController.dispose();
     nameController.dispose();
     passwordController.dispose();
+    confirmPasswordController.dispose(); // Dispose confirm password
     super.onClose();
   }
 }
