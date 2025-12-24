@@ -6,6 +6,7 @@ import 'package:testapp/core/const/icons_path.dart';
 
 import 'package:testapp/features/auth/forgot_pass/screen/otp_screen.dart';
 import 'package:testapp/features/auth/forgot_pass/screen/reset_screen.dart';
+import 'package:testapp/features/auth/forgot_pass/screen/success_screen.dart';
 import 'package:testapp/features/auth/login/screen/login_screen.dart';
 
 class ForgotPasswordController extends GetxController {
@@ -83,48 +84,11 @@ class ForgotPasswordController extends GetxController {
       return;
     }
 
-    Get.dialog(
-      Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(IconsPath.reset, height: 150, width: 150),
-              const SizedBox(height: 20),
+    Get.to(SuccessScreen());
+  }
 
-              const Text(
-                "Success",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 8),
-
-              const Text(
-                "Your password is successfully created.",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-
-              const SizedBox(height: 24),
-
-              SizedBox(
-                width: double.infinity,
-                child: CustomButton(
-                  text: "Continue",
-                  onPressed: () {
-                    Get.to(SignInScreen());
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      barrierDismissible: true,
-    );
+  void togglePasswordVisibility() {
+    isPasswordHidden.value = !isPasswordHidden.value;
   }
 
   // ---------------- TIMER ----------------
