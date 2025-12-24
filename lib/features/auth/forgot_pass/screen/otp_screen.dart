@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import '../../../../core/common/styles/global_text_style.dart';
 import '../../../../core/common/widgets/custom_button.dart';
 import '../controller/forgot_pass_controller.dart';
 
@@ -12,90 +12,116 @@ class VerifyOtpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => Get.back(),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF3A0F0F), Color(0xFF0B0B0B), Color(0xFF000000)],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // Back button
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () => Get.back(),
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 20),
+                SizedBox(height: 20),
 
-              const Text(
-                "Verify Code",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 8),
-
-              const Text(
-                "Enter the code sent to your email",
-                style: TextStyle(color: Colors.grey),
-              ),
-
-              const SizedBox(height: 30),
-
-              // ---------------- OTP BOXES ----------------
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _otpBox(
-                    controller.otp1,
-                    controller.otp1Focus,
-                    nextFocus: controller.otp2Focus,
+                Text(
+                  "OTP Verification",
+                  style: appTextStyleHeading(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  _otpBox(
-                    controller.otp2,
-                    controller.otp2Focus,
-                    nextFocus: controller.otp3Focus,
-                    previousFocus: controller.otp1Focus,
-                  ),
-                  _otpBox(
-                    controller.otp3,
-                    controller.otp3Focus,
-                    nextFocus: controller.otp4Focus,
-                    previousFocus: controller.otp2Focus,
-                  ),
-                  _otpBox(
-                    controller.otp4,
-                    controller.otp4Focus,
-                    previousFocus: controller.otp3Focus,
-                  ),
-                ],
-              ),
+                ),
 
-              const SizedBox(height: 30),
+                SizedBox(height: 30),
 
-              // ---------------- TIMER / RESEND ----------------
-              Obx(
-                () => controller.isResendEnabled.value
-                    ? GestureDetector(
-                        onTap: controller.resendOtp,
-                        child: const Text(
-                          "Resend OTP",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w600,
+                Text(
+                  "Enter the verification code we just sent on",
+                  style: TextStyle(color: Colors.grey),
+                ),
+
+                Text(
+                  " your email address.",
+                  style: TextStyle(color: Colors.grey),
+                ),
+
+                SizedBox(height: 40),
+
+                // ---------------- OTP BOXES ----------------
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _otpBox(
+                      controller.otp1,
+                      controller.otp1Focus,
+                      nextFocus: controller.otp2Focus,
+                    ),
+                    _otpBox(
+                      controller.otp2,
+                      controller.otp2Focus,
+                      nextFocus: controller.otp3Focus,
+                      previousFocus: controller.otp1Focus,
+                    ),
+                    _otpBox(
+                      controller.otp3,
+                      controller.otp3Focus,
+                      nextFocus: controller.otp4Focus,
+                      previousFocus: controller.otp2Focus,
+                    ),
+                    _otpBox(
+                      controller.otp4,
+                      controller.otp4Focus,
+                      previousFocus: controller.otp3Focus,
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 30),
+
+                // ---------------- TIMER / RESEND ----------------
+                Obx(
+                  () => controller.isResendEnabled.value
+                      ? GestureDetector(
+                          onTap: controller.resendOtp,
+                          child: Text(
+                            "Resend OTP",
+                            style: TextStyle(
+                              color: Colors.yellow,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
+                        )
+                      : Text(
+                          "Resend code in ${controller.secondsRemaining.value}s",
+                          style: TextStyle(color: Colors.grey),
                         ),
-                      )
-                    : Text(
-                        "Resend code in ${controller.secondsRemaining.value}s",
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-              ),
+                ),
 
-              const SizedBox(height: 60),
+                SizedBox(height: 20),
+                CustomButton(
+                  text: "Verify",
+                  color: Colors.white,
+                  textColor: Colors.black,
+                  onPressed: controller.verifyOtp,
+                ),
 
-              CustomButton(text: "Verify", onPressed: controller.verifyOtp),
-            ],
+                SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
@@ -113,13 +139,26 @@ class VerifyOtpScreen extends StatelessWidget {
       child: TextField(
         controller: controller,
         focusNode: focusNode,
-        autofocus: focusNode == Get.find<ForgotPasswordController>().otp1Focus,
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         maxLength: 1,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
         decoration: InputDecoration(
           counterText: "",
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          filled: true,
+          fillColor: Color(0xFF1C1C1C),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.white),
+          ),
         ),
         onChanged: (value) {
           if (value.isNotEmpty && nextFocus != null) {
