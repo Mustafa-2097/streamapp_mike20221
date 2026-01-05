@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:testapp/features/dashboard/customer_dashboard.dart';
 import 'package:testapp/features/home/screen/home_screen.dart';
 
 class SignInController extends GetxController {
@@ -26,7 +27,7 @@ class SignInController extends GetxController {
     // direct
 
     Get.snackbar("Success", "Logged in successfully");
-    Get.to(HomeScreen());
+    Get.to(() => CustomerDashboard());
   }
 
   @override
