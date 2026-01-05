@@ -70,7 +70,7 @@ class OnboardingSecond extends StatelessWidget {
                   TextSpan(
                     text: 'Terms & Privacy Policy',
                     style: TextStyle(
-                      color: Colors.yellow,
+                      color: Color(0xFFE3AE34),
                       fontWeight: FontWeight.w600,
                     ),
                   ),

@@ -53,6 +53,7 @@ class ResetPasswordScreen extends StatelessWidget {
                   child: Text(
                     "Your new password must be unique from those previously used.",
                     style: TextStyle(color: Colors.grey),
+                    textAlign: TextAlign.center,
                   ),
                 ),
 
@@ -128,6 +129,25 @@ class ResetPasswordScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 20),
+                Spacer(),
+                Align(
+                  alignment: Alignment.center,
+                  child: RichText(
+                    text: const TextSpan(
+                      text: "Remember Password? ",
+                      style: TextStyle(color: Colors.grey),
+                      children: [
+                        TextSpan(
+                          text: "Login",
+                          style: TextStyle(
+                            color: Colors.yellow,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

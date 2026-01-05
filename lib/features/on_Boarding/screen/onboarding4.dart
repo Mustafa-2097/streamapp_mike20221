@@ -30,9 +30,17 @@ class OnboardingScreenFourth extends StatelessWidget {
 
             const SizedBox(height: 80),
 
-            Text(
-              "EXPERIENCE SPORTS - LIVE",
-              style: appTextStyleHeading(fontSize: 24, color: Colors.white),
+            RichText(
+              text: TextSpan(
+                style: appTextStyleHeading(fontSize: 24, color: Colors.white),
+                children: const [
+                  TextSpan(text: 'EXPERIENCE SPORTS - '),
+                  TextSpan(
+                    text: 'LIVE',
+                    style: TextStyle(color: Colors.yellow),
+                  ),
+                ],
+              ),
             ),
 
             SizedBox(height: 10),
