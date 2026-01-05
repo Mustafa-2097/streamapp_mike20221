@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 
 import '../../home/screen/home_screen.dart';
+import '../../live/screen/live_screen.dart';
 
 class BottomNavController extends GetxController {
   final currentIndex = 0.obs;
@@ -17,9 +18,9 @@ class BottomNavController extends GetxController {
       // case 1:
       //   Get.offAll(() => ClipsScreen());
       //   break;
-      // case 2:
-      //   Get.offAll(() => LiveScreen());
-      //   break;
+      case 2:
+        Get.to(() => LiveMatchesScreen());
+        break;
       // case 3:
       //   Get.offAll(() => ReplayScreen());
       //   break;

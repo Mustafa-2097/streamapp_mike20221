@@ -25,7 +25,7 @@ class OnboardingSecond extends StatelessWidget {
           const SizedBox(height: 20),
 
           const Text(
-            'Best online courses in the world',
+            'LIVE. LOUD. UNSTOPPABLE.',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w600,
@@ -39,13 +39,13 @@ class OnboardingSecond extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              'Now you can learn anywhere, anytime, even if there’s no internet',
+              'Stream every victory in real time. From legendary rivalries to unforgettable highlights.',
               style: TextStyle(fontSize: 16, color: Colors.white),
               textAlign: TextAlign.center,
             ),
           ),
 
-          const SizedBox(height: 40),
+          const SizedBox(height: 10),
 
           Image.asset(IconsPath.slider1, width: 30, height: 30),
 
@@ -56,6 +56,28 @@ class OnboardingSecond extends StatelessWidget {
             onPressed: () {
               Get.to(const OnboardingThird());
             },
+          ),
+
+          SizedBox(height: 20),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: TextStyle(fontSize: 12, color: Colors.white),
+                children: [
+                  TextSpan(text: 'By continuing, you agree to our '),
+                  TextSpan(
+                    text: 'Terms & Privacy Policy',
+                    style: TextStyle(
+                      color: Colors.yellow,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  TextSpan(text: '.'),
+                ],
+              ),
+            ),
           ),
         ],
       ),
