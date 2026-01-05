@@ -4,4 +4,5 @@ class IconsPath {
   static String slider1 = 'assets/icons/slider1.png';
   static String success = 'assets/icons/success_icon.png';
   static String reset = 'assets/icons/reset.png';
+  static String slider2 = 'assets/icons/slider2.png';
 }
