@@ -1,13 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:testapp/core/common/widgets/custom_button.dart';
-import 'package:testapp/core/const/icons_path.dart';
 
 import 'package:testapp/features/auth/forgot_pass/screen/otp_screen.dart';
 import 'package:testapp/features/auth/forgot_pass/screen/reset_screen.dart';
 import 'package:testapp/features/auth/forgot_pass/screen/success_screen.dart';
-import 'package:testapp/features/auth/login/screen/login_screen.dart';
 
 class ForgotPasswordController extends GetxController {
   // ---------------- EMAIL ----------------
@@ -108,7 +105,6 @@ class ForgotPasswordController extends GetxController {
   }
 
   void resendOtp() {
-    // TODO: API call
     startTimer();
     Get.snackbar("OTP Sent", "A new code has been sent to your email");
 

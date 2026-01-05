@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:testapp/features/home/screen/home_screen.dart';
 
 class SignInController extends GetxController {
   final emailController = TextEditingController();
@@ -23,7 +24,9 @@ class SignInController extends GetxController {
     }
 
     // direct
+
     Get.snackbar("Success", "Logged in successfully");
+    Get.to(HomeScreen());
   }
 
   @override
