@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:testapp/features/dashboard/widgets/bottom_nav.dart';
 import '../home/screen/home_screen.dart';
+import '../live/screen/live_screen.dart';
 
 class CustomerDashboard extends StatefulWidget {
   final int initialIndex;
@@ -15,6 +16,7 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
 
   final List<Widget> _screens = [
     HomeScreen(),
+    LiveMatchesScreen(),
     // CoursesPage(),
     // AboutUsPage(),
     // AboutUsPage(),
