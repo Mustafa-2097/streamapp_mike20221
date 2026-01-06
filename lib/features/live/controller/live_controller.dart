@@ -7,6 +7,8 @@ class LiveMatchesController extends GetxController {
 
   int selectedTab = 0;
 
+  bool get isUpcoming => selectedTab == 1;
+
   final List<MatchModel> matches = [
     MatchModel(
       homeTeam: "Betis",
