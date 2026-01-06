@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:testapp/features/dashboard/customer_dashboard.dart';
 
 import 'features/on_Boarding/screen/on_boarding.dart';
 
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return GetMaterialApp(debugShowCheckedModeBanner: false, home: child);
       },
-      child: const OnboardingScreen(),
+      child: const CustomerDashboard(),
     );
   }
 }

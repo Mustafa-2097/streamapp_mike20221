@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../bottom_navbar/controller/nav_controller.dart';
-import '../../bottom_navbar/screen/nav.dart';
 
 class HomeScreen extends StatelessWidget {
   HomeScreen({super.key});
@@ -84,9 +82,6 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
-
-      // 🔻 Bottom Nav
-      bottomNavigationBar: AppBottomNav(),
     );
   }
 }
