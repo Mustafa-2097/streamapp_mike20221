@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../live_video/screen/video_screen.dart';
 import '../controller/live_controller.dart';
 import '../model/live_model.dart';
 import '../widgets/build_tabs_widget.dart';
@@ -88,52 +89,60 @@ class LiveMatchesScreen extends StatelessWidget {
 
   // MATCH CARD
   Widget _matchCard(MatchModel match) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(8),
+    return GestureDetector(
+      onTap: () {
+        Get.to(VideoLiveScreen());
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: const Text(
+                    "LIVE",
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
                 ),
-                child: const Text(
-                  "LIVE",
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                const Spacer(),
+                Text(
+                  match.views,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
-              ),
-              const Spacer(),
-              Text(
-                match.views,
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _team(match.homeTeam),
-              Text(
-                "${match.homeScore}  -  ${match.awayScore}",
-                style: const TextStyle(
-                  fontSize: 22,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _team(match.homeTeam),
+                Text(
+                  "${match.homeScore}  -  ${match.awayScore}",
+                  style: const TextStyle(
+                    fontSize: 22,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              _team(match.awayTeam),
-            ],
-          ),
-        ],
+                _team(match.awayTeam),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -193,7 +202,11 @@ class LiveMatchesScreen extends StatelessWidget {
                 children: const [
                   Text(
                     "Mon, Mar 23, 21",
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   SizedBox(height: 4),
                   Text(
@@ -205,7 +218,7 @@ class LiveMatchesScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              _upcomingTeam("Barcelona"),
+              _upcomingTeam("Real Madrid"),
             ],
           ),
         ],
