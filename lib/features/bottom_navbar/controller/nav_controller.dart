@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 
 import '../../home/screen/home_screen.dart';
-import '../../live/screen/live_screen.dart';
+import '../../live/live_dashboard/screen/live_screen.dart';
 
 class BottomNavController extends GetxController {
   final currentIndex = 0.obs;
