@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../bottom_navbar/controller/nav_controller.dart';
+import '../widgets/all_tab.dart';
+import '../widgets/carousel_slider.dart';
+import '../widgets/custom_home_appbar.dart';
 
 class HomeScreen extends StatelessWidget {
-  HomeScreen({super.key});
-
-  final BottomNavController navController = Get.put(BottomNavController());
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final sh = MediaQuery.of(context).size.height;
+    final sw = MediaQuery.of(context).size.width;
+
     return Scaffold(
       body: Container(
+        height: sh,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -19,66 +24,25 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 🔝 Top Bar
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Icon(Icons.menu, color: Colors.white),
-                    Row(
-                      children: [
-                        Icon(Icons.notifications_none, color: Colors.white),
-                        SizedBox(width: 12),
-                        Icon(Icons.search, color: Colors.white),
-                      ],
-                    ),
-                  ],
-                ),
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: const CustomHomeAppBar(),
+              ),
 
-                const SizedBox(height: 20),
+              SliverToBoxAdapter(
+                child: const RugbyCarouselSlider(),
+              ),
 
-                // 🎥 Banner
-                Container(
-                  height: 180,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.black26,
-                  ),
-                  child: const Center(
-                    child: Text(
-                      "LIVE RUGBY STREAMING",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
+              SliverToBoxAdapter(
+                child: SizedBox(height: 10),
+              ),
 
-                const SizedBox(height: 20),
+              SliverToBoxAdapter(
+                child: LiveNowSection(), // Add the LiveNow section here
+              ),
 
-                // 🟡 Categories
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: const [
-                      Chip(label: Text("All")),
-                      SizedBox(width: 8),
-                      Chip(label: Text("Football")),
-                      SizedBox(width: 8),
-                      Chip(label: Text("Cricket")),
-                      SizedBox(width: 8),
-                      Chip(label: Text("Tennis")),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
         ),
       ),
