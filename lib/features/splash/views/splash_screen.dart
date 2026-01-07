@@ -1,26 +1,11 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../core/const/images_path.dart';
-import 'onboarding_second.dart';
+import '../controller/splash_controller.dart';
 
-class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key});
-
-  @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
-}
-
-class _OnboardingScreenState extends State<OnboardingScreen> {
-  @override
-  void initState() {
-    super.initState();
-
-    Timer(const Duration(seconds: 5), () {
-      Get.off(() => const OnboardingSecond());
-    });
-  }
+class SplashScreen extends StatelessWidget {
+  SplashScreen({super.key});
+  final SplashController controller = Get.put(SplashController());
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +27,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Column(
           children: [
             const Spacer(),
-
             Center(
               child: Image.asset(ImagesPath.logo, width: 223, height: 190),
             ),

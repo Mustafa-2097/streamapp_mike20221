@@ -25,7 +25,7 @@ class AppColors {
     0xFFFD294E,
   ).withValues(alpha: 0.16);
 
-  //upcoming Reminder of home screen
+  //upcoming Reminder of home views
   static Color upcomingReminderContainerColor2 = Color(0xFFF9F5FF);
   static Color upcomingReminderContainerborderColor2 = Color(0xFFC6D4F1);
 

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import '../../bottom_navbar/controller/nav_controller.dart';
 import '../widgets/all_tab.dart';
 import '../widgets/carousel_slider.dart';
 import '../widgets/custom_home_appbar.dart';
