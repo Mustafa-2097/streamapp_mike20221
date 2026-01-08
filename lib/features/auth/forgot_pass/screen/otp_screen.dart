@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/common/styles/global_text_style.dart';
+import '../../../../core/common/widgets/custom_back_icon.dart';
 import '../../../../core/common/widgets/custom_button.dart';
+import '../../../../core/const/app_colors.dart';
 import '../controller/forgot_pass_controller.dart';
 
 class VerifyOtpScreen extends StatelessWidget {
@@ -30,10 +32,7 @@ class VerifyOtpScreen extends StatelessWidget {
                 // Back button
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Get.back(),
-                  ),
+                  child: CustomBackIcon(onBack: () => Get.back()),
                 ),
 
                 SizedBox(height: 20),
@@ -150,7 +149,7 @@ class VerifyOtpScreen extends StatelessWidget {
         decoration: InputDecoration(
           counterText: "",
           filled: true,
-          fillColor: Color(0xFF1C1C1C),
+          fillColor: AppColors.boxColor,
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: Colors.grey),

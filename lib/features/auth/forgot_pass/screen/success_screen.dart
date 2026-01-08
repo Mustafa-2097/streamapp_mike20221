@@ -5,6 +5,7 @@ import 'package:testapp/core/const/icons_path.dart';
 import 'package:testapp/features/auth/login/screen/login_screen.dart';
 
 import '../../../../core/common/styles/global_text_style.dart';
+import '../../../../core/common/widgets/custom_back_icon.dart';
 
 class SuccessScreen extends StatelessWidget {
   const SuccessScreen({super.key});
@@ -26,11 +27,10 @@ class SuccessScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🔙 Back Icon
-              SizedBox(height: 40),
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Get.back(),
+              // Back Button
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: CustomBackIcon(onBack: () => Get.back()),
               ),
 
               const Spacer(),
@@ -40,7 +40,7 @@ class SuccessScreen extends StatelessWidget {
                   children: [
                     Image.asset(IconsPath.success, width: 120, height: 120),
 
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 30),
 
                     Text(
                       "PASSWORD CHANGED!",
@@ -50,7 +50,7 @@ class SuccessScreen extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 6),
 
                     const Text(
                       "Your password has been changed successfully.",
@@ -58,11 +58,12 @@ class SuccessScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
 
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 33),
 
                     CustomButton(
                       text: "Back to Login",
                       onPressed: () {
+                        delete.all;
                         Get.offAll(SignInScreen());
                       },
                     ),

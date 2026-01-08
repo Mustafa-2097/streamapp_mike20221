@@ -27,6 +27,7 @@ class ForgotPasswordController extends GetxController {
   final confirmPasswordController = TextEditingController();
 
   final isPasswordHidden = true.obs;
+  var isConfirmPasswordHidden = true.obs;
 
   // ---------------- TIMER ----------------
   final secondsRemaining = 60.obs;
@@ -82,10 +83,6 @@ class ForgotPasswordController extends GetxController {
     }
 
     Get.to(SuccessScreen());
-  }
-
-  void togglePasswordVisibility() {
-    isPasswordHidden.value = !isPasswordHidden.value;
   }
 
   // ---------------- TIMER ----------------

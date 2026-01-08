@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../utils/constants/colors.dart';
+import '../../const/app_colors.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -29,7 +29,7 @@ class CustomButton extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(
-          color: color ?? AppColors.primaryButtonColor,
+          color: color ?? AppColors.primaryColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),

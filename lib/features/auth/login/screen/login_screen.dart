@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:testapp/core/common/widgets/custom_back_icon.dart';
 import 'package:testapp/features/auth/forgot_pass/screen/forgot_password_screen.dart';
 import 'package:testapp/features/auth/signup/screen/signup_screen.dart';
 import '../../../../core/common/styles/global_text_style.dart';
 import '../../../../core/common/widgets/custom_button.dart';
+import '../../../../core/const/app_colors.dart';
 import '../../../../core/const/images_path.dart';
+import '../../widgets/input_field.dart';
 import '../controller/login_controller.dart';
 
 class SignInScreen extends StatelessWidget {
@@ -14,6 +18,8 @@ class SignInScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // final sh = MediaQuery.of(context).size.height;
+    // final sw = MediaQuery.of(context).size.width;
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -32,10 +38,7 @@ class SignInScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Back Button
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Get.back(),
-                ),
+                CustomBackIcon(onBack: () => Get.back()),
 
                 const SizedBox(height: 20),
 
@@ -72,42 +75,28 @@ class SignInScreen extends StatelessWidget {
                 const SizedBox(height: 30),
 
                 // Email
-                _inputLabel("Email Address"),
-                _inputField(
+                InputField(
                   controller: controller.emailController,
-                  hint: "Enter your email",
+                  hint: "Email your email",
                 ),
 
                 const SizedBox(height: 20),
 
                 // Password
-                _inputLabel("Password"),
-                Obx(
-                  () => TextField(
-                    controller: controller.passwordController,
-                    obscureText: controller.isPasswordHidden.value,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: "Enter your password",
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          controller.isPasswordHidden.value
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Colors.white,
-                        ),
-                        onPressed: controller.togglePasswordVisibility,
-                      ),
-                      filled: true,
-                      fillColor: const Color(0xFF1B1B1B),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
+                Obx(() => InputField(
+                  controller: controller.passwordController,
+                  hint: "Enter your password",
+                  obscureText: controller.isPasswordHidden.value,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      controller.isPasswordHidden.value
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: AppColors.bgColor,
                     ),
+                    onPressed: controller.togglePasswordVisibility,
                   ),
-                ),
+                )),
 
                 const SizedBox(height: 16),
 
@@ -166,39 +155,6 @@ class SignInScreen extends StatelessWidget {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _inputLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w500,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-
-  Widget _inputField({
-    required TextEditingController controller,
-    required String hint,
-  }) {
-    return TextField(
-      controller: controller,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.grey),
-        filled: true,
-        fillColor: const Color(0xFF1B1B1B),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
         ),
       ),
     );

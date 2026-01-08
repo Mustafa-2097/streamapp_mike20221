@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:testapp/core/const/images_path.dart';
+import '../../../../core/common/widgets/custom_back_icon.dart';
 import '../../../../core/common/widgets/custom_button.dart';
 import '../../login/screen/login_screen.dart';
+import '../../widgets/input_field.dart';
 import '../controller/forgot_pass_controller.dart';
-import '../../signup/widgets/input_signup.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
   ForgotPasswordScreen({super.key});
@@ -30,11 +31,8 @@ class ForgotPasswordScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Back button
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Get.back(),
-                ),
+                // Back Button
+                CustomBackIcon(onBack: () => Get.back()),
 
                 const SizedBox(height: 20),
 
@@ -54,7 +52,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                 const SizedBox(height: 40),
 
                 // Email Field (reusing same inputField)
-                inputField(
+                InputField(
                   controller: controller.emailController,
                   hint: "Email Address",
                 ),

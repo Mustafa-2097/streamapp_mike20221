@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:testapp/features/auth/login/screen/login_screen.dart';
+import 'package:testapp/features/auth/widgets/input_field.dart';
+import '../../../../core/common/widgets/custom_back_icon.dart';
 import '../../../../core/common/widgets/custom_button.dart';
 import '../controller/signup_controller.dart';
-import '../widgets/input_signup.dart';
 
 class SignUpScreen extends StatelessWidget {
   SignUpScreen({super.key});
@@ -30,10 +31,7 @@ class SignUpScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Back Button
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Get.back(),
-                ),
+                CustomBackIcon(onBack: () => Get.back()),
 
                 const SizedBox(height: 20),
 
@@ -60,14 +58,14 @@ class SignUpScreen extends StatelessWidget {
                 const SizedBox(height: 30),
 
                 // Username
-                inputField(
+                InputField(
                   controller: controller.nameController,
                   hint: "Username",
                 ),
                 const SizedBox(height: 20),
 
                 // Email
-                inputField(
+                InputField(
                   controller: controller.emailController,
                   hint: "Email Address",
                 ),
@@ -75,12 +73,11 @@ class SignUpScreen extends StatelessWidget {
 
                 // Password
                 Obx(
-                  () => inputField(
+                  () => InputField(
                     controller: controller.passwordController,
                     hint: "Password",
                     obscureText: controller.isPasswordHidden.value,
                     onChanged: controller.validatePassword,
-
                     suffixIcon: IconButton(
                       icon: Icon(
                         controller.isPasswordHidden.value
@@ -95,12 +92,10 @@ class SignUpScreen extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // Confirm Password
-                Obx(
-                  () => inputField(
+                Obx(() => InputField(
                     controller: controller.confirmPasswordController,
                     hint: "Confirm Password",
                     obscureText: controller.isPasswordHidden.value,
-
                     suffixIcon: IconButton(
                       icon: Icon(
                         controller.isPasswordHidden.value
@@ -116,8 +111,7 @@ class SignUpScreen extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // Password strength
-                Obx(
-                  () => Row(
+                Obx(() => Row(
                     children: [
                       Icon(
                         controller.isPasswordStrong.value

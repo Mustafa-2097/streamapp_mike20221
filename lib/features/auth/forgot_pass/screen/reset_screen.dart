@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:testapp/core/common/styles/global_text_style.dart';
+import '../../../../core/common/widgets/custom_back_icon.dart';
 import '../../../../core/common/widgets/custom_button.dart';
+import '../../../../core/const/app_colors.dart';
+import '../../widgets/input_field.dart';
 import '../controller/forgot_pass_controller.dart';
 
 class ResetPasswordScreen extends StatelessWidget {
@@ -28,11 +31,8 @@ class ResetPasswordScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Back button
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Get.back(),
-                ),
+                // Back Button
+                CustomBackIcon(onBack: () => Get.back()),
 
                 const SizedBox(height: 20),
 
@@ -57,65 +57,46 @@ class ResetPasswordScreen extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 30),
 
                 // ---------------- NEW PASSWORD ----------------
                 const SizedBox(height: 8),
 
-                Obx(
-                  () => TextField(
+                Obx(() => InputField(
                     controller: controller.newPasswordController,
+                    hint: "New Password",
                     obscureText: controller.isPasswordHidden.value,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: "New Password",
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      filled: true,
-                      fillColor: const Color(0xFF1C1C1C),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          controller.isPasswordHidden.value
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Colors.white,
-                        ),
-                        onPressed: controller.togglePasswordVisibility,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        controller.isPasswordHidden.value
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: Colors.white,
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: const BorderSide(color: Colors.white),
-                      ),
+                      onPressed: () => controller.isPasswordHidden.toggle(),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 // ---------------- CONFIRM PASSWORD ----------------
                 const SizedBox(height: 8),
 
-                TextField(
+                Obx(() => InputField(
                   controller: controller.confirmPasswordController,
-                  obscureText: true,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: "Confirm Password",
-                    hintStyle: const TextStyle(color: Colors.grey),
-                    filled: true,
-                    fillColor: const Color(0xFF1C1C1C),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: const BorderSide(color: Colors.grey),
+                  hint: "Confirm Password",
+                  obscureText: controller.isConfirmPasswordHidden.value,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      controller.isConfirmPasswordHidden.value
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: Colors.white,
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: const BorderSide(color: Colors.white),
-                    ),
+                    onPressed: () => controller.isConfirmPasswordHidden.toggle(),
                   ),
+                ),
                 ),
 
                 SizedBox(height: 40),
@@ -127,9 +108,7 @@ class ResetPasswordScreen extends StatelessWidget {
                     onPressed: controller.resetPassword,
                   ),
                 ),
-
-                const SizedBox(height: 20),
-                Spacer(),
+                const Spacer(),
                 Align(
                   alignment: Alignment.center,
                   child: RichText(
