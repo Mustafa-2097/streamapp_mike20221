@@ -77,7 +77,7 @@ class SignUpScreen extends StatelessWidget {
                     controller: controller.passwordController,
                     hint: "Password",
                     obscureText: controller.isPasswordHidden.value,
-                    onChanged: controller.validatePassword,
+                    //onChanged: ,
                     suffixIcon: IconButton(
                       icon: Icon(
                         controller.isPasswordHidden.value
@@ -85,7 +85,7 @@ class SignUpScreen extends StatelessWidget {
                             : Icons.visibility,
                         color: Colors.white,
                       ),
-                      onPressed: controller.togglePasswordVisibility,
+                      onPressed: () => controller.isPasswordHidden.toggle(),
                     ),
                   ),
                 ),
@@ -95,15 +95,15 @@ class SignUpScreen extends StatelessWidget {
                 Obx(() => InputField(
                     controller: controller.confirmPasswordController,
                     hint: "Confirm Password",
-                    obscureText: controller.isPasswordHidden.value,
+                    obscureText: controller.isConfirmPasswordHidden.value,
                     suffixIcon: IconButton(
                       icon: Icon(
-                        controller.isPasswordHidden.value
+                        controller.isConfirmPasswordHidden.value
                             ? Icons.visibility_off
                             : Icons.visibility,
                         color: Colors.white,
                       ),
-                      onPressed: controller.togglePasswordVisibility,
+                      onPressed: () => controller.isConfirmPasswordHidden.toggle(),
                     ),
                   ),
                 ),
@@ -111,40 +111,40 @@ class SignUpScreen extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // Password strength
-                Obx(() => Row(
-                    children: [
-                      Icon(
-                        controller.isPasswordStrong.value
-                            ? Icons.check_circle
-                            : Icons.info,
-                        color: controller.isPasswordStrong.value
-                            ? Colors.green
-                            : Colors.grey,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          "At least 8 characters with letters and numbers",
-                          style: TextStyle(
-                            color: controller.isPasswordStrong.value
-                                ? Colors.green
-                                : Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      if (controller.isPasswordStrong.value)
-                        const Text(
-                          "Strong",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+                // Obx(() => Row(
+                //     children: [
+                //       Icon(
+                //         controller.isPasswordStrong.value
+                //             ? Icons.check_circle
+                //             : Icons.info,
+                //         color: controller.isPasswordStrong.value
+                //             ? Colors.green
+                //             : Colors.grey,
+                //         size: 18,
+                //       ),
+                //       const SizedBox(width: 8),
+                //       Expanded(
+                //         child: Text(
+                //           "At least 8 characters with letters and numbers",
+                //           style: TextStyle(
+                //             color: controller.isPasswordStrong.value
+                //                 ? Colors.green
+                //                 : Colors.grey,
+                //             fontSize: 12,
+                //           ),
+                //         ),
+                //       ),
+                //       if (controller.isPasswordStrong.value)
+                //         const Text(
+                //           "Strong",
+                //           style: TextStyle(
+                //             color: Colors.blue,
+                //             fontWeight: FontWeight.w600,
+                //           ),
+                //         ),
+                //     ],
+                //   ),
+                // ),
 
                 const SizedBox(height: 30),
 
@@ -163,7 +163,9 @@ class SignUpScreen extends StatelessWidget {
                 // Sign In
                 Center(
                   child: GestureDetector(
-                    onTap: () => Get.to(SignInScreen()),
+                    onTap: () {
+                      Get.off(() => SignInScreen());
+                    } ,
                     child: RichText(
                       text: const TextSpan(
                         text: "Already have an account? ",

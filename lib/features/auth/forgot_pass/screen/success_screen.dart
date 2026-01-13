@@ -63,8 +63,8 @@ class SuccessScreen extends StatelessWidget {
                     CustomButton(
                       text: "Back to Login",
                       onPressed: () {
-                        delete.all;
-                        Get.offAll(SignInScreen());
+                        Get.deleteAll();
+                        Get.off(SignInScreen());
                       },
                     ),
                   ],

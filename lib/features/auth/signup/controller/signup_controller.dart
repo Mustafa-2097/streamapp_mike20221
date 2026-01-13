@@ -13,7 +13,9 @@ class SignUpController extends GetxController {
 
   // Observables
   final isPasswordHidden = true.obs;
-  final isPasswordStrong = false.obs;
+  var isConfirmPasswordHidden = true.obs;
+
+  //final isPasswordStrong = false.obs;
 
   // Password validation
   // void validatePassword(String value) {
@@ -24,16 +26,12 @@ class SignUpController extends GetxController {
   //   isPasswordStrong.value = hasMinLength && hasLetters && hasNumbers;
   // }
 
-  void validatePassword(String value) {
-    isPasswordStrong.value =
-        value.length >= 8 &&
-        value.contains(RegExp(r'[A-Za-z]')) &&
-        value.contains(RegExp(r'\d'));
-  }
-
-  void togglePasswordVisibility() {
-    isPasswordHidden.value = !isPasswordHidden.value;
-  }
+  // void validatePassword(String value) {
+  //   isPasswordStrong.value =
+  //       value.length >= 8 &&
+  //       value.contains(RegExp(r'[A-Za-z]')) &&
+  //       value.contains(RegExp(r'\d'));
+  // }
 
   void signUp() {
     if (emailController.text.isEmpty ||
@@ -51,10 +49,10 @@ class SignUpController extends GetxController {
       return;
     }
 
-    if (!isPasswordStrong.value) {
-      Get.snackbar("Weak Password", "Please use a stronger password");
-      return;
-    }
+    // if (!isPasswordStrong.value) {
+    //   Get.snackbar("Weak Password", "Please use a stronger password");
+    //   return;
+    // }
 
     // Success popup
     showSuccessDialog();
@@ -90,14 +88,13 @@ class SignUpController extends GetxController {
 
               const SizedBox(height: 24),
 
-              SizedBox(
-                width: double.infinity,
-                child: CustomButton(
-                  text: "Continue",
-                  onPressed: () {
-                    Get.to(SignInScreen());
-                  },
-                ),
+              CustomButton(
+                text: "Continue",
+                textColor: Colors.white,
+                color: Color(0xFF131720),
+                onPressed: () {
+                  Get.off(() => SignInScreen());
+                },
               ),
             ],
           ),

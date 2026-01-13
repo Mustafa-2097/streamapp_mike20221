@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import '../../live_video/screen/video_screen.dart';
 import '../controller/live_controller.dart';
 import '../model/live_model.dart';
-import '../widgets/build_tabs_widget.dart';
+import '../../../../core/common/widgets/build_tabs_widget.dart';
 
 class LiveMatchesScreen extends StatelessWidget {
   LiveMatchesScreen({super.key});
@@ -17,39 +17,65 @@ class LiveMatchesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff0F172A),
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                "Matches",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
+      //appBar: _buildAppBar(),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        title: Text(
+          "LIVE",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF3A0F0F), Color(0xFF0B0B0B), Color(0xFF000000)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    "Matches",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-            ),
+              SizedBox(height: 20),
+              buildTabs(),
+              const SizedBox(height: 16),
+              Expanded(
+                child: GetBuilder<LiveMatchesController>(
+                  builder: (controller) {
+                    if (controller.isUpcoming) {
+                      return _buildUpcomingList();
+                    }
+                    return _buildMatchList(); // LIVE
+                  },
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 20),
-          buildTabs(),
-          const SizedBox(height: 16),
-          Expanded(
-            child: GetBuilder<LiveMatchesController>(
-              builder: (controller) {
-                if (controller.isUpcoming) {
-                  return _buildUpcomingList();
-                }
-                return _buildMatchList(); // LIVE
-              },
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -97,7 +123,7 @@ class LiveMatchesScreen extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.08),
+          border: Border.all(width: 2, color: Colors.white24),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -176,7 +202,7 @@ class LiveMatchesScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white24),
+        border: Border.all(width: 2, color: Colors.white24),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:testapp/features/clips/screen/clips_screen.dart';
 import 'package:testapp/features/home/widgets/upcoming_match_card.dart';
 
 import 'live_card.dart';
 
-class LiveNowSection extends StatelessWidget {
-  LiveNowSection({super.key});
+class ContentSection extends StatelessWidget {
+  ContentSection({super.key});
 
   final List<String> _liveImages = [
     'assets/images/live01.png',
@@ -39,35 +41,13 @@ class LiveNowSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section Header
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
-          child: Row(
-            children: [
-              Text(
-                'Live Now',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                'View All',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.sp,
-                ),
-              ),
-            ],
-          ),
-        ),
+        // Live Now section
+        _sectionName("Live Now", () {}),
         SizedBox(height: 16.h),
 
-        // Horizontal Scrollable List
+        // Horizontal Scrollable Live Now List
         SizedBox(
-          height: 200.h, // Increased height to accommodate text below
+          height: 200.h,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -111,29 +91,7 @@ class LiveNowSection extends StatelessWidget {
         SizedBox(height: 26.h),
 
         // Upcoming section
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
-          child: Row(
-            children: [
-              Text(
-                'Upcoming',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                'View All',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.sp,
-                ),
-              ),
-            ],
-          ),
-        ),
+        _sectionName("Upcoming", () {}),
         SizedBox(height: 16.h),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -157,8 +115,288 @@ class LiveNowSection extends StatelessWidget {
           ),
         ),
         SizedBox(height: 16.h),
+
+
+        // Replay Section
+        _sectionName("Replay", () {}),
+        SizedBox(height: 16.h),
+
+        SizedBox(
+          height: 222.h,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            itemCount: 2, // Adjust based on your data
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: EdgeInsets.only(right: 12.w),
+                child: Container(
+                  height: 222.h,
+                  width: 211.w,
+                  padding: EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(width: 1, color: Colors.white54),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Thumbnail 
+                      Container(
+                        height: 122.h,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                          image: DecorationImage(
+                            image: AssetImage('assets/images/replay${index + 1}.png'),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+
+                      // Replay Info
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            index == 0
+                                ? 'Carlos Alcaraz VS Jannik Sinner || Battle For #01'
+                                : 'Cricket World Cup Moments 2025',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 12.h),
+                          Row(
+                            children: [
+                              Text(
+                                '2.1M views',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '5 days ago',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(height: 24.h),
+
+        // Clips Section
+        _sectionName('Clips', () => Get.to(() => ClipsScreen())),
+        SizedBox(height: 16.h),
+
+        // Horizontal Clips List
+        SizedBox(
+          height: 280.h,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            itemCount: 3,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: EdgeInsets.only(right: 12.w),
+                child: Container(
+                  width: 180.w,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/clip${index + 1}.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7),
+                        ],
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        // Text at bottom
+                        Positioned(
+                          bottom: 12.h,
+                          left: 12.w,
+                          right: 12.w,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Lionel Messi embarrassed the goalkeeper with a brilliant chip',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 5,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              SizedBox(height: 4.h),
+                              Text(
+                                '3.4M views',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(height: 24.h),
+
+        // Latest News Section
+        _sectionName('Latest News', () {}),
+        SizedBox(height: 16.h),
+
+        // Latest News Section
+        SizedBox(
+          height: 120.h,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            itemCount: 3,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: EdgeInsets.only(right: 12.w),
+                child: Container(
+                  width: 280.w,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/news.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.5),
+                          Colors.black.withOpacity(0.9),
+                        ],
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        // Text at bottom
+                        Positioned(
+                          bottom: 12.h,
+                          left: 12.w,
+                          right: 12.w,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Lionel Messi embarrassed the goalkeeper with a brilliant chip',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 5,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              SizedBox(height: 4.h),
+                              Row(
+                                children: [
+                                  Text(
+                                    '12 october, 2026',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11.sp,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    '12k read',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11.sp,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(height: 32.h),
       ],
     );
+  }
+
+  Padding _sectionName(String label, VoidCallback? onTap) {
+    return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Spacer(),
+            GestureDetector(
+              onTap: onTap,
+              child: Text(
+                'View All',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.sp,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
   }
 
   Widget _buildTVChannel(String imagePath) {

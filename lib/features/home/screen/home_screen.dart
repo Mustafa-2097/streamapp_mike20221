@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/all_tab.dart';
 import '../widgets/carousel_slider.dart';
+import '../widgets/custom_appdrawer.dart';
 import '../widgets/custom_home_appbar.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -12,6 +13,7 @@ class HomeScreen extends StatelessWidget {
     final sw = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      drawer: const CustomAppDrawer(),
       body: Container(
         height: sh,
         decoration: const BoxDecoration(
@@ -37,7 +39,7 @@ class HomeScreen extends StatelessWidget {
               ),
 
               SliverToBoxAdapter(
-                child: LiveNowSection(), // Add the LiveNow section here
+                child: ContentSection(), // Add the LiveNow section here
               ),
 
             ],

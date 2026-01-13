@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controller/live_controller.dart';
+import '../../const/app_colors.dart';
+import '../../../features/live/live_dashboard/controller/live_controller.dart';
 
 Widget buildTabs() {
   return SizedBox(
@@ -19,14 +20,11 @@ Widget buildTabs() {
               onTap: () => controller.changeTab(index),
               child: Container(
                 margin: const EdgeInsets.only(right: 10),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? Colors.amber
-                      : Colors.white.withOpacity(0.1),
+                      : AppColors.subTextColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(

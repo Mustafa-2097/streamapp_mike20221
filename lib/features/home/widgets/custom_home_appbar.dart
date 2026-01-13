@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../core/const/app_colors.dart';
+import 'package:get/get.dart';
 import '../../../core/const/images_path.dart';
+import '../screen/notification_page.dart';
 
 class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CustomHomeAppBar({super.key});
@@ -18,9 +19,11 @@ class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
-            /// Menu icon
+            /// Menu icon - FIXED
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
               icon: const Icon(Icons.menu, color: Colors.white, size: 32),
             ),
 
@@ -31,7 +34,7 @@ class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
             /// Notification icon
             IconButton(
-              onPressed: () {},
+              onPressed: () => Get.to(() => NotificationPage()),
               icon: const Icon(Icons.notifications_none, color: Colors.white),
             ),
 
@@ -43,8 +46,8 @@ class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
             /// Profile avatar
             CircleAvatar(
-              radius: 12.r,
-              child: Icon(Icons.person, size: 20.r, color: Colors.black)
+                radius: 12.r,
+                child: Icon(Icons.person, size: 20.r, color: Colors.black)
             )
           ],
         ),

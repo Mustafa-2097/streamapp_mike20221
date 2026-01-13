@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:testapp/features/dashboard/customer_dashboard.dart';
+import 'package:testapp/features/home/screen/home_screen.dart';
 import 'package:testapp/features/splash/views/splash_screen.dart';
 
 void main() {
@@ -18,9 +19,12 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return GetMaterialApp(debugShowCheckedModeBanner: false, home: child);
+        return GetMaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: child,
+        );
       },
-      child: SplashScreen(),
+      child: CustomerDashboard(),
     );
   }
 }
