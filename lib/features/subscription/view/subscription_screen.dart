@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:testapp/core/common/widgets/scaffold_bg.dart';
 import '../../../core/const/app_colors.dart';
-import '../widgets/subcription_bottom_sheet.dart';
+import '../widgets/subscription_bottom_sheet.dart';
 
 class SubscriptionPage extends StatelessWidget {
   const SubscriptionPage({super.key});
@@ -10,17 +11,8 @@ class SubscriptionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Container(
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF3A0F0F), Color(0xFF0B0B0B), Color(0xFF000000)],
-            ),
-          ),
+      body: ScaffoldBg(
+        child: SafeArea(
           child: Column(
             children: [
               // Header
@@ -50,7 +42,7 @@ class SubscriptionPage extends StatelessWidget {
                   ],
                 ),
               ),
-
+                
               // Title
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -65,7 +57,7 @@ class SubscriptionPage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 8.h),
-
+                
               // Subtitle
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 40.w),
@@ -80,7 +72,7 @@ class SubscriptionPage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 30.h),
-
+                
               // Subscription Plans
               Expanded(
                 child: ListView(
@@ -94,7 +86,7 @@ class SubscriptionPage extends StatelessWidget {
                       savePercent: '20%',
                     ),
                     SizedBox(height: 20.h),
-
+                
                     // Plan 2
                     _buildPlanCard(
                       context: context,
@@ -104,7 +96,7 @@ class SubscriptionPage extends StatelessWidget {
                       isMostPopular: true,
                     ),
                     SizedBox(height: 20.h),
-
+                
                     // Plan 3
                     _buildPlanCard(
                       context: context,
@@ -112,7 +104,7 @@ class SubscriptionPage extends StatelessWidget {
                       discountedPrice: '\$7.99',
                       savePercent: '20%',
                     ),
-
+                
                     SizedBox(height: 20),
                   ],
                 ),
@@ -141,40 +133,63 @@ class SubscriptionPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Price Section
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                originalPrice,
-                style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 28.sp,
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.lineThrough,
-                  decorationColor: Colors.grey[400],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 60),
+            child: Column(
+              children: [
+                Image.asset("assets/images/subscription_logo.png", width: 50, fit: BoxFit.cover),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      originalPrice,
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 28.sp,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.lineThrough,
+                        decorationColor: Colors.grey[400],
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Text(
+                      discountedPrice,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Text(
+                      '/Live',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              SizedBox(width: 12.w),
-              Text(
-                discountedPrice,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28.sp,
-                  fontWeight: FontWeight.bold,
+                SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    'Save $savePercent',
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
                 ),
-              ),
-              SizedBox(width: 12.w),
-              Text(
-                'Save $savePercent',
-                style: TextStyle(
-                  color: AppColors.primaryColor,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-          SizedBox(height: 20.h),
+          SizedBox(height: 10.h),
+          Divider(color: Colors.grey.shade700),
+          SizedBox(height: 10.h),
 
           // Features
           _buildFeatureRow('Watch all you want. Ad-free.'),
@@ -204,32 +219,6 @@ class SubscriptionPage extends StatelessWidget {
                   fontWeight: FontWeight.w400,
                   decoration: TextDecoration.underline,
                   decorationColor: AppColors.primaryColor,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 16.h),
-
-          // Subscribe Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                // Handle subscription
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber,
-                foregroundColor: Colors.black,
-                padding: EdgeInsets.symmetric(vertical: 12.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-              ),
-              child: Text(
-                'SUBSCRIBE NOW',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),

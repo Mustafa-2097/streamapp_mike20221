@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:testapp/features/clips/screen/clips_screen.dart';
 import 'package:testapp/features/dashboard/widgets/bottom_nav.dart';
+import 'package:testapp/features/profile/view/profile_screen.dart';
 import '../home/screen/home_screen.dart';
 import '../live/live_dashboard/screen/live_screen.dart';
+import '../replay/view/replay_screen.dart';
 
 class CustomerDashboard extends StatefulWidget {
   final int initialIndex;
@@ -19,17 +21,14 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
     HomeScreen(),
     ClipsScreen(),
     LiveMatchesScreen(),
-    // CoursesPage(),
-    // AboutUsPage(),
-    // AboutUsPage(),
-    // AboutUsPage(),
-    // ProfilePage(),
+    ReplayScreen(),
+    ProfileScreen(),
   ];
 
   @override
   void initState() {
     super.initState();
-    _selectedIndex = widget.initialIndex; // set initial tab
+    _selectedIndex = widget.initialIndex;
   }
 
   void _onItemTapped(int index) {

@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
           home: child,
         );
       },
-      child: CustomerDashboard(),
+      child: CustomerDashboard(initialIndex: 4),
     );
   }
 }

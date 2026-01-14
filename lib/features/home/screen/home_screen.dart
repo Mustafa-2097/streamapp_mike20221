@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/common/widgets/scaffold_bg.dart';
 import '../widgets/all_tab.dart';
 import '../widgets/carousel_slider.dart';
 import '../widgets/custom_appdrawer.dart';
@@ -9,29 +10,22 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sh = MediaQuery.of(context).size.height;
-    final sw = MediaQuery.of(context).size.width;
-
     return Scaffold(
       drawer: const CustomAppDrawer(),
-      body: Container(
-        height: sh,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF3A0F0F), Color(0xFF0B0B0B), Color(0xFF000000)],
-          ),
-        ),
+      body: ScaffoldBg(
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
-              SliverToBoxAdapter(
-                child: const CustomHomeAppBar(),
+              SliverAppBar(
+                pinned: true,
+                floating: false,
+                automaticallyImplyLeading: false,
+                backgroundColor: Colors.transparent,
+                flexibleSpace: const CustomHomeAppBar(),
               ),
 
               SliverToBoxAdapter(
-                child: const RugbyCarouselSlider(),
+                child: const HomeCarouselSlider(),
               ),
 
               SliverToBoxAdapter(
@@ -39,7 +33,7 @@ class HomeScreen extends StatelessWidget {
               ),
 
               SliverToBoxAdapter(
-                child: ContentSection(), // Add the LiveNow section here
+                child: ContentSection(),
               ),
 
             ],

@@ -4,14 +4,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../core/const/app_colors.dart';
 
-class RugbyCarouselSlider extends StatefulWidget {
-  const RugbyCarouselSlider({super.key});
+class HomeCarouselSlider extends StatefulWidget {
+  const HomeCarouselSlider({super.key});
 
   @override
-  State<RugbyCarouselSlider> createState() => _RugbyCarouselSliderState();
+  State<HomeCarouselSlider> createState() => _HomeCarouselSliderState();
 }
 
-class _RugbyCarouselSliderState extends State<RugbyCarouselSlider> {
+class _HomeCarouselSliderState extends State<HomeCarouselSlider> {
   final CarouselSliderController _carouselController = CarouselSliderController();
 
   int _currentIndex = 0;

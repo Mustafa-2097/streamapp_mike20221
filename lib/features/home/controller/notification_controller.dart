@@ -47,8 +47,10 @@ class NotificationController extends GetxController {
     loadDummyNotifications();
   }
 
-  void loadDummyNotifications() {
+  Future<void> loadDummyNotifications() async {
     isLoading.value = true;
+    await Future.delayed(const Duration(seconds: 2));
+
 
     // Create 10 dummy notifications
     final dummyNotifications = List.generate(10, (index) {

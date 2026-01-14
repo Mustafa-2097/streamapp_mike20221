@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:testapp/core/common/widgets/scaffold_bg.dart';
 
 import '../model/clips_model.dart';
 
@@ -49,10 +50,7 @@ class ClipsScreen extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () => Get.back(),
-          icon: Icon(Icons.arrow_back_outlined, color: Colors.white,),
-        ),
+        leading: BackButton(color: Colors.white),
         title: Text(
           'CLIPS',
           style: TextStyle(
@@ -62,14 +60,7 @@ class ClipsScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF3A0F0F), Color(0xFF0B0B0B), Color(0xFF000000)],
-          ),
-        ),
+      body: ScaffoldBg(
         child: SafeArea(
           child: Expanded(
             child: Padding(
