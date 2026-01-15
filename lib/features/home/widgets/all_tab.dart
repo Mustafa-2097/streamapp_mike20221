@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:testapp/features/clips/screen/clips_screen.dart';
+import 'package:testapp/features/dashboard/customer_dashboard.dart';
 import 'package:testapp/features/home/widgets/upcoming_match_card.dart';
+import 'package:testapp/features/news/view/news_screen.dart';
 
 import 'live_card.dart';
 
@@ -202,7 +204,7 @@ class ContentSection extends StatelessWidget {
         SizedBox(height: 24.h),
 
         // Clips Section
-        _sectionName('Clips', () => Get.to(() => ClipsScreen())),
+        _sectionName('Clips', () => Get.off(() => CustomerDashboard(initialIndex: 1))),
         SizedBox(height: 16.h),
 
         // Horizontal Clips List
@@ -279,7 +281,7 @@ class ContentSection extends StatelessWidget {
         SizedBox(height: 24.h),
 
         // Latest News Section
-        _sectionName('Latest News', () {}),
+        _sectionName('Latest News', () => Get.to(() => NewsScreen())),
         SizedBox(height: 16.h),
 
         // Latest News Section

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:testapp/features/dashboard/customer_dashboard.dart';
-import 'package:testapp/features/home/screen/home_screen.dart';
 
 class SignInController extends GetxController {
   final emailController = TextEditingController();

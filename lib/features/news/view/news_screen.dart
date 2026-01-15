@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:testapp/features/replay/controller/replay_controller.dart';
+import 'package:testapp/features/news/controller/news_controller.dart';
 import '../../../../core/common/widgets/scaffold_bg.dart';
 
-class ReplayScreen extends StatelessWidget {
-  ReplayScreen({super.key});
-  final controller = Get.put(ReplayController());
+class NewsScreen extends StatelessWidget {
+  NewsScreen({super.key});
+  final controller = Get.put(NewsController());
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +15,9 @@ class ReplayScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: const BackButton(color: Colors.white),
         title: Text(
-          "REPLAY",
+          "NEWS",
           style: TextStyle(color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -46,7 +47,7 @@ class ReplayScreen extends StatelessWidget {
 
   // --- Widgets ---
 
-  Widget _buildCategoryTabs(ReplayController controller) {
+  Widget _buildCategoryTabs(NewsController controller) {
     return SizedBox(
       height: 30.h,
       child: ListView.builder(
@@ -81,12 +82,12 @@ class ReplayScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildReplayList(ReplayController controller) {
+  Widget _buildReplayList(NewsController controller) {
     return ListView.builder(
-      itemCount: controller.replayBookmarks.length,
+      itemCount: controller.newsData.length,
       padding: EdgeInsets.symmetric(horizontal: 15.w),
       itemBuilder: (context, index) {
-        final item = controller.replayBookmarks[index];
+        final item = controller.newsData[index];
         return _buildReplayItem(item);
       },
     );
@@ -97,26 +98,11 @@ class ReplayScreen extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: 16.h),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10.r),
-                child: Image.asset("assets/images/replay2.png", width: 145, height: 85, fit: BoxFit.cover),
-              ),
-              Positioned(
-                bottom: 5, right: 5,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6.w),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  child: Text(item['duration'], style: TextStyle(color: Colors.white, fontSize: 10.sp)),
-                ),
-              )
-            ],
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10.r),
+            child: Image.asset("assets/images/replay2.png", width: 90, height: 75, fit: BoxFit.cover),
           ),
           SizedBox(width: 12.w),
           Expanded(
@@ -124,13 +110,7 @@ class ReplayScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item['title'], style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14.sp)),
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 4.h),
-                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                  decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(11.r)),
-                  child: Text("Highlights", style: TextStyle(color: Colors.grey.shade100, fontSize: 10.sp)),
-                ),
-                Text("${item['views']}  •  ${item['time']}", style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
+                Text("${item['date']}  •  ${item['read']}", style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
               ],
             ),
           )

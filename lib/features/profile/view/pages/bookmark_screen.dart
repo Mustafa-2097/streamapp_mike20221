@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:testapp/features/clips/widgets/clips_card.dart';
 import '../../../../core/common/widgets/scaffold_bg.dart';
 import '../../controller/bookmarks_controller.dart';
 
 class BookmarkScreen extends StatelessWidget {
-  BookmarkScreen({super.key});
-  final controller = Get.put(BookmarkController());
+  const BookmarkScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = BookmarkController.to;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -37,6 +38,8 @@ class BookmarkScreen extends StatelessWidget {
                     return _buildLiveList(controller);
                   } else if (controller.selectedTabIndex.value == 1) {
                     return _buildReplayList(controller);
+                  } else if (controller.selectedTabIndex.value == 2) {
+                    return _buildClipsGrid(controller);
                   } else {
                     return const Center(child: Text("No Data", style: TextStyle(color: Colors.white)));
                   }
@@ -120,6 +123,40 @@ class BookmarkScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildClipsGrid(BookmarkController controller) {
+    return Obx(() {
+      return GridView.builder(
+        padding: EdgeInsets.symmetric(horizontal: 12.w),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.64,
+        ),
+        itemCount: controller.clipBookmarks.length,
+        itemBuilder: (context, index) {
+          final clip = controller.clipBookmarks[index];
+          return Dismissible(
+            key: UniqueKey(),
+            direction: DismissDirection.startToEnd,
+            onDismissed: (_) {
+              controller.removeClip(index);
+            },
+            background: _buildDeleteBackground(),
+            child: ClipCard(
+              clip: clip,
+              isBookmarked: true,
+              onBookmark: () {},
+              showBookmarkIcon: false,
+            ),
+          );
+        },
+      );
+    });
+  }
+
+
+
   Widget _buildDeleteBackground() {
     return Container(
       alignment: Alignment.centerLeft,
@@ -130,6 +167,7 @@ class BookmarkScreen extends StatelessWidget {
 
   // --- Specific Card Designs ---
 
+  /// Live Section
   Widget _buildLiveCard(Map item) {
     return Container(
       margin: EdgeInsets.only(bottom: 15.h),
@@ -168,6 +206,7 @@ class BookmarkScreen extends StatelessWidget {
     );
   }
 
+  /// Replay Section
   Widget _buildReplayItem(Map item) {
     return Padding(
       padding: EdgeInsets.only(bottom: 16.h),
@@ -213,6 +252,9 @@ class BookmarkScreen extends StatelessWidget {
       ),
     );
   }
+
+  /// News Section will added in future
+
 
   Widget _buildTeam(String name, IconData icon) {
     return Column(

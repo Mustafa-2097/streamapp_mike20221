@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:testapp/features/clips/screen/clips_screen.dart';
 import 'package:testapp/features/dashboard/widgets/bottom_nav.dart';
 import 'package:testapp/features/profile/view/profile_screen.dart';
-import '../home/screen/home_screen.dart';
+import '../home/view/home_screen.dart';
 import '../live/live_dashboard/screen/live_screen.dart';
 import '../replay/view/replay_screen.dart';
 
