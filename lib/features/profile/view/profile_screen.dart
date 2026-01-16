@@ -1,18 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:testapp/features/home/widgets/personal_details.dart';
-import 'package:testapp/features/profile/view/pages/bookmark_screen.dart';
-import 'package:testapp/features/profile/view/pages/contact_us_page.dart';
-import 'package:testapp/features/profile/view/pages/notification_setting.dart';
-import 'package:testapp/features/profile/view/pages/payment_history_page.dart';
-import 'package:testapp/features/profile/view/pages/personal_data.dart';
-import 'package:testapp/features/profile/view/pages/support_center_page.dart';
-import 'package:testapp/features/profile/view/pages/terms_conditions_page.dart';
 import '../../../core/common/widgets/scaffold_bg.dart';
 import '../../../core/const/app_colors.dart';
-import '../../home/view/notification_page.dart';
-import '../../subscription/view/subscription_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

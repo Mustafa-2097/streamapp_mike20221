@@ -111,7 +111,7 @@ class PersonalDetails extends StatelessWidget {
         /// Logout Button
         SizedBox(
           child: OutlinedButton.icon(
-            onPressed: () {},
+            onPressed: () => showLogoutBottomSheet(context),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: Color(0xFFDF1C41), width: 1.3),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
@@ -166,3 +166,124 @@ class _DrawerItem extends StatelessWidget {
     );
   }
 }
+
+void showLogoutBottomSheet(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (_) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Color(0xFF0F1720), // dark background
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(24),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            /// WARNING ICON
+            Container(
+              height: 64,
+              width: 64,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFF5A5A),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// TITLE
+            const Text(
+              "LOGOUT",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            /// DESCRIPTION
+            const Text(
+              "Are you sure you want to log out? "
+                  "You will need to sign in again to access your account.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 14,
+              ),
+            ),
+
+            const SizedBox(height: 28),
+
+            /// BUTTONS
+            Row(
+              children: [
+                /// LOGOUT
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFFF5A5A)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // TODO: handle logout
+                    },
+                    child: const Text(
+                      "Logout",
+                      style: TextStyle(
+                        color: Color(0xFFFF5A5A),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 16),
+
+                /// CANCEL
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      "Cancel",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 30.h),
+          ],
+        ),
+      );
+    },
+  );
+}
+
