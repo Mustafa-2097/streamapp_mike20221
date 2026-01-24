@@ -4,6 +4,7 @@ import '../widgets/all_tab.dart';
 import '../widgets/carousel_slider.dart';
 import '../widgets/custom_appdrawer.dart';
 import '../widgets/custom_home_appbar.dart';
+import '../widgets/sports_category_filter.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -26,6 +27,10 @@ class HomeScreen extends StatelessWidget {
 
               SliverToBoxAdapter(
                 child: const HomeCarouselSlider(),
+              ),
+
+              SliverToBoxAdapter(
+                child: const SportsCategoryFilter(),
               ),
 
               SliverToBoxAdapter(
