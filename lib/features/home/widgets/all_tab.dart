@@ -6,10 +6,18 @@ import 'package:testapp/features/dashboard/customer_dashboard.dart';
 import 'package:testapp/features/home/widgets/upcoming_match_card.dart';
 import 'package:testapp/features/news/view/news_screen.dart';
 
+import '../view/tv_video.dart';
 import 'live_card.dart';
 
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
+
+  final List<Widget> _tvScreens = [
+    openTvOne(),        // TV 1
+    openTvOne(),        // TV 2
+    openTvOne(),        // TV 3
+  ];
+
 
   final List<String> _liveImages = [
     'assets/images/live01.png',
@@ -84,11 +92,12 @@ class ContentSection extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildTVChannel('assets/images/tv01.png'),
-              _buildTVChannel('assets/images/tv02.png'),
-              _buildTVChannel('assets/images/tv03.png'),
+              _buildTVChannel('assets/images/tv01.png', 0),
+              _buildTVChannel('assets/images/tv02.png', 1),
+              _buildTVChannel('assets/images/tv03.png', 2),
             ],
           ),
+
         ),
         SizedBox(height: 26.h),
 
@@ -401,15 +410,24 @@ class ContentSection extends StatelessWidget {
       );
   }
 
-  Widget _buildTVChannel(String imagePath) {
-    return ClipRRect(
-      child: Image.asset(
-        imagePath,
-        width: 90,
-        fit: BoxFit.cover,
+  Widget _buildTVChannel(String imagePath, int index) {
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => _tvScreens[index]);
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.asset(
+          imagePath,
+          width: 90,
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
+
+
+
 }
 
 
