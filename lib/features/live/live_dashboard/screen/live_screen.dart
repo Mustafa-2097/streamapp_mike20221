@@ -5,6 +5,11 @@ import '../../live_video/screen/video_screen.dart';
 import '../controller/live_controller.dart';
 import '../model/live_model.dart';
 import '../../../../core/common/widgets/build_tabs_widget.dart';
+import '../../../../core/common/widgets/match_stats_widget.dart';
+import '../../../../core/common/widgets/lineup_widget.dart';
+import '../../../../core/common/widgets/table_widget.dart';
+import '../../../../core/common/widgets/h2h_widget.dart';
+import '../../../../core/common/widgets/recent_matches_widget.dart';
 
 class LiveMatchesScreen extends StatelessWidget {
   LiveMatchesScreen({super.key});
@@ -68,6 +73,21 @@ class LiveMatchesScreen extends StatelessWidget {
                   builder: (controller) {
                     if (controller.isUpcoming) {
                       return _buildUpcomingList();
+                    }
+                    if (controller.isRecentMatch) {
+                      return RecentMatchesWidget(recentMatchesData: controller.recentMatchesData);
+                    }
+                    if (controller.isStats) {
+                      return MatchStatsWidget(statsData: controller.statsData);
+                    }
+                    if (controller.isLineup) {
+                      return LineupWidget(lineupData: controller.lineupData);
+                    }
+                    if (controller.isTable) {
+                      return TableWidget(tableData: controller.tableData);
+                    }
+                    if (controller.isH2H) {
+                      return H2HWidget(h2hData: controller.h2hData);
                     }
                     return _buildMatchList(); // LIVE
                   },

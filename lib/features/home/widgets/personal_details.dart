@@ -10,6 +10,7 @@ import '../../profile/view/pages/support_center_page.dart';
 import '../../profile/view/pages/terms_conditions_page.dart';
 import '../../subscription/view/subscription_screen.dart';
 import '../view/notification_page.dart';
+import 'language_dropdown.dart';
 
 class PersonalDetails extends StatelessWidget {
   const PersonalDetails({super.key});
@@ -67,11 +68,7 @@ class PersonalDetails extends StatelessWidget {
           ),
         ),
         SizedBox(height: 10.h),
-        _DrawerItem(
-          icon: Icons.language_outlined,
-          label: 'Language',
-          onTap: () {},
-        ),
+        LanguageDropdown(),
         _DrawerItem(
           icon: Icons.notifications_outlined,
           label: 'Notification Setting',

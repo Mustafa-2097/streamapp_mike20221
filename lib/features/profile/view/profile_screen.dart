@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:testapp/features/home/widgets/personal_details.dart';
+import 'package:testapp/features/home/widgets/personal_details.dart' hide SizedBox;
 import '../../../core/common/widgets/scaffold_bg.dart';
 import '../../../core/const/app_colors.dart';
 
