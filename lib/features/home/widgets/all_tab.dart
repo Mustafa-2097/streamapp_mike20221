@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:testapp/features/clips/screen/clips_screen.dart';
 import 'package:testapp/features/dashboard/customer_dashboard.dart';
 import 'package:testapp/features/home/widgets/upcoming_match_card.dart';
+import 'package:testapp/features/live/live_video/screen/video_screen.dart';
 import 'package:testapp/features/news/view/news_screen.dart';
 
 import '../view/open_tvs.dart';
@@ -155,61 +156,66 @@ class ContentSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(width: 1, color: Colors.white54),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Thumbnail 
-                      Container(
-                        height: 122.h,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                          image: DecorationImage(
-                            image: AssetImage('assets/images/replay${index + 1}.png'),
-                            fit: BoxFit.cover,
+                  child: GestureDetector(
+                    onTap: (){
+                      Get.to(VideoLiveScreen());
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Thumbnail
+                        Container(
+                          height: 122.h,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                            image: DecorationImage(
+                              image: AssetImage('assets/images/replay${index + 1}.png'),
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(height: 8.h),
+                        SizedBox(height: 8.h),
 
-                      // Replay Info
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            index == 0
-                                ? 'Carlos Alcaraz VS Jannik Sinner || Battle For #01'
-                                : 'Cricket World Cup Moments 2025',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w600,
+                        // Replay Info
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              index == 0
+                                  ? 'Carlos Alcaraz VS Jannik Sinner || Battle For #01'
+                                  : 'Cricket World Cup Moments 2025',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          SizedBox(height: 12.h),
-                          Row(
-                            children: [
-                              Text(
-                                '2.1M views',
-                                style: TextStyle(
-                                  color: Colors.grey[400],
-                                  fontSize: 12.sp,
+                            SizedBox(height: 12.h),
+                            Row(
+                              children: [
+                                Text(
+                                  '2.1M views',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 12.sp,
+                                  ),
                                 ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                '5 days ago',
-                                style: TextStyle(
-                                  color: Colors.grey[400],
-                                  fontSize: 12.sp,
+                                const Spacer(),
+                                Text(
+                                  '5 days ago',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 12.sp,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

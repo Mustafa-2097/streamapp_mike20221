@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:testapp/core/common/widgets/scaffold_bg.dart';
 
+import '../../home/view/open_reels_video.dart';
 import '../../profile/controller/bookmarks_controller.dart';
 import '../model/clips_model.dart';
 import '../widgets/clips_card.dart';
@@ -78,6 +79,9 @@ class ClipsScreen extends StatelessWidget {
                       bookmarkController.toggleClip(clip);
                     },
                     showBookmarkIcon: true,
+                  onTap: (){
+                      Get.to(OpenReelsVideo());
+                  },
                   ),
                 );
               },

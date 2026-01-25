@@ -27,6 +27,7 @@ dependencies:
   shared_preferences:
   video_player: ^2.9.1
   webview_flutter: ^4.13.1
+  share_plus: ^10.0.0
 
 
 

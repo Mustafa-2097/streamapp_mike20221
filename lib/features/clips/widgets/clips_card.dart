@@ -6,6 +6,7 @@ class ClipCard extends StatelessWidget {
   final bool isBookmarked;
   final VoidCallback onBookmark;
   final bool showBookmarkIcon;
+  final VoidCallback? onTap;
 
   const ClipCard({
     super.key,
@@ -13,58 +14,62 @@ class ClipCard extends StatelessWidget {
     required this.isBookmarked,
     required this.onBookmark,
     this.showBookmarkIcon = true,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.network(clip.imageUrl, fit: BoxFit.cover),
-          ),
-
-          /// Bookmark icon (ONLY when enabled)
-          if (showBookmarkIcon)
-            Positioned(
-              top: 8,
-              right: 8,
-              child: GestureDetector(
-                onTap: onBookmark,
-                child: Icon(
-                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                  color: Colors.white,
-                ),
-              ),
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.network(clip.imageUrl, fit: BoxFit.cover),
             ),
 
-          Positioned(
-            left: 12,
-            right: 12,
-            bottom: 14,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  clip.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+            /// Bookmark icon (ONLY when enabled)
+            if (showBookmarkIcon)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: GestureDetector(
+                  onTap: onBookmark,
+                  child: Icon(
+                    isBookmarked ? Icons.bookmark : Icons.bookmark_border,
                     color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  clip.views,
-                  style: const TextStyle(color: Colors.white70, fontSize: 11),
-                ),
-              ],
+              ),
+
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 14,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    clip.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    clip.views,
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

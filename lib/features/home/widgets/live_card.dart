@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:testapp/features/live/live_video/screen/video_screen.dart';
 
 class LiveCard extends StatelessWidget {
   const LiveCard({
@@ -22,8 +24,7 @@ class LiveCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (!isLocked) {
-          // Navigate to live stream
-          print('Playing: $title');
+          Get.to(VideoLiveScreen());
         }
       },
       child: Container(
