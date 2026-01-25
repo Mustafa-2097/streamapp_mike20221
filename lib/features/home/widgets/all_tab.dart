@@ -7,6 +7,8 @@ import 'package:testapp/features/home/widgets/upcoming_match_card.dart';
 import 'package:testapp/features/live/live_video/screen/video_screen.dart';
 import 'package:testapp/features/news/view/news_screen.dart';
 
+import '../../live/live_dashboard/screen/live_screen.dart';
+import '../view/news_details_screen.dart';
 import '../view/open_reels_video.dart';
 import '../view/open_tvs.dart';
 import 'live_card.dart';
@@ -110,27 +112,41 @@ class ContentSection extends StatelessWidget {
         SizedBox(height: 26.h),
 
         // Upcoming section
-        _sectionName("Upcoming", () {}),
+        // Upcoming section
+        _sectionName(
+          "Upcoming",
+              () {
+            Get.to(
+                  () => LiveMatchesScreen(initialTab: 1), // 👈 Upcoming tab index
+            );
+          },
+        ),
+
         SizedBox(height: 16.h),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
-          child: Column(
-            children: const [
-              UpcomingMatchCard(
-                imagePath: 'assets/images/live01.png',
-                league: 'EFL Championship',
-                match: 'Brazil vs Spain',
-                time: 'Today at 06:04 PM',
-              ),
-              SizedBox(height: 12),
-              UpcomingMatchCard(
-                imagePath: 'assets/images/live02.png',
-                league: 'Rugby Championship',
-                match: 'Springboks vs Argentina',
-                time: 'Today at 01:04 PM',
-                isHighlighted: true,
-              ),
-            ],
+          child: GestureDetector(
+            onTap: (){
+
+            },
+            child: Column(
+              children: const [
+                UpcomingMatchCard(
+                  imagePath: 'assets/images/live01.png',
+                  league: 'EFL Championship',
+                  match: 'Brazil vs Spain',
+                  time: 'Today at 06:04 PM',
+                ),
+                SizedBox(height: 12),
+                UpcomingMatchCard(
+                  imagePath: 'assets/images/live02.png',
+                  league: 'Rugby Championship',
+                  match: 'Springboks vs Argentina',
+                  time: 'Today at 01:04 PM',
+                  isHighlighted: true,
+                ),
+              ],
+            ),
           ),
         ),
         SizedBox(height: 16.h),
@@ -321,72 +337,77 @@ class ContentSection extends StatelessWidget {
             itemBuilder: (context, index) {
               return Padding(
                 padding: EdgeInsets.only(right: 12.w),
-                child: Container(
-                  width: 280.w,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/news.png'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                child: GestureDetector(
+                  onTap: (){
+                    Get.to(NewsDetailsScreen());
+                  },
                   child: Container(
+                    width: 280.w,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.5),
-                          Colors.black.withOpacity(0.9),
-                        ],
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/news.png'),
+                        fit: BoxFit.cover,
                       ),
                     ),
-                    child: Stack(
-                      children: [
-                        // Text at bottom
-                        Positioned(
-                          bottom: 12.h,
-                          left: 12.w,
-                          right: 12.w,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Lionel Messi embarrassed the goalkeeper with a brilliant chip',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                maxLines: 5,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 4.h),
-                              Row(
-                                children: [
-                                  Text(
-                                    '12 october, 2026',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    '12k read',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.5),
+                            Colors.black.withOpacity(0.9),
+                          ],
                         ),
-                      ],
+                      ),
+                      child: Stack(
+                        children: [
+                          // Text at bottom
+                          Positioned(
+                            bottom: 12.h,
+                            left: 12.w,
+                            right: 12.w,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Lionel Messi embarrassed the goalkeeper with a brilliant chip',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 5,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: 4.h),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '12 october, 2026',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11.sp,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      '12k read',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11.sp,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

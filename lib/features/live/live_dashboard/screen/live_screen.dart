@@ -12,7 +12,9 @@ import '../../../../core/common/widgets/h2h_widget.dart';
 import '../../../../core/common/widgets/recent_matches_widget.dart';
 
 class LiveMatchesScreen extends StatelessWidget {
-  LiveMatchesScreen({super.key});
+  LiveMatchesScreen({super.key, this.initialTab = 0});
+
+  final int initialTab;
 
   final LiveMatchesController controller = Get.put(
     LiveMatchesController(),
@@ -21,6 +23,10 @@ class LiveMatchesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.setTab(initialTab);
+    });
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,

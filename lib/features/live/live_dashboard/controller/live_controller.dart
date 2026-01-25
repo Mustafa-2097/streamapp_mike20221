@@ -25,6 +25,12 @@ class LiveMatchesController extends GetxController {
   late H2HData h2hData;
   late RecentMatchesData recentMatchesData;
 
+  void setTab(int index) {
+    selectedTab = index;
+    update();
+  }
+
+
   @override
   void onInit() {
     super.onInit();
