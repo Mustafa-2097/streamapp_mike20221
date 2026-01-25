@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import '../widgets/show_comments_bottom_sheet.dart';
 
