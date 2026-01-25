@@ -26,7 +26,8 @@ class MyApp extends StatelessWidget {
           home: child,
         );
       },
-      child: SplashScreen(),
+      // child: SplashScreen(),
+      child: CustomerDashboard(),
     );
   }
 }

@@ -6,18 +6,23 @@ import 'package:testapp/features/dashboard/customer_dashboard.dart';
 import 'package:testapp/features/home/widgets/upcoming_match_card.dart';
 import 'package:testapp/features/news/view/news_screen.dart';
 
-import '../view/tv_video.dart';
+import '../view/open_tvs.dart';
 import 'live_card.dart';
 
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
 
-  final List<Widget> _tvScreens = [
-    openTvOne(),        // TV 1
-    openTvOne(),        // TV 2
-    openTvOne(),        // TV 3
+  final List<String> _videoUrls = [
+    'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
+    'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv?autoplay=1',
+    'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
   ];
 
+  final List<String> _videoTitles = [
+    'Live TV Channel 1',
+    'Live TV Channel 2',
+    'Live TV Channel 3',
+  ];
 
   final List<String> _liveImages = [
     'assets/images/live01.png',
@@ -99,6 +104,7 @@ class ContentSection extends StatelessWidget {
           ),
 
         ),
+
         SizedBox(height: 26.h),
 
         // Upcoming section
@@ -413,7 +419,13 @@ class ContentSection extends StatelessWidget {
   Widget _buildTVChannel(String imagePath, int index) {
     return GestureDetector(
       onTap: () {
-        Get.to(() => _tvScreens[index]);
+        Get.to(
+          () => openTvs(
+            videoUrl: _videoUrls[index],
+            videoTitle: _videoTitles[index],
+            viewerCount: _viewerCounts[index],
+          ),
+        );
       },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
