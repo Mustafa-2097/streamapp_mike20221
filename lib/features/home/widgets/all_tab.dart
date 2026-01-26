@@ -6,6 +6,7 @@ import 'package:testapp/features/dashboard/customer_dashboard.dart';
 import 'package:testapp/features/home/widgets/upcoming_match_card.dart';
 import 'package:testapp/features/live/live_video/screen/video_screen.dart';
 import 'package:testapp/features/news/view/news_screen.dart';
+import 'package:testapp/features/replay/view/replay_screen.dart';
 
 import '../../live/live_dashboard/screen/live_screen.dart';
 import '../view/news_details_screen.dart';
@@ -61,7 +62,9 @@ class ContentSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Live Now section
-        _sectionName("Live Now", () {}),
+        _sectionName("Live Now", () {
+          Get.to(LiveMatchesScreen());
+        }),
         SizedBox(height: 16.h),
 
         // Horizontal Scrollable Live Now List
@@ -153,7 +156,9 @@ class ContentSection extends StatelessWidget {
 
 
         // Replay Section
-        _sectionName("Replay", () {}),
+        _sectionName("Replay", () {
+          Get.to(ReplayScreen());
+        }),
         SizedBox(height: 16.h),
 
         SizedBox(
@@ -242,7 +247,7 @@ class ContentSection extends StatelessWidget {
         SizedBox(height: 24.h),
 
         // Clips Section
-        _sectionName('Clips', () => Get.off(() => CustomerDashboard(initialIndex: 1))),
+        _sectionName('Clips', () => Get.to(() => ClipsScreen())),
         SizedBox(height: 16.h),
 
         // Horizontal Clips List
