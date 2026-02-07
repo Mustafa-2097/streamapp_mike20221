@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-
 import '../../live/live_video/controller/video_controller.dart';
 
 class openTvs extends StatefulWidget {
