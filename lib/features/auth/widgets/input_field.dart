@@ -46,9 +46,20 @@ class InputField extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           borderSide: BorderSide.none,
         ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24),
+          borderSide: const BorderSide(color: Colors.red, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24),
+          borderSide: const BorderSide(color: Colors.red, width: 2),
+        ),
+        errorStyle: const TextStyle(
+          color: Colors.red,
+          fontSize: 14,
+        ),
         suffixIcon: suffixIcon,
       ),
     );
   }
 }
-

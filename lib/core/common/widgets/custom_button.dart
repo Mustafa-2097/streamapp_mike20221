@@ -4,7 +4,7 @@ import '../../const/app_colors.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Widget? leading;
   final Color? color;
   final double vertical;
@@ -25,7 +25,7 @@ class CustomButton extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        width: 360,
+        width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(

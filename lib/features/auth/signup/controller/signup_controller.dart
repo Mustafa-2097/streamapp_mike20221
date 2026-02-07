@@ -3,59 +3,145 @@ import 'package:get/get.dart';
 import 'package:testapp/core/common/widgets/custom_button.dart';
 import 'package:testapp/core/const/icons_path.dart';
 import 'package:testapp/features/auth/login/screen/login_screen.dart';
+import '../../../../core/offline_storage/shared_pref.dart';
+import '../../data/auth_api_service.dart';
+import '../../forgot_pass/screen/otp_screen.dart';
 
 class SignUpController extends GetxController {
   // Text Controllers
   final emailController = TextEditingController();
   final nameController = TextEditingController();
   final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController(); // Added
+  final confirmPasswordController = TextEditingController();
 
   // Observables
   final isPasswordHidden = true.obs;
-  var isConfirmPasswordHidden = true.obs;
+  final isConfirmPasswordHidden = true.obs;
+  final isLoading = false.obs;
 
-  //final isPasswordStrong = false.obs;
+  // Form validation key
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  // Name validation
+  String? validateName(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your name';
+    }
+    if (value.length < 2) {
+      return 'Name must be at least 2 characters';
+    }
+    return null;
+  }
+
+  // Email validation
+  String? validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your email';
+    }
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+      return 'Please enter a valid email address';
+    }
+    return null;
+  }
 
   // Password validation
-  // void validatePassword(String value) {
-  //   final hasMinLength = value.length >= 8;
-  //   final hasLetters = value.contains(RegExp(r'[A-Za-z]'));
-  //   final hasNumbers = value.contains(RegExp(r'[0-9]'));
+  String? validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your password';
+    }
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters';
+    }
+    return null;
+  }
 
-  //   isPasswordStrong.value = hasMinLength && hasLetters && hasNumbers;
-  // }
+  // Confirm password validation
+  String? validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please confirm your password';
+    }
+    if (value != passwordController.text) {
+      return 'Passwords do not match';
+    }
+    return null;
+  }
 
-  // void validatePassword(String value) {
-  //   isPasswordStrong.value =
-  //       value.length >= 8 &&
-  //       value.contains(RegExp(r'[A-Za-z]')) &&
-  //       value.contains(RegExp(r'\d'));
-  // }
-
-  void signUp() {
-    if (emailController.text.isEmpty ||
-        nameController.text.isEmpty ||
-        passwordController.text.isEmpty ||
-        confirmPasswordController.text.isEmpty) {
-      // Updated
-      Get.snackbar("Error", "All fields are required");
+  Future<void> signUp() async {
+    // First validate the form
+    if (!formKey.currentState!.validate()) {
       return;
     }
 
-    if (passwordController.text != confirmPasswordController.text) {
-      // Check confirm password
-      Get.snackbar("Error", "Passwords do not match");
-      return;
+    debugPrint('Sign Up Attempt Started');
+    debugPrint('Name: ${nameController.text.trim()}');
+    debugPrint('Email: ${emailController.text.trim()}');
+    debugPrint('Password: ${passwordController.text.trim()}');
+    debugPrint('Confirm Password: ${confirmPasswordController.text.trim()}');
+
+    try {
+      isLoading.value = true;
+
+      // Call the signup API
+      final response = await AuthApiService.signUp(
+        name: nameController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      debugPrint('API Response: $response');
+
+      if (response['success'] == true) {
+        final data = response['data'];
+
+        final accessToken = data['accessToken'];
+        final refreshToken = data['refreshToken'];
+        final user = data['user'];
+
+        debugPrint('Access Token: $accessToken');
+        debugPrint('Refresh Token: $refreshToken');
+        debugPrint('User Data: $user');
+
+        // Save access token to SharedPreferences
+        if (accessToken != null && accessToken.isNotEmpty) {
+          await SharedPreferencesHelper.saveToken(accessToken);
+          debugPrint('Access token saved to SharedPreferences');
+
+          // Verify token was saved
+          final savedToken = await SharedPreferencesHelper.getToken();
+          debugPrint('Verified saved token: ${savedToken?.substring(0, 20)}...');
+        }
+
+        // If user role exists in response, save it
+        if (user != null && user['role'] != null) {
+          await SharedPreferencesHelper.saveRole(user['role']);
+          debugPrint('User role saved: ${user['role']}');
+        }
+
+        // Show success dialog
+        Get.to(() => VerifyOtpScreen());
+      } else {
+        debugPrint('Signup failed: ${response['message']}');
+        Get.snackbar(
+          "Error",
+          response['message'] ?? 'Signup failed',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      debugPrint('Exception during sign up: $e');
+      debugPrint('Exception type: ${e.runtimeType}');
+
+      Get.snackbar(
+        "Connection Error",
+        "Unable to connect to server. Please check your internet connection.",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+      debugPrint('Sign Up Process Completed');
     }
-
-    // if (!isPasswordStrong.value) {
-    //   Get.snackbar("Weak Password", "Please use a stronger password");
-    //   return;
-    // }
-
-    // Success popup
-    showSuccessDialog();
   }
 
   void showSuccessDialog() {
@@ -93,6 +179,7 @@ class SignUpController extends GetxController {
                 textColor: Colors.white,
                 color: Color(0xFF131720),
                 onPressed: () {
+                  debugPrint('Navigating to SignInScreen');
                   Get.off(() => SignInScreen());
                 },
               ),
@@ -109,7 +196,7 @@ class SignUpController extends GetxController {
     emailController.dispose();
     nameController.dispose();
     passwordController.dispose();
-    confirmPasswordController.dispose(); // Dispose confirm password
+    confirmPasswordController.dispose();
     super.onClose();
   }
 }

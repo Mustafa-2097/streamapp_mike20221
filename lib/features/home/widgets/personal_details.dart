@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:testapp/features/auth/login/screen/login_screen.dart';
 import '../../profile/view/pages/bookmark_screen.dart';
 import '../../profile/view/pages/contact_us_page.dart';
 import '../../profile/view/pages/notification_setting.dart';
@@ -238,8 +239,7 @@ void showLogoutBottomSheet(BuildContext context) {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     onPressed: () {
-                      Navigator.pop(context);
-                      // TODO: handle logout
+                      Get.offAll(() => SignInScreen());
                     },
                     child: const Text(
                       "Logout",

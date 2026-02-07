@@ -5,6 +5,7 @@ import 'package:testapp/features/auth/login/screen/login_screen.dart';
 
 import '../../../core/common/styles/global_text_style.dart';
 import '../../../core/const/images_path.dart';
+import '../../auth/signup/screen/signup_screen.dart';
 
 class OnboardingScreenFourth extends StatelessWidget {
   const OnboardingScreenFourth({super.key});
@@ -50,16 +51,22 @@ class OnboardingScreenFourth extends StatelessWidget {
             ),
             SizedBox(height: 40),
 
-            CustomButton(
-              text: "Login",
-              textColor: Colors.white,
-              color: Color(0xFF131720),
-              onPressed: () {
-                Get.to(SignInScreen());
-              },
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: CustomButton(
+                text: "Login",
+                textColor: Colors.white,
+                color: Color(0xFF131720),
+                onPressed: () {
+                  Get.to(SignInScreen());
+                },
+              ),
             ),
             SizedBox(height: 20),
-            CustomButton(text: "Register Now", onPressed: () {}),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: CustomButton(text: "Register Now", onPressed: () => Get.to(() => SignUpScreen())),
+            ),
 
             const Spacer(),
           ],
