@@ -31,4 +31,32 @@ class AuthApiService {
       },
     );
   }
+
+  /// VERIFY OTP API
+  static Future<Map<String, dynamic>> verifyOtp({
+    required String email,
+    required String otp,
+    required bool isSignUp,
+  }) async {
+    return await ApiService.post(
+      ApiEndpoints.verifySigUupOtp,
+      body: {
+        "email": email,
+        "otp": otp,
+      },
+    );
+  }
+  /// RESEND OTP API
+  static Future<Map<String, dynamic>> resendOtp({
+    required String email,
+    required bool isSignUp,
+  }) async {
+    return await ApiService.post(
+      ApiEndpoints.resendOtp,
+      body: {
+        "email": email,
+        "isSignUp": isSignUp,
+      },
+    );
+  }
 }

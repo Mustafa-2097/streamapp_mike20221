@@ -9,12 +9,21 @@ import '../../../../core/const/app_colors.dart';
 import '../controller/otp_controller.dart';
 
 class VerifyOtpScreen extends StatelessWidget {
-  VerifyOtpScreen({super.key});
-
-  final controller = Get.find<OtpController>();
+  const VerifyOtpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Get email passed from previous screen
+    final arguments = Get.arguments ?? {};
+    final userEmail = arguments['email'] ?? '';
+    final isSignUp = arguments['isSignUp'] ?? false;
+
+    // Create a new OTP controller instance for this screen
+    final controller = Get.put(OtpController(
+      email: userEmail,
+      isSignUp: isSignUp,
+    ));
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -40,10 +49,10 @@ class VerifyOtpScreen extends StatelessWidget {
                   child: CustomBackIcon(onBack: () => Get.back()),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
 
                 Text(
-                  "OTP Verification",
+                  isSignUp ? "Verify Your Account" : "OTP Verification",
                   style: appTextStyleHeading(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -51,18 +60,29 @@ class VerifyOtpScreen extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
 
-                const Text(
+                Text(
                   "Enter the verification code we just sent on",
                   style: TextStyle(color: Colors.grey),
                 ),
-                const Text(
-                  "your email address.",
-                  style: TextStyle(color: Colors.grey),
-                ),
 
-                const SizedBox(height: 40),
+                // Show email if available
+                if (userEmail.isNotEmpty)
+                  Text(
+                    userEmail,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  )
+                else
+                  Text(
+                    "your email address.",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+
+                const SizedBox(height: 30),
 
                 // ---------------- PIN CODE FIELD ----------------
                 PinCodeTextField(
@@ -82,8 +102,8 @@ class VerifyOtpScreen extends StatelessWidget {
                   pinTheme: PinTheme(
                     shape: PinCodeFieldShape.box,
                     borderRadius: BorderRadius.circular(12),
-                    fieldHeight: 50,
-                    fieldWidth: 50,
+                    fieldHeight: 55,
+                    fieldWidth: 45,
                     inactiveColor: Colors.grey,
                     inactiveFillColor: AppColors.boxColor,
                     selectedColor: Colors.white,
@@ -99,34 +119,86 @@ class VerifyOtpScreen extends StatelessWidget {
                   },
                 ),
 
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
 
                 // ---------------- TIMER / RESEND ----------------
                 Obx(
-                      () => controller.isResendEnabled.value
-                      ? GestureDetector(
-                    onTap: controller.resendOtp,
-                    child: const Text(
-                      "Resend OTP",
-                      style: TextStyle(
-                        color: Colors.yellow,
-                        fontWeight: FontWeight.w600,
+                      () => Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Code expires in ",
+                        style: TextStyle(color: Colors.grey),
                       ),
-                    ),
-                  )
-                      : Text(
-                    "Resend code in ${controller.secondsRemaining.value}s",
-                    style: const TextStyle(color: Colors.grey),
+                      Text(
+                        "${controller.minutesRemaining.value}:${controller.secondsRemaining.value.toString().padLeft(2, '0')}",
+                        style: TextStyle(
+                          color: controller.secondsRemaining.value < 60
+                              ? Colors.red
+                              : Colors.yellow,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
                 const SizedBox(height: 20),
 
-                CustomButton(
-                  text: "Verify",
-                  color: Colors.white,
-                  textColor: Colors.black,
-                  onPressed: controller.verifyOtp,
+                Obx(
+                      () => controller.isResendEnabled.value
+                      ? GestureDetector(
+                    onTap: controller.resendOtp,
+                    child: Text(
+                      "Resend OTP",
+                      style: TextStyle(
+                        color: Colors.yellow,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                  )
+                      : Text(
+                    "Resend OTP",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                // ---------------- VERIFY BUTTON ----------------
+                Obx(
+                      () => CustomButton(
+                    text: controller.isLoading.value ? "Verifying..." : "Verify",
+                    color: Colors.white,
+                    textColor: Colors.black,
+                    onPressed: controller.isLoading.value
+                        ? null
+                        : () {
+                      if (controller.otp.value.length == 6) {
+                        controller.verifyOtp();
+                      } else {
+                        Get.snackbar(
+                          "Incomplete OTP",
+                          "Please enter 6-digit OTP",
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                        );
+                      }
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Loading indicator
+                Obx(
+                      () => controller.isLoading.value
+                      ? CircularProgressIndicator(color: Colors.white)
+                      : SizedBox(),
                 ),
               ],
             ),

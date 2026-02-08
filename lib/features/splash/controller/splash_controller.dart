@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../on_Boarding/views/onboarding_screen.dart';
+import 'package:testapp/features/auth/login/screen/login_screen.dart';
+import '../../../core/offline_storage/shared_pref.dart';
+import '../../customer_dashboard/dashboard/customer_dashboard.dart';
+import '../../onboarding/views/onboarding_screen.dart';
 
 class SplashController extends GetxController {
   static SplashController get instance => Get.find();
@@ -9,51 +12,35 @@ class SplashController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _startSplash();
+    _handleNavigation();
   }
 
-  Future<void> _startSplash() async {
+  Future<void> _handleNavigation() async {
     await Future.delayed(const Duration(seconds: 3));
 
     try {
-      // final onboardingDone = await SharedPreferencesHelper.isOnboardingCompleted();
-      //
-      // final rememberMe = await SharedPreferencesHelper.isRememberMe();
-      // final token = await SharedPreferencesHelper.getToken();
-      // final role = await SharedPreferencesHelper.getRole();
-      //
-      // debugPrint('Onboarding Completed: $onboardingDone');
-      // debugPrint('Token: $token');
-      // debugPrint("Role: $role");
+      final onboardingDone = await SharedPreferencesHelper.isOnboardingCompleted();
+      final token = await SharedPreferencesHelper.getToken();
 
-      Timer(const Duration(seconds: 3), () {
-        Get.off(() => OnboardingScreen());
-        debugPrint('Splash Screen Completed');
-      });
+      debugPrint('Onboarding Completed: $onboardingDone');
+      debugPrint('Token: $token');
 
-      /// Run navigation after frame renders
-      // Future.microtask(() {
-      //   if (!onboardingDone) {
-      //     // First time so Show Onboarding
-      //     Get.offAll(() => OnboardingScreen());
-      //   } else if (!rememberMe || token == null || token.isEmpty) {
-      //     // Onboarding done but no token so go to Login
-      //     Get.offAll(() => SignInPage());
-      //   } else if (role == 'USER') {
-      //     Get.offAll(() => CustomerDashboard());
-      //   } else{
-      //     Get.offAll(()=> SignInPage());
-      //   }
-      // });
-
+      if (!onboardingDone) {
+        /// First launch → onboarding
+        Get.offAll(() => OnboardingScreen());
+      }
+      else if (token == null || token.isEmpty) {
+        /// Not logged in → login
+        Get.offAll(() => SignInScreen());
+      }
+      else {
+        /// Logged in → dashboard
+        Get.offAll(() => CustomerDashboard());
+      }
     } catch (e) {
-      debugPrint('Error in splash logic: $e');
-
-      /// Fallback navigation
-      Future.microtask(() {
-        //Get.offAll(() => SignInPage());
-      });
-
+      debugPrint('Splash error: $e');
+      Get.offAll(() => SignInScreen());
     }
   }
 }
+

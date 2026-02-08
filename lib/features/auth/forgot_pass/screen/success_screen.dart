@@ -12,6 +12,10 @@ class SuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get isSignUp from arguments
+    final arguments = Get.arguments ?? {};
+    final isSignUp = arguments['isSignUp'] ?? false;
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -20,59 +24,64 @@ class SuccessScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF3A0F0F), Color(0xFF0B0B0B), Color(0xFF000000)],
+            colors: [
+              Color(0xFF3A0F0F),
+              Color(0xFF0B0B0B),
+              Color(0xFF000000),
+            ],
           ),
         ),
         child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Back Button
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: CustomBackIcon(onBack: () => Get.back()),
-              ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Back Button
+                CustomBackIcon(onBack: () => Get.back()),
 
-              const Spacer(),
+                const Spacer(),
 
-              Center(
-                child: Column(
-                  children: [
-                    Image.asset(IconsPath.success, width: 120, height: 120),
+                Center(
+                  child: Column(
+                    children: [
+                      Image.asset(IconsPath.success, width: 120, height: 120),
 
-                    const SizedBox(height: 30),
+                      const SizedBox(height: 30),
 
-                    Text(
-                      "PASSWORD CHANGED!",
-                      style: appTextStyleHeading(
-                        fontSize: 24,
-                        color: Colors.white,
+                      Text(
+                        isSignUp ? "ACCOUNT CREATED!" : "SUCCESS!",
+                        style: appTextStyleHeading(
+                          fontSize: 24,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 6),
+                      const SizedBox(height: 6),
 
-                    const Text(
-                      "Your password has been changed successfully.",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
+                      Text(
+                        isSignUp
+                            ? "Your account has been created successfully."
+                            : "Your password has been changed successfully.",
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        textAlign: TextAlign.center,
+                      ),
 
-                    const SizedBox(height: 33),
+                      const SizedBox(height: 33),
 
-                    CustomButton(
-                      text: "Back to Login",
-                      onPressed: () {
-                        Get.deleteAll();
-                        Get.off(SignInScreen());
-                      },
-                    ),
-                  ],
+                      CustomButton(
+                        text: isSignUp ? "Continue to Login" : "Back to Login",
+                        onPressed: () {
+                          Get.offAll(() => SignInScreen());
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              const Spacer(),
-            ],
+                const Spacer(),
+              ],
+            ),
           ),
         ),
       ),

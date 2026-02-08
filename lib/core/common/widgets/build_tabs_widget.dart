@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import '../../../features/customer_dashboard/live/live_dashboard/controller/live_controller.dart';
 import '../../const/app_colors.dart';
-import '../../../features/live/live_dashboard/controller/live_controller.dart';
 import 'match_stats_widget.dart';
 
 Widget buildTabs() {

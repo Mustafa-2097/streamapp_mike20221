@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../features/live/live_dashboard/model/table_model.dart';
+import '../../../features/customer_dashboard/live/live_dashboard/model/table_model.dart';
 
 class TableWidget extends StatelessWidget {
   final TableData tableData;

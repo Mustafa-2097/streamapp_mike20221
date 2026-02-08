@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../features/live/live_dashboard/model/h2h_model.dart';
+import '../../../features/customer_dashboard/live/live_dashboard/model/h2h_model.dart';
 
 class H2HWidget extends StatelessWidget {
   final H2HData h2hData;

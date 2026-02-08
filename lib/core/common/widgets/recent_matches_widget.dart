@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../features/live/live_dashboard/model/recent_match_model.dart';
+import '../../../features/customer_dashboard/live/live_dashboard/model/recent_match_model.dart';
 
 class RecentMatchesWidget extends StatelessWidget {
   final RecentMatchesData recentMatchesData;

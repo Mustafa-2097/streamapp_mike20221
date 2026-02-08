@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../features/customer_dashboard/live/live_dashboard/model/match_stats_model.dart';
 import '../../const/app_colors.dart';
-import '../../../features/live/live_dashboard/model/match_stats_model.dart';
 
 class MatchStatsWidget extends StatelessWidget {
   final MatchStatsData statsData;

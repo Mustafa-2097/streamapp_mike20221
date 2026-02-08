@@ -8,6 +8,8 @@ import '../../data/auth_api_service.dart';
 import '../../forgot_pass/screen/otp_screen.dart';
 
 class SignUpController extends GetxController {
+  static SignUpController get to => Get.find();
+
   // Text Controllers
   final emailController = TextEditingController();
   final nameController = TextEditingController();
@@ -67,21 +69,15 @@ class SignUpController extends GetxController {
   }
 
   Future<void> signUp() async {
-    // First validate the form
-    if (!formKey.currentState!.validate()) {
-      return;
-    }
+    if (!formKey.currentState!.validate()) return;
 
     debugPrint('Sign Up Attempt Started');
     debugPrint('Name: ${nameController.text.trim()}');
     debugPrint('Email: ${emailController.text.trim()}');
-    debugPrint('Password: ${passwordController.text.trim()}');
-    debugPrint('Confirm Password: ${confirmPasswordController.text.trim()}');
 
     try {
       isLoading.value = true;
 
-      // Call the signup API
       final response = await AuthApiService.signUp(
         name: nameController.text.trim(),
         email: emailController.text.trim(),
@@ -93,32 +89,17 @@ class SignUpController extends GetxController {
       if (response['success'] == true) {
         final data = response['data'];
 
-        final accessToken = data['accessToken'];
-        final refreshToken = data['refreshToken'];
-        final user = data['user'];
+        // Fix: Get email directly from data object
+        final userEmail = data['email'] ?? emailController.text.trim();
 
-        debugPrint('Access Token: $accessToken');
-        debugPrint('Refresh Token: $refreshToken');
-        debugPrint('User Data: $user');
+        debugPrint('User registered successfully: $userEmail');
+        debugPrint('User data: $data');
 
-        // Save access token to SharedPreferences
-        if (accessToken != null && accessToken.isNotEmpty) {
-          await SharedPreferencesHelper.saveToken(accessToken);
-          debugPrint('Access token saved to SharedPreferences');
-
-          // Verify token was saved
-          final savedToken = await SharedPreferencesHelper.getToken();
-          debugPrint('Verified saved token: ${savedToken?.substring(0, 20)}...');
-        }
-
-        // If user role exists in response, save it
-        if (user != null && user['role'] != null) {
-          await SharedPreferencesHelper.saveRole(user['role']);
-          debugPrint('User role saved: ${user['role']}');
-        }
-
-        // Show success dialog
-        Get.to(() => VerifyOtpScreen());
+        // Navigate to OTP screen with user email
+        Get.to(() => VerifyOtpScreen(), arguments: {
+          'email': userEmail,
+          'isSignUp': true,
+        });
       } else {
         debugPrint('Signup failed: ${response['message']}');
         Get.snackbar(
@@ -131,6 +112,7 @@ class SignUpController extends GetxController {
     } catch (e) {
       debugPrint('Exception during sign up: $e');
       debugPrint('Exception type: ${e.runtimeType}');
+      debugPrint('Stack trace: ${e.toString()}');
 
       Get.snackbar(
         "Connection Error",
@@ -142,53 +124,6 @@ class SignUpController extends GetxController {
       isLoading.value = false;
       debugPrint('Sign Up Process Completed');
     }
-  }
-
-  void showSuccessDialog() {
-    Get.dialog(
-      Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Image Icon
-              Image.asset(IconsPath.success, height: 200),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                "Successfully Registered",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 8),
-
-              const Text(
-                "Your account has been created",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-
-              const SizedBox(height: 24),
-
-              CustomButton(
-                text: "Continue",
-                textColor: Colors.white,
-                color: Color(0xFF131720),
-                onPressed: () {
-                  debugPrint('Navigating to SignInScreen');
-                  Get.off(() => SignInScreen());
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-      barrierDismissible: true,
-    );
   }
 
   @override

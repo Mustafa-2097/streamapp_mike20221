@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:testapp/features/dashboard/customer_dashboard.dart';
 import '../../../../core/offline_storage/shared_pref.dart';
+import '../../../customer_dashboard/dashboard/customer_dashboard.dart';
 import '../../data/auth_api_service.dart';
 
 class SignInController extends GetxController {
