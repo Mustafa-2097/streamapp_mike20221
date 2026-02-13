@@ -42,12 +42,12 @@ class PersonalDetails extends StatelessWidget {
           onTap: () => Get.to(() => BookmarkScreen()),
         ),
         _DrawerItem(
-          icon: Icons.payment_outlined,
+          icon: Icons.notifications,
           label: 'Notification',
           onTap: () => Get.to(() => NotificationPage()),
         ),
         _DrawerItem(
-          icon: Icons.payment_outlined,
+          icon: Icons.subscriptions_outlined,
           label: 'Subscription',
           onTap: () => Get.to(() => SubscriptionPage()),
         ),

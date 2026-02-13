@@ -3,12 +3,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../../core/common/widgets/scaffold_bg.dart';
 import '../../../../../core/const/app_colors.dart';
+import '../../../../../features/customer_dashboard/profile/controller/personal_data_controller.dart';
 
 class PersonalData extends StatelessWidget {
   const PersonalData({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final PersonalDataController controller = Get.put(PersonalDataController());
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -34,9 +36,13 @@ class PersonalData extends StatelessWidget {
                       alignment: Alignment.bottomRight,
                       children: [
                         CircleAvatar(
-                            radius: 45.w,
-                            backgroundColor: AppColors.primaryColor,
-                            child: Icon(Icons.person, size: 50.r, color: Colors.white)
+                          radius: 45.w,
+                          backgroundColor: AppColors.primaryColor,
+                          child: Icon(
+                            Icons.person,
+                            size: 50.r,
+                            color: Colors.white,
+                          ),
                         ),
                         // In the GestureDetector for camera icon:
                         GestureDetector(
@@ -44,7 +50,11 @@ class PersonalData extends StatelessWidget {
                           child: CircleAvatar(
                             radius: 15.r,
                             backgroundColor: AppColors.primaryColor,
-                            child: Icon(Icons.camera_enhance_outlined, size: 16.r, color: Colors.black),
+                            child: Icon(
+                              Icons.camera_enhance_outlined,
+                              size: 16.r,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                       ],
@@ -82,19 +92,29 @@ class PersonalData extends StatelessWidget {
                   SizedBox(height: 6),
                   Row(
                     children: [
-                      Text(
-                        "dd/mm/yyyy",
-                        style: TextStyle(fontSize: 18.sp, color: Colors.white),
+                      Obx(
+                        () => Text(
+                          controller.selectedDate.value,
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                       const Spacer(),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          controller.chooseDate(context);
+                        },
                         style: IconButton.styleFrom(
                           padding: EdgeInsets.zero,
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        icon: const Icon(Icons.calendar_month_outlined, color: Colors.white),
+                        icon: const Icon(
+                          Icons.calendar_month_outlined,
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ),
@@ -105,24 +125,23 @@ class PersonalData extends StatelessWidget {
                     style: TextStyle(fontSize: 16.sp, color: Colors.white),
                   ),
                   SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Text(
-                        "Select Your Country",
-                        style: TextStyle(fontSize: 18.sp, color: Colors.white),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        onPressed: () {},
-                        style: IconButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        icon: Icon(Icons.arrow_drop_down_outlined, color: Colors.white, size: 30.r),
-                      ),
-                    ],
-                  ),
+                  GestureDetector(
+  onTap: () => controller.showCountryPickerSheet(context),
+  child: Row(
+    children: [
+      Obx(() => Text(
+        controller.selectedCountry.value,
+        style: TextStyle(fontSize: 18.sp, color: Colors.white),
+      )),
+      const Spacer(),
+      Icon(
+        Icons.arrow_drop_down_outlined, 
+        color: Colors.white, 
+        size: 30.r
+      ),
+    ],
+  ),
+),
                   Divider(),
                   SizedBox(height: 20),
 
