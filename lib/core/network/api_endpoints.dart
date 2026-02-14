@@ -19,8 +19,5 @@ class ApiEndpoints {
   /// Users Profile
   static const String userProfile = '$baseUrl/users/profile';
   static const String updateProfile = '$baseUrl/user/update-profile';
-
-  /// Live
-  static const String liveScores = '$baseUrl/sports/livescore/Soccer';
 }
 

@@ -12,6 +12,7 @@ import '../view/news_details_screen.dart';
 import '../view/open_reels_video.dart';
 import '../view/open_tvs.dart';
 import 'live_card.dart';
+import '../../news/controller/news_controller.dart';
 
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
@@ -35,11 +36,7 @@ class ContentSection extends StatelessWidget {
   ];
 
   // Viewer counts for each live stream
-  final List<String> _viewerCounts = [
-    '205K',
-    '189K',
-    '156K',
-  ];
+  final List<String> _viewerCounts = ['205K', '189K', '156K'];
 
   // Titles for accessibility/alt text
   final List<String> _titles = [
@@ -57,6 +54,7 @@ class ContentSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final NewsController newsController = Get.put(NewsController());
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -76,7 +74,13 @@ class ContentSection extends StatelessWidget {
             itemBuilder: (context, index) {
               return Padding(
                 padding: EdgeInsets.only(right: 12.w),
-                child: LiveCard(imagePath: _liveImages[index], viewerCount: _viewerCounts[index], title: _titles[index], description: _descriptions[index], isLocked: index == 0),
+                child: LiveCard(
+                  imagePath: _liveImages[index],
+                  viewerCount: _viewerCounts[index],
+                  title: _titles[index],
+                  description: _descriptions[index],
+                  isLocked: index == 0,
+                ),
               );
             },
           ),
@@ -108,29 +112,23 @@ class ContentSection extends StatelessWidget {
               _buildTVChannel('assets/images/tv03.png', 2),
             ],
           ),
-
         ),
 
         SizedBox(height: 26.h),
 
         // Upcoming section
         // Upcoming section
-        _sectionName(
-          "Upcoming",
-              () {
-            Get.to(
-                  () => LiveMatchesScreen(initialTab: 1), // 👈 Upcoming tab index
-            );
-          },
-        ),
+        _sectionName("Upcoming", () {
+          Get.to(
+            () => LiveMatchesScreen(initialTab: 1), // 👈 Upcoming tab index
+          );
+        }),
 
         SizedBox(height: 16.h),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           child: GestureDetector(
-            onTap: (){
-
-            },
+            onTap: () {},
             child: Column(
               children: const [
                 UpcomingMatchCard(
@@ -152,7 +150,6 @@ class ContentSection extends StatelessWidget {
           ),
         ),
         SizedBox(height: 16.h),
-
 
         // Replay Section
         _sectionName("Replay", () {
@@ -178,7 +175,7 @@ class ContentSection extends StatelessWidget {
                     border: Border.all(width: 1, color: Colors.white54),
                   ),
                   child: GestureDetector(
-                    onTap: (){
+                    onTap: () {
                       Get.to(VideoLiveScreen());
                     },
                     child: Column(
@@ -188,9 +185,13 @@ class ContentSection extends StatelessWidget {
                         Container(
                           height: 122.h,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(12),
+                            ),
                             image: DecorationImage(
-                              image: AssetImage('assets/images/replay${index + 1}.png'),
+                              image: AssetImage(
+                                'assets/images/replay${index + 1}.png',
+                              ),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -260,7 +261,7 @@ class ContentSection extends StatelessWidget {
               return Padding(
                 padding: EdgeInsets.only(right: 12.w),
                 child: GestureDetector(
-                  onTap: (){
+                  onTap: () {
                     Get.to(OpenReelsVideo());
                   },
                   child: Container(
@@ -332,93 +333,135 @@ class ContentSection extends StatelessWidget {
         SizedBox(height: 16.h),
 
         // Latest News Section
-        SizedBox(
-          height: 120.h,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            itemCount: 3,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.only(right: 12.w),
-                child: GestureDetector(
-                  onTap: (){
-                    Get.to(NewsDetailsScreen());
-                  },
-                  child: Container(
-                    width: 280.w,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      image: DecorationImage(
-                        image: AssetImage('assets/images/news.png'),
-                        fit: BoxFit.cover,
+        Obx(() {
+          if (newsController.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+          if (newsController.newsList.isEmpty) {
+            return const SizedBox(); // Or a "No news" widget
+          }
+          return SizedBox(
+            height: 120.h,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (ScrollNotification scrollInfo) {
+                if (!newsController.isLoadingMore.value &&
+                    newsController.hasMore.value &&
+                    scrollInfo.metrics.pixels ==
+                        scrollInfo.metrics.maxScrollExtent) {
+                  newsController.fetchNews(isLoadMore: true);
+                }
+                return true;
+              },
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                itemCount:
+                    newsController.newsList.length +
+                    (newsController.isLoadingMore.value ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index == newsController.newsList.length) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: CircularProgressIndicator(color: Colors.white),
                       ),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.5),
-                            Colors.black.withOpacity(0.9),
-                          ],
+                    );
+                  }
+                  final article = newsController.newsList[index];
+                  return Padding(
+                    padding: EdgeInsets.only(right: 12.w),
+                    child: GestureDetector(
+                      onTap: () {
+                        Get.to(NewsDetailsScreen(article: article));
+                      },
+                      child: Container(
+                        width: 280.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          image: DecorationImage(
+                            image: article.urlToImage != null
+                                ? NetworkImage(article.urlToImage!)
+                                : const AssetImage('assets/images/news.png')
+                                      as ImageProvider,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                      ),
-                      child: Stack(
-                        children: [
-                          // Text at bottom
-                          Positioned(
-                            bottom: 12.h,
-                            left: 12.w,
-                            right: 12.w,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Lionel Messi embarrassed the goalkeeper with a brilliant chip',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 5,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                SizedBox(height: 4.h),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '12 october, 2026',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11.sp,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      '12k read',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11.sp,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.5),
+                                Colors.black.withOpacity(0.9),
                               ],
                             ),
                           ),
-                        ],
+                          child: Stack(
+                            children: [
+                              // Text at bottom
+                              Positioned(
+                                bottom: 12.h,
+                                left: 12.w,
+                                right: 12.w,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      article.title ?? 'No Title',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          article.publishedAt != null &&
+                                                  article.publishedAt!.length >=
+                                                      10
+                                              ? article.publishedAt!.substring(
+                                                  0,
+                                                  10,
+                                                )
+                                              : 'Unknown Date',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11.sp,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Text(
+                                          '${article.viewCount ?? 0} read',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11.sp,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+                  );
+                },
+              ),
+            ),
+          );
+        }),
         SizedBox(height: 32.h),
       ],
     );
@@ -426,31 +469,28 @@ class ContentSection extends StatelessWidget {
 
   Padding _sectionName(String label, VoidCallback? onTap) {
     return Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        child: Row(
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20.sp,
-                fontWeight: FontWeight.bold,
-              ),
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
             ),
-            const Spacer(),
-            GestureDetector(
-              onTap: onTap,
-              child: Text(
-                'View All',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.sp,
-                ),
-              ),
+          ),
+          const Spacer(),
+          GestureDetector(
+            onTap: onTap,
+            child: Text(
+              'View All',
+              style: TextStyle(color: Colors.white, fontSize: 16.sp),
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildTVChannel(String imagePath, int index) {
@@ -466,16 +506,8 @@ class ContentSection extends StatelessWidget {
       },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.asset(
-          imagePath,
-          width: 90,
-          fit: BoxFit.cover,
-        ),
+        child: Image.asset(imagePath, width: 90, fit: BoxFit.cover),
       ),
     );
   }
-
 }
-
-
-

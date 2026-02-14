@@ -1,29 +1,18 @@
-import '../../../core/network/api_endpoints.dart';
 import '../../../core/network/api_service.dart';
 import '../../../core/offline_storage/shared_pref.dart';
 
 class CustomerApiService {
+  static const String _baseUrl = 'YOUR_BASE_URL_HERE';
 
-  /// Profile
   static Future<Map<String, dynamic>> getProfile() async {
-    final String? token = await SharedPreferencesHelper.getToken();
-    if (token == null || token.isEmpty) {
-      throw Exception("User token not found");
-    }
+    final token = await SharedPreferencesHelper.getToken();
 
     return await ApiService.get(
-      ApiEndpoints.userProfile,
+      '$_baseUrl/users/profile',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': token,
+        'Authorization': ?token, // backend expects raw token (as in Postman)
       },
-    );
-  }
-
-  /// Live
-  static Future<Map<String, dynamic>> getLiveScores() async {
-    return await ApiService.get(
-      ApiEndpoints.liveScores,
     );
   }
 }
