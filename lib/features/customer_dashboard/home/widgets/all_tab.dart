@@ -440,7 +440,7 @@ class ContentSection extends StatelessWidget {
                                         ),
                                         const Spacer(),
                                         Text(
-                                          '12k read', // Placeholder as API doesn't provide read count
+                                          '${article.viewCount ?? 0} read',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 11.sp,

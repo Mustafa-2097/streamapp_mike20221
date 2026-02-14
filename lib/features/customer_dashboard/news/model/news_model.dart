@@ -41,6 +41,7 @@ class Article {
   String? urlToImage;
   String? publishedAt;
   String? content;
+  int? viewCount;
 
   Article({
     this.id,
@@ -52,6 +53,7 @@ class Article {
     this.urlToImage,
     this.publishedAt,
     this.content,
+    this.viewCount,
   });
 
   Article.fromJson(Map<String, dynamic> json) {
@@ -64,6 +66,7 @@ class Article {
     urlToImage = json['urlToImage'];
     publishedAt = json['publishedAt'];
     content = json['content'];
+    viewCount = json['viewCount'];
   }
 }
 
