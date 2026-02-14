@@ -12,7 +12,7 @@ class NewsController extends GetxController {
   var isLoadingMore = false.obs;
   var hasMore = true.obs;
   var page = 1;
-  final int pageSize = 10;
+  final int pageSize = 5;
   var newsList = <Article>[].obs;
 
   final List<String> categories = ["All", "Football", "BasketBall"];

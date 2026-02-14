@@ -146,7 +146,7 @@ class NewsScreen extends StatelessWidget {
       ),
       child: GestureDetector(
         onTap: () {
-          Get.to(NewsDetailsScreen());
+          Get.to(NewsDetailsScreen(article: item));
         },
         child: _buildNewsCard(item),
       ),

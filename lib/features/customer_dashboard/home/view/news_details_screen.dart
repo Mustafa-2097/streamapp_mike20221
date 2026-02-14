@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../news/model/news_model.dart';
+
 class NewsDetailsScreen extends StatelessWidget {
-  const NewsDetailsScreen({super.key});
+  final Article article;
+  const NewsDetailsScreen({super.key, required this.article});
 
   @override
   Widget build(BuildContext context) {
@@ -16,12 +19,14 @@ class NewsDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: backgroundColor,
         elevation: 0,
-        leading: const BackButton(color: Colors.white), // Assuming a back button exists
+        leading: const BackButton(
+          color: Colors.white,
+        ), // Assuming a back button exists
         actions: [
           IconButton(
             icon: const Icon(Icons.bookmark_border, color: Colors.white),
             onPressed: () {},
-          )
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -31,9 +36,9 @@ class NewsDetailsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 1. Title
-              const Text(
-                "All the numbers behind Cooper Flagg's historic start",
-                style: TextStyle(
+              Text(
+                article.title ?? "No Title",
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -45,36 +50,66 @@ class NewsDetailsScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("12 October 2026", style: TextStyle(color: Colors.grey[400], fontSize: 12)),
-                  Text("12k read", style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                  Text(
+                    article.publishedAt != null &&
+                            article.publishedAt!.length >= 10
+                        ? article.publishedAt!.substring(0, 10)
+                        : "Unknown Date",
+                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  ),
+                  Text(
+                    "${article.viewCount ?? 0} read",
+                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
 
               // 3. Intro Text
-              Text(
-                "From a 42-point game to 3rd all time in points by an 18-year-old, Flagg's rookie season is off to a historic start.",
-                style: TextStyle(color: Colors.grey[300], fontSize: 14, height: 1.4),
-              ),
+              // 3. Intro Text (Description)
+              if (article.description != null)
+                Text(
+                  article.description!,
+                  style: TextStyle(
+                    color: Colors.grey[300],
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                ),
               const SizedBox(height: 16),
 
               // 4. Main Image
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  'https://english.news.cn/20260125/a7aad847dff1456f8a1a8b1344b705ca/20260125a7aad847dff1456f8a1a8b1344b705ca_2026012534f9350633db47728351d464902616e4.jpg', // Placeholder for basketball player
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.fill,
+              // 4. Main Image
+              if (article.urlToImage != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    article.urlToImage!,
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.fill,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 200,
+                      color: Colors.grey[800],
+                      child: const Center(
+                        child: Icon(Icons.error, color: Colors.white),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
               const SizedBox(height: 16),
 
               // 5. Body Text
-              Text(
-                "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text.",
-                style: TextStyle(color: Colors.grey[400], fontSize: 14, height: 1.5),
-              ),
+              // 5. Body Text (Content)
+              if (article.content != null)
+                Text(
+                  article.content!,
+                  style: TextStyle(
+                    color: Colors.grey[400],
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                ),
 
               const SizedBox(height: 30),
 
@@ -82,7 +117,11 @@ class NewsDetailsScreen extends StatelessWidget {
               const Center(
                 child: Text(
                   "Comment",
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               const SizedBox(height: 10),
@@ -118,7 +157,10 @@ class NewsDetailsScreen extends StatelessWidget {
                     color: inputColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text("Reply.....", style: TextStyle(color: Colors.grey[500])),
+                  child: Text(
+                    "Reply.....",
+                    style: TextStyle(color: Colors.grey[500]),
+                  ),
                 ),
               ),
 
@@ -136,7 +178,9 @@ class NewsDetailsScreen extends StatelessWidget {
                 children: [
                   const CircleAvatar(
                     radius: 18,
-                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=12'),
+                    backgroundImage: NetworkImage(
+                      'https://i.pravatar.cc/150?img=12',
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -148,7 +192,10 @@ class NewsDetailsScreen extends StatelessWidget {
                         color: inputColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text("Add a comment...", style: TextStyle(color: Colors.grey[500], fontSize: 15)),
+                      child: Text(
+                        "Add a comment...",
+                        style: TextStyle(color: Colors.grey[500], fontSize: 15),
+                      ),
                     ),
                   ),
                 ],
@@ -159,7 +206,11 @@ class NewsDetailsScreen extends StatelessWidget {
               // 9. Recommendation Section
               const Text(
                 "Recommendation",
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -210,7 +261,11 @@ class NewsDetailsScreen extends StatelessWidget {
             children: [
               TextSpan(
                 text: "$username: ",
-                style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13),
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
               ),
               TextSpan(
                 text: content,
@@ -224,17 +279,26 @@ class NewsDetailsScreen extends StatelessWidget {
           children: [
             Icon(Icons.thumb_up_outlined, color: Colors.grey[400], size: 16),
             const SizedBox(width: 4),
-            Text(likes, style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+            Text(
+              likes,
+              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            ),
             const SizedBox(width: 16),
             Icon(Icons.thumb_down_outlined, color: Colors.grey[400], size: 16),
             const SizedBox(width: 4),
-            Text(dislikes, style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+            Text(
+              dislikes,
+              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            ),
             const SizedBox(width: 16),
             Icon(Icons.reply, color: Colors.grey[400], size: 16),
             const SizedBox(width: 4),
-            Text("Reply", style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+            Text(
+              "Reply",
+              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -269,7 +333,11 @@ class NewsDetailsScreen extends StatelessWidget {
               title,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 4),
             Text(

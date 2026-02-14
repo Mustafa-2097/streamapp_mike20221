@@ -374,7 +374,7 @@ class ContentSection extends StatelessWidget {
                     padding: EdgeInsets.only(right: 12.w),
                     child: GestureDetector(
                       onTap: () {
-                        Get.to(NewsDetailsScreen());
+                        Get.to(NewsDetailsScreen(article: article));
                       },
                       child: Container(
                         width: 280.w,
