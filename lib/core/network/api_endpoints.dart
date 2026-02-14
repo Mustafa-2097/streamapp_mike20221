@@ -11,13 +11,20 @@ class ApiEndpoints {
 
   /// Forgot Password
   static const String sendResetOtp = '$baseUrl/auth/send-otp/password-reset';
-  static const String verifyResetOtp = '$baseUrl/auth/verify-otp/password-reset';
+  static const String verifyResetOtp =
+      '$baseUrl/auth/verify-otp/password-reset';
+
   /// Reset password (NEW)
   static const String resetPassword = '$baseUrl/auth/reset-password';
-
 
   /// Users Profile
   static const String userProfile = '$baseUrl/users/profile';
   static const String updateProfile = '$baseUrl/user/update-profile';
-}
 
+
+  /// Live
+  static const String liveScores = '$baseUrl/sports/livescore/Soccer';
+
+  /// News
+  static const String news = '$baseUrl/news?category=sports';
+}
