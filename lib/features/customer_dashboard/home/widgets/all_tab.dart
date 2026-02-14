@@ -344,100 +344,121 @@ class ContentSection extends StatelessWidget {
           }
           return SizedBox(
             height: 120.h,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              itemCount: newsController.newsList.length,
-              itemBuilder: (context, index) {
-                final article = newsController.newsList[index];
-                return Padding(
-                  padding: EdgeInsets.only(right: 12.w),
-                  child: GestureDetector(
-                    onTap: () {
-                      Get.to(NewsDetailsScreen());
-                    },
-                    child: Container(
-                      width: 280.w,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        image: DecorationImage(
-                          image: article.urlToImage != null
-                              ? NetworkImage(article.urlToImage!)
-                              : const AssetImage('assets/images/news.png')
-                                    as ImageProvider,
-                          fit: BoxFit.cover,
-                        ),
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (ScrollNotification scrollInfo) {
+                if (!newsController.isLoadingMore.value &&
+                    newsController.hasMore.value &&
+                    scrollInfo.metrics.pixels ==
+                        scrollInfo.metrics.maxScrollExtent) {
+                  newsController.fetchNews(isLoadMore: true);
+                }
+                return true;
+              },
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                itemCount:
+                    newsController.newsList.length +
+                    (newsController.isLoadingMore.value ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index == newsController.newsList.length) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: CircularProgressIndicator(color: Colors.white),
                       ),
+                    );
+                  }
+                  final article = newsController.newsList[index];
+                  return Padding(
+                    padding: EdgeInsets.only(right: 12.w),
+                    child: GestureDetector(
+                      onTap: () {
+                        Get.to(NewsDetailsScreen());
+                      },
                       child: Container(
+                        width: 280.w,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.5),
-                              Colors.black.withOpacity(0.9),
+                          image: DecorationImage(
+                            image: article.urlToImage != null
+                                ? NetworkImage(article.urlToImage!)
+                                : const AssetImage('assets/images/news.png')
+                                      as ImageProvider,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.5),
+                                Colors.black.withOpacity(0.9),
+                              ],
+                            ),
+                          ),
+                          child: Stack(
+                            children: [
+                              // Text at bottom
+                              Positioned(
+                                bottom: 12.h,
+                                left: 12.w,
+                                right: 12.w,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      article.title ?? 'No Title',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          article.publishedAt != null &&
+                                                  article.publishedAt!.length >=
+                                                      10
+                                              ? article.publishedAt!.substring(
+                                                  0,
+                                                  10,
+                                                )
+                                              : 'Unknown Date',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11.sp,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Text(
+                                          '12k read', // Placeholder as API doesn't provide read count
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11.sp,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        child: Stack(
-                          children: [
-                            // Text at bottom
-                            Positioned(
-                              bottom: 12.h,
-                              left: 12.w,
-                              right: 12.w,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    article.title ?? 'No Title',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14.sp,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  SizedBox(height: 4.h),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        article.publishedAt != null &&
-                                                article.publishedAt!.length >=
-                                                    10
-                                            ? article.publishedAt!.substring(
-                                                0,
-                                                10,
-                                              )
-                                            : 'Unknown Date',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 11.sp,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      Text(
-                                        '12k read', // Placeholder as API doesn't provide read count
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 11.sp,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           );
         }),
