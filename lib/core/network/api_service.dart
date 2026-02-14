@@ -7,20 +7,17 @@ class ApiService {
 
   /// POST REQUEST
   static Future<Map<String, dynamic>> post(
-      String url, {
-        Map<String, String>? headers,
-        Map<String, dynamic>? body,
-      }) async {
+    String url, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
+  }) async {
     try {
       final response = await http
           .post(
-        Uri.parse(url),
-        headers: headers ??
-            {
-              'Content-Type': 'application/json',
-            },
-        body: jsonEncode(body),
-      )
+            Uri.parse(url),
+            headers: headers ?? {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
           .timeout(timeout);
 
       final decoded = jsonDecode(response.body);
@@ -38,16 +35,13 @@ class ApiService {
 
   /// GET REQUEST
   static Future<Map<String, dynamic>> get(
-      String url, {
-        Map<String, String>? headers,
-      }) async {
+    String url, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
-      final response = await http
-          .get(
-        Uri.parse(url),
-        headers: headers,
-      )
-          .timeout(timeout);
+      final uri = Uri.parse(url).replace(queryParameters: queryParameters);
+      final response = await http.get(uri, headers: headers).timeout(timeout);
 
       final decoded = jsonDecode(response.body);
 
