@@ -35,40 +35,21 @@ class ProfileScreen extends StatelessWidget {
                   Obx(() {
                     final profile = controller.profile.value;
 
-                    return Stack(
-                      alignment: Alignment.bottomRight,
-                      children: [
-                        CircleAvatar(
-                          radius: 45.w,
-                          backgroundColor: AppColors.primaryColor,
-                          backgroundImage:
-                          profile?.profileImage != null &&
-                              profile!.profileImage!.isNotEmpty
-                              ? NetworkImage(profile.profileImage!)
-                              : null,
-                          child: profile?.profileImage == null
-                              ? Icon(
-                            Icons.person,
-                            size: 50.r,
-                            color: Colors.white,
-                          )
-                              : null,
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            // TODO: Upload profile image
-                          },
-                          child: CircleAvatar(
-                            radius: 15.r,
-                            backgroundColor: AppColors.primaryColor,
-                            child: Icon(
-                              Icons.camera_enhance_outlined,
-                              size: 16.r,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ],
+                    return CircleAvatar(
+                      radius: 45.w,
+                      backgroundColor: AppColors.primaryColor,
+                      backgroundImage:
+                      profile?.profileImage != null &&
+                          profile!.profileImage!.isNotEmpty
+                          ? NetworkImage(profile.profileImage!)
+                          : null,
+                      child: profile?.profileImage == null
+                          ? Icon(
+                        Icons.person,
+                        size: 50.r,
+                        color: Colors.white,
+                      )
+                          : null,
                     );
                   }),
 

@@ -12,7 +12,7 @@ class _SportsCategoryFilterState extends State<SportsCategoryFilter> {
   int selectedIndex = 0;
 
   final List<Map<String, dynamic>> sports = [
-    {'label': 'All', 'icon': Icons.sports},
+    {'label': 'All', 'icon': null},
     {'label': 'Football', 'icon': Icons.sports_soccer},
     {'label': 'Cricket', 'icon': Icons.sports_cricket},
     {'label': 'Tennis', 'icon': Icons.sports_tennis},
@@ -22,7 +22,7 @@ class _SportsCategoryFilterState extends State<SportsCategoryFilter> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -47,26 +47,38 @@ class _SportsCategoryFilterState extends State<SportsCategoryFilter> {
                         ? null
                         : Border.all(color: Colors.white24, width: 1),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        sports[index]['icon'],
-                        size: 18.r,
+                  child:sports[index]['icon'] != null
+                  ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      sports[index]['icon'],
+                      size: 18.r,
+                      color: selectedIndex == index ? Colors.black : Colors.white,
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(
+                      sports[index]['label'],
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
                         color: selectedIndex == index ? Colors.black : Colors.white,
                       ),
-                      SizedBox(width: 8.w),
-                      Text(
-                        sports[index]['label'],
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w600,
-                          color: selectedIndex == index ? Colors.black : Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
+                )
+                    : Center(
+              child: Text(
+              sports[index]['label'],
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w600,
+                  color: selectedIndex == index ? Colors.black : Colors.white,
                 ),
+              ),
+            ),
+
+          ),
               ),
             ),
           ),

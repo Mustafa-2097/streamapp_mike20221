@@ -130,6 +130,12 @@ class LiveMatchesScreen extends StatelessWidget {
 
   // MATCH LIST
   Widget _buildMatchList() {
+    if (controller.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: controller.matches.length,

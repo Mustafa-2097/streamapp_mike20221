@@ -19,6 +19,7 @@ class ProfileController extends GetxController {
       isLoading.value = true;
 
       final response = await CustomerApiService.getProfile();
+      print(response);
 
       profile.value = CustomerProfile.fromJson(response['data']);
     } catch (e) {

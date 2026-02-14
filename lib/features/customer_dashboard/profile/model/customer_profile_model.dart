@@ -21,7 +21,7 @@ class CustomerProfile {
 
   factory CustomerProfile.fromJson(Map<String, dynamic> json) {
     return CustomerProfile(
-      id: json['_id'],
+      id: json['id'],
       email: json['email'],
       role: json['role'],
       isVerified: json['isVerified'],

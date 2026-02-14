@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:testapp/features/customer_dashboard/data/customer_api_service.dart';
 
 import '../model/live_model.dart';
 import '../model/match_stats_model.dart';
@@ -25,48 +26,45 @@ class LiveMatchesController extends GetxController {
   late H2HData h2hData;
   late RecentMatchesData recentMatchesData;
 
+  /// ================= LIVE MATCHES =================
+  List<MatchModel> matches = [];
+
+  bool isLoading = false;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchLiveMatches();
+  }
+
   void setTab(int index) {
     selectedTab = index;
     update();
   }
 
+  Future<void> fetchLiveMatches() async {
+    try {
+      isLoading = true;
+      update();
 
-  @override
-  void onInit() {
-    super.onInit();
-    statsData = MatchStatsData.sample();
-    lineupData = LineupData.sample();
-    tableData = TableData.sample();
-    h2hData = H2HData.sample();
-    recentMatchesData = RecentMatchesData.sample();
+      final response = await CustomerApiService.getLiveScores();
+
+      final List list = response['data']['livescore'];
+
+      matches = list
+          .map((e) => MatchModel.fromJson(e))
+          .toList();
+
+    } catch (e) {
+      print("Live API error: $e");
+    } finally {
+      isLoading = false;
+      update();
+    }
   }
-
-  final List<MatchModel> matches = [
-    MatchModel(
-      homeTeam: "Betis",
-      awayTeam: "Barcelona",
-      homeScore: 1,
-      awayScore: 4,
-      views: "205K Views",
-    ),
-    MatchModel(
-      homeTeam: "Betis",
-      awayTeam: "Barcelona",
-      homeScore: 1,
-      awayScore: 4,
-      views: "205K Views",
-    ),
-    MatchModel(
-      homeTeam: "Betis",
-      awayTeam: "Barcelona",
-      homeScore: 1,
-      awayScore: 4,
-      views: "205K Views",
-    ),
-  ];
 
   void changeTab(int index) {
     selectedTab = index;
-    update(); // 🔥 rebuild tabs only
+    update();
   }
 }
