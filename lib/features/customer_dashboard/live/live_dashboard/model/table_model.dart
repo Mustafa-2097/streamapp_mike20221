@@ -1,7 +1,7 @@
 class TeamStanding {
   final int position;
   final String teamName;
-  final String flag; // Can be emoji or asset path
+  final String badge;
   final int played;
   final int wins;
   final int draws;
@@ -13,7 +13,7 @@ class TeamStanding {
   TeamStanding({
     required this.position,
     required this.teamName,
-    required this.flag,
+    required this.badge,
     required this.played,
     required this.wins,
     required this.draws,
@@ -24,6 +24,22 @@ class TeamStanding {
   });
 
   int get goalDifference => goalsFor - goalsAgainst;
+
+  /// API → MODEL
+  factory TeamStanding.fromJson(Map<String, dynamic> json) {
+    return TeamStanding(
+      position: int.parse(json['intRank'] ?? '0'),
+      teamName: json['strTeam'] ?? '',
+      badge: json['strBadge'] ?? '',
+      played: int.parse(json['intPlayed'] ?? '0'),
+      wins: int.parse(json['intWin'] ?? '0'),
+      draws: int.parse(json['intDraw'] ?? '0'),
+      losses: int.parse(json['intLoss'] ?? '0'),
+      goalsFor: int.parse(json['intGoalsFor'] ?? '0'),
+      goalsAgainst: int.parse(json['intGoalsAgainst'] ?? '0'),
+      points: int.parse(json['intPoints'] ?? '0'),
+    );
+  }
 }
 
 class GroupStanding {
@@ -37,87 +53,51 @@ class GroupStanding {
 }
 
 class TableData {
-  final String homeTeam;
-  final String awayTeam;
-  final int homeScore;
-  final int awayScore;
   final String tournament;
   final String stage;
   final List<GroupStanding> groups;
 
+  /// OPTIONAL (for header UI)
+  final String? homeTeam;
+  final String? awayTeam;
+  final int? homeScore;
+  final int? awayScore;
+
   TableData({
-    required this.homeTeam,
-    required this.awayTeam,
-    required this.homeScore,
-    required this.awayScore,
     required this.tournament,
     required this.stage,
     required this.groups,
+    this.homeTeam,
+    this.awayTeam,
+    this.homeScore,
+    this.awayScore,
   });
 
-  factory TableData.sample() {
+  /// ================= API PARSER =================
+  factory TableData.fromJson(Map<String, dynamic> json) {
+    final List tableList = json['table'] ?? [];
+
+    final teams =
+    tableList.map((e) => TeamStanding.fromJson(e)).toList();
+
     return TableData(
-      homeTeam: 'England',
-      awayTeam: 'Germany',
-      homeScore: 2,
-      awayScore: 1,
-      tournament: 'world cup 2020',
-      stage: 'Group Stage • Group B',
+      tournament:
+      tableList.isNotEmpty ? tableList.first['strLeague'] ?? '' : '',
+      stage:
+      tableList.isNotEmpty ? tableList.first['strSeason'] ?? '' : '',
       groups: [
         GroupStanding(
-          groupName: 'Group A',
-          teams: [
-            TeamStanding(
-              position: 1,
-              teamName: 'England',
-              flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-              played: 14,
-              wins: 10,
-              draws: 2,
-              losses: 2,
-              goalsFor: 32,
-              goalsAgainst: 12,
-              points: 32,
-            ),
-            TeamStanding(
-              position: 2,
-              teamName: 'Germany',
-              flag: '🇩🇪',
-              played: 14,
-              wins: 9,
-              draws: 2,
-              losses: 3,
-              goalsFor: 28,
-              goalsAgainst: 14,
-              points: 29,
-            ),
-            TeamStanding(
-              position: 3,
-              teamName: 'Brazil',
-              flag: '🇧🇷',
-              played: 15,
-              wins: 8,
-              draws: 3,
-              losses: 4,
-              goalsFor: 25,
-              goalsAgainst: 15,
-              points: 27,
-            ),
-            TeamStanding(
-              position: 4,
-              teamName: 'Spain',
-              flag: '🇪🇸',
-              played: 15,
-              wins: 7,
-              draws: 2,
-              losses: 6,
-              goalsFor: 22,
-              goalsAgainst: 18,
-              points: 23,
-            ),
-          ],
-        ),
+          groupName: "Standings",
+          teams: teams,
+        )
       ],
+
+      /// Table API has NO match info
+      homeTeam: null,
+      awayTeam: null,
+      homeScore: null,
+      awayScore: null,
     );
   }
 }
+

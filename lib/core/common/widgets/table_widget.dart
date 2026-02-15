@@ -3,11 +3,7 @@ import '../../../features/customer_dashboard/live/live_dashboard/model/table_mod
 
 class TableWidget extends StatelessWidget {
   final TableData tableData;
-
-  const TableWidget({
-    Key? key,
-    required this.tableData,
-  }) : super(key: key);
+  const TableWidget({super.key, required this.tableData});
 
   @override
   Widget build(BuildContext context) {
@@ -25,72 +21,42 @@ class TableWidget extends StatelessWidget {
   }
 
   Widget _buildHeader() {
+
+    /// If no match info → hide header
+    if (tableData.homeTeam == null || tableData.awayTeam == null) {
+      return Column(
+        children: [
+          Text(
+            tableData.tournament,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            tableData.stage,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      );
+    }
+
+    /// OLD HEADER (when live match exists)
     return Column(
       children: [
+        Text(tableData.tournament),
         Text(
-          tableData.tournament,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildTeamHeader(
-              tableData.homeTeam,
-              tableData.homeScore,
-            ),
-            Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    'LIVE',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${tableData.homeScore}  -  ${tableData.awayScore}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            _buildTeamHeader(
-              tableData.awayTeam,
-              tableData.awayScore,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Text(
-          tableData.stage,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 11,
-          ),
+          '${tableData.homeScore} - ${tableData.awayScore}',
         ),
       ],
     );
   }
+
 
   Widget _buildTeamHeader(String teamName, int score) {
     return Column(
@@ -248,9 +214,19 @@ class TableWidget extends StatelessWidget {
             flex: 2,
             child: Row(
               children: [
-                Text(
-                  team.flag,
-                  style: const TextStyle(fontSize: 16),
+                CircleAvatar(
+                  radius: 10,
+                  backgroundColor: Colors.white,
+                  child: ClipOval(
+                    child: Image.network(
+                      team.badge,
+                      width: 20,
+                      height: 20,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.sports_soccer, size: 14),
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(

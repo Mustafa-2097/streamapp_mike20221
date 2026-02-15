@@ -20,7 +20,7 @@ Widget buildTabs() {
                 final isSelected = controller.selectedTab == index;
 
                 return GestureDetector(
-                  onTap: () => controller.changeTab(index),
+                  onTap: () => controller.setTab(index), //
                   child: Container(
                     margin: const EdgeInsets.only(right: 10),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),

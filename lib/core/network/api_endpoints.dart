@@ -11,8 +11,7 @@ class ApiEndpoints {
 
   /// Forgot Password
   static const String sendResetOtp = '$baseUrl/auth/send-otp/password-reset';
-  static const String verifyResetOtp =
-      '$baseUrl/auth/verify-otp/password-reset';
+  static const String verifyResetOtp = '$baseUrl/auth/verify-otp/password-reset';
 
   /// Reset password (NEW)
   static const String resetPassword = '$baseUrl/auth/reset-password';
@@ -24,6 +23,10 @@ class ApiEndpoints {
 
   /// Live
   static const String liveScores = '$baseUrl/sports/livescore/Soccer';
+  static String upcomingMatches(String leagueId) => '$baseUrl/sports/upcoming/$leagueId';
+  /// Table
+  static const String leagueTable = '$baseUrl/sports/league-table';
+
 
   /// News
   static const String news = '$baseUrl/news?category=sports';

@@ -10,16 +10,13 @@ import '../../../../../core/common/widgets/table_widget.dart';
 import '../../live_video/screen/video_screen.dart';
 import '../controller/live_controller.dart';
 import '../model/live_model.dart';
+import '../model/upcoming_match_model.dart';
 
 class LiveMatchesScreen extends StatelessWidget {
   LiveMatchesScreen({super.key, this.initialTab = 0});
 
   final int initialTab;
-
-  final LiveMatchesController controller = Get.put(
-    LiveMatchesController(),
-    permanent: true,
-  );
+  final LiveMatchesController controller = Get.put(LiveMatchesController(), permanent: true);
 
   @override
   Widget build(BuildContext context) {
@@ -77,25 +74,78 @@ class LiveMatchesScreen extends StatelessWidget {
               Expanded(
                 child: GetBuilder<LiveMatchesController>(
                   builder: (controller) {
+                    /// UPCOMING
                     if (controller.isUpcoming) {
+                      if (controller.isUpcomingLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
                       return _buildUpcomingList();
                     }
+
+                    /// RECENT MATCH
                     if (controller.isRecentMatch) {
-                      return RecentMatchesWidget(recentMatchesData: controller.recentMatchesData);
+                      return controller.recentMatchesData == null
+                          ? const Center(child: CircularProgressIndicator())
+                          : RecentMatchesWidget(
+                        recentMatchesData: controller.recentMatchesData!,
+                      );
                     }
+
+                    /// STATS
                     if (controller.isStats) {
-                      return MatchStatsWidget(statsData: controller.statsData);
+                      return controller.statsData == null
+                          ? const Center(child: CircularProgressIndicator())
+                          : MatchStatsWidget(
+                        statsData: controller.statsData!,
+                      );
                     }
+
+                    /// LINEUP
                     if (controller.isLineup) {
-                      return LineupWidget(lineupData: controller.lineupData);
+                      return controller.lineupData == null
+                          ? const Center(child: CircularProgressIndicator())
+                          : LineupWidget(
+                        lineupData: controller.lineupData!,
+                      );
                     }
+
+                    /// TABLE
                     if (controller.isTable) {
-                      return TableWidget(tableData: controller.tableData);
+
+                      if (controller.isTableLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (controller.tableData == null) {
+                        return const Center(
+                          child: Text(
+                            "No Table Data",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        );
+                      }
+
+                      return TableWidget(
+                        tableData: controller.tableData!,
+                      );
                     }
+
+
+                    /// H2H
                     if (controller.isH2H) {
-                      return H2HWidget(h2hData: controller.h2hData);
+                      return controller.h2hData == null
+                          ? const Center(child: CircularProgressIndicator())
+                          : H2HWidget(
+                        h2hData: controller.h2hData!,
+                      );
                     }
-                    return _buildMatchList(); // LIVE
+
+                    /// DEFAULT → LIVE
+                    if (controller.isLoading && controller.matches.isEmpty) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    return _buildMatchList();
                   },
                 ),
               ),
@@ -106,51 +156,43 @@ class LiveMatchesScreen extends StatelessWidget {
     );
   }
 
-  // APP BAR
-  AppBar _buildAppBar() {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      title: const Text(
-        "LIVE",
-        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-      actions: const [
-        Icon(Icons.notifications_none, color: Colors.white),
-        SizedBox(width: 16),
-        Icon(Icons.search, color: Colors.white),
-        SizedBox(width: 16),
-        CircleAvatar(radius: 14),
-        SizedBox(width: 16),
-      ],
-    );
-  }
-
   // TABS (FIXED)
 
   // MATCH LIST
   Widget _buildMatchList() {
-    if (controller.isLoading) {
+    if (controller.isLoading && controller.matches.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: controller.matches.length,
-      itemBuilder: (context, index) {
-        return _matchCard(controller.matches[index]);
-      },
+    return RefreshIndicator(
+      onRefresh: controller.refreshMatches,
+      child: ListView.builder(
+        controller: controller.scrollController,
+        padding: const EdgeInsets.all(16),
+        itemCount: controller.matches.length +
+            (controller.isPaginationLoading ? 1 : 0),
+        itemBuilder: (context, index) {
+          /// bottom loader
+          if (index == controller.matches.length) {
+            return const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          return _matchCard(controller.matches[index]);
+        },
+      ),
     );
   }
+
 
   // MATCH CARD
   Widget _matchCard(MatchModel match) {
     return GestureDetector(
-      onTap: () {
-        Get.to(VideoLiveScreen());
-      },
+      onTap: () => Get.to(VideoLiveScreen()),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
@@ -160,13 +202,11 @@ class LiveMatchesScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
+            /// Live + Views Row
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.red,
                     borderRadius: BorderRadius.circular(30),
@@ -184,10 +224,11 @@ class LiveMatchesScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
+            /// Teams + Score Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _team(match.homeTeam),
+                _team(match.homeTeam, match.homeBadge),
                 Text(
                   "${match.homeScore}  -  ${match.awayScore}",
                   style: const TextStyle(
@@ -196,7 +237,7 @@ class LiveMatchesScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                _team(match.awayTeam),
+                _team(match.awayTeam, match.awayBadge),
               ],
             ),
           ],
@@ -205,31 +246,69 @@ class LiveMatchesScreen extends StatelessWidget {
     );
   }
 
-  Widget _team(String name) {
-    return Column(
-      children: [
-        const CircleAvatar(
-          radius: 22,
-          backgroundColor: Colors.white,
-          child: Icon(Icons.sports_soccer),
-        ),
-        const SizedBox(height: 6),
-        Text(name, style: const TextStyle(color: Colors.white)),
-      ],
+  Widget _team(String name, String badgeUrl) {
+    return SizedBox(
+      width: 90,
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 22,
+            backgroundColor: Colors.white,
+            child: ClipOval(
+              child: badgeUrl.isNotEmpty
+                  ? Image.network(
+                badgeUrl,
+                width: 36,
+                height: 36,
+                fit: BoxFit.contain,
+                /// prevents crash if image fails
+                errorBuilder: (_, __, ___) =>
+                const Icon(Icons.sports_soccer),
+              )
+                  : const Icon(Icons.sports_soccer),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
     );
   }
 
+
+
   Widget _buildUpcomingList() {
+    if (controller.isUpcomingLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (controller.upcomingMatches.isEmpty) {
+      return const Center(
+        child: Text(
+          "No Upcoming Matches",
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: 4,
+      itemCount: controller.upcomingMatches.length,
       itemBuilder: (context, index) {
-        return _upcomingMatchCard();
+        final match = controller.upcomingMatches[index];
+        return _upcomingMatchCard(match);
       },
     );
   }
 
-  Widget _upcomingMatchCard() {
+
+  Widget _upcomingMatchCard(UpcomingMatchModel match) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -239,36 +318,33 @@ class LiveMatchesScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          //  Time chips + Remind
           Row(
             children: [
-              _timeChip("12H"),
-              _timeChip("12M"),
-              _timeChip("12S"),
+              _timeChip("Soon"),
               const Spacer(),
               _remindButton(),
             ],
           ),
           const SizedBox(height: 14),
 
-          //  Teams + Date
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _upcomingTeam("Betis"),
+              _upcomingTeam(match.homeTeam, match.homeBadge),
+
               Column(
-                children: const [
+                children: [
                   Text(
-                    "Mon, Mar 23, 21",
-                    style: TextStyle(
+                    match.date,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    "Soon",
+                  const SizedBox(height: 4),
+                  const Text(
+                    "Upcoming",
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -276,13 +352,15 @@ class LiveMatchesScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              _upcomingTeam("Real Madrid"),
+
+              _upcomingTeam(match.awayTeam, match.awayBadge),
             ],
           ),
         ],
       ),
     );
   }
+
 
   Widget _timeChip(String text) {
     return Container(
@@ -323,17 +401,32 @@ class LiveMatchesScreen extends StatelessWidget {
     );
   }
 
-  Widget _upcomingTeam(String name) {
+  Widget _upcomingTeam(String name, String badge) {
     return Column(
       children: [
-        const CircleAvatar(
+        CircleAvatar(
           radius: 22,
           backgroundColor: Colors.white,
-          child: Icon(Icons.sports_soccer),
+          child: ClipOval(
+            child: badge.isNotEmpty
+                ? Image.network(
+              badge,
+              width: 36,
+              height: 36,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) =>
+              const Icon(Icons.sports_soccer),
+            )
+                : const Icon(Icons.sports_soccer),
+          ),
         ),
         const SizedBox(height: 6),
-        Text(name, style: const TextStyle(color: Colors.white)),
+        Text(
+          name,
+          style: const TextStyle(color: Colors.white),
+        ),
       ],
     );
   }
+
 }

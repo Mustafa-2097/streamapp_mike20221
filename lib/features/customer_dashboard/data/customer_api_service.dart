@@ -3,11 +3,11 @@ import '../../../core/network/api_service.dart';
 import '../../../core/offline_storage/shared_pref.dart';
 
 class CustomerApiService {
-  static const String _baseUrl = 'https://mike20221.smtsigma.com/api/v1';
 
-  /// Profile
+  /// ================= PROFILE =================
   static Future<Map<String, dynamic>> getProfile() async {
     final String? token = await SharedPreferencesHelper.getToken();
+
     if (token == null || token.isEmpty) {
       throw Exception("User token not found");
     }
@@ -21,10 +21,33 @@ class CustomerApiService {
     );
   }
 
-  /// Live
-  static Future<Map<String, dynamic>> getLiveScores() async {
+  /// ================= LIVE SCORES (PAGINATION READY) =================
+  static Future<Map<String, dynamic>> getLiveScores({
+    required int page,
+  }) async {
     return await ApiService.get(
-      ApiEndpoints.liveScores,
+      "${ApiEndpoints.liveScores}?page=$page",
     );
   }
+
+  /// Upcoming Matches
+  static Future<Map<String, dynamic>> getUpcomingMatches({
+    required String leagueId,
+  }) async {
+    return await ApiService.get(
+      ApiEndpoints.upcomingMatches(leagueId),
+    );
+  }
+
+  /// ================= LEAGUE TABLE =================
+  static Future<Map<String, dynamic>> getLeagueTable({
+    required String leagueId,
+    required String season,
+  }) async {
+    return await ApiService.get(
+      "${ApiEndpoints.leagueTable}?leagueId=$leagueId&season=$season",
+    );
+  }
+
+
 }

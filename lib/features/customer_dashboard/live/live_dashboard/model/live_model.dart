@@ -5,24 +5,34 @@ class MatchModel {
   final int awayScore;
   final String views;
 
+  /// NEW
+  final String homeBadge;
+  final String awayBadge;
+
   MatchModel({
     required this.homeTeam,
     required this.awayTeam,
     required this.homeScore,
     required this.awayScore,
     required this.views,
+    required this.homeBadge,
+    required this.awayBadge,
   });
 
   factory MatchModel.fromJson(Map<String, dynamic> json) {
     return MatchModel(
       homeTeam: json['strHomeTeam'] ?? '',
       awayTeam: json['strAwayTeam'] ?? '',
-      homeScore: int.tryParse(json['intHomeScore']?.toString() ?? '0') ?? 0,
-      awayScore: int.tryParse(json['intAwayScore']?.toString() ?? '0') ?? 0,
+      homeScore:
+      int.tryParse(json['intHomeScore']?.toString() ?? '0') ?? 0,
+      awayScore:
+      int.tryParse(json['intAwayScore']?.toString() ?? '0') ?? 0,
 
-      /// API has no views → keep dummy
+      /// badges
+      homeBadge: json['strHomeTeamBadge'] ?? '',
+      awayBadge: json['strAwayTeamBadge'] ?? '',
+
       views: "LIVE",
     );
   }
 }
-

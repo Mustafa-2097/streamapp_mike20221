@@ -6,9 +6,9 @@ class MatchStatsWidget extends StatelessWidget {
   final MatchStatsData statsData;
 
   const MatchStatsWidget({
-    Key? key,
+    super.key,
     required this.statsData,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
