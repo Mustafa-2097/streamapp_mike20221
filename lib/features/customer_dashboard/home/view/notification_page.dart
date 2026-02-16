@@ -32,12 +32,10 @@ class NotificationPage extends StatelessWidget {
           child: Obx(() {
             if (controller.isLoading.value) {
               return const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                ),
+                child: CircularProgressIndicator(color: Colors.white),
               );
             }
-          
+
             if (controller.notifications.isEmpty) {
               return Center(
                 child: Column(
@@ -56,7 +54,7 @@ class NotificationPage extends StatelessWidget {
                 ),
               );
             }
-          
+
             return RefreshIndicator(
               onRefresh: () async {
                 controller.refreshNotifications();
@@ -88,7 +86,7 @@ class NotificationPage extends StatelessWidget {
                           width: 70,
                         ),
                         const SizedBox(width: 16),
-          
+
                         // Notification content
                         Expanded(
                           child: Column(
