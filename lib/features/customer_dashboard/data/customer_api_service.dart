@@ -50,4 +50,13 @@ class CustomerApiService {
   }
 
 
+  /// ================= LIVE TV =================
+  static Future<Map<String, dynamic>> getLiveTvChannels() async {
+    return await ApiService.get(
+      ApiEndpoints.liveTv, // make sure this endpoint exists
+    );
+  }
+
+
+
 }

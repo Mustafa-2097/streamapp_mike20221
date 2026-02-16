@@ -27,7 +27,10 @@ class ApiEndpoints {
   /// Table
   static const String leagueTable = '$baseUrl/sports/league-table';
 
+  /// Live TV
+  static const String liveTv = '$baseUrl/contents/live-tv';
 
-  /// News
+
+    /// News
   static const String news = '$baseUrl/news?category=sports';
 }
