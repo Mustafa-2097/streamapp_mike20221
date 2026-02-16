@@ -18,18 +18,19 @@ class CustomAppDrawer extends StatelessWidget {
       child: SafeArea(
         child: Container(
           color: AppColors.textColor,
-          padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: sw*0.076),
+          padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: sw * 0.076),
           child:
-          /// Personal Info section
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.asset(ImagesPath.logo, width: 82, height: 70),
-              SizedBox(height: 20),
-              /// Personal Info Section
-              PersonalDetails(),
-            ],
-          ),
+              /// Personal Info section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Image.asset(ImagesPath.logo, width: 82, height: 70),
+                  SizedBox(height: 20),
+
+                  /// Personal Info Section
+                  Expanded(child: PersonalDetails()),
+                ],
+              ),
         ),
       ),
     );
