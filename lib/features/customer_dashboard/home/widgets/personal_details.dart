@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:testapp/features/auth/login/screen/login_screen.dart';
+import 'package:testapp/features/customer_dashboard/profile/view/pages/change_password_page.dart';
 import '../../profile/view/pages/bookmark_screen.dart';
 import '../../profile/view/pages/contact_us_page.dart';
 import '../../profile/view/pages/notification_setting.dart';
@@ -75,6 +76,11 @@ class PersonalDetails extends StatelessWidget {
           label: 'Notification Setting',
           onTap: () => Get.to(() => NotificationSettingPage()),
         ),
+        _DrawerItem(
+          icon: Icons.password,
+          label: 'Change Password',
+          onTap: () => Get.to(() => ChangePasswordScreen()),
+        ),
 
         SizedBox(height: 18.h),
 
@@ -112,10 +118,17 @@ class PersonalDetails extends StatelessWidget {
             onPressed: () => showLogoutBottomSheet(context),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: Color(0xFFDF1C41), width: 1.3),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r),
+              ),
               padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 6.h),
             ),
-            icon: Icon(Icons.logout, color: Color(0xFFDF1C41), size: 22.r, fontWeight: FontWeight.bold),
+            icon: Icon(
+              Icons.logout,
+              color: Color(0xFFDF1C41),
+              size: 22.r,
+              fontWeight: FontWeight.bold,
+            ),
             label: Text(
               'logout'.tr,
               style: TextStyle(
@@ -131,7 +144,6 @@ class PersonalDetails extends StatelessWidget {
     );
   }
 }
-
 
 class _DrawerItem extends StatelessWidget {
   final IconData icon;
@@ -175,9 +187,7 @@ void showLogoutBottomSheet(BuildContext context) {
         padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
           color: Color(0xFF0F1720), // dark background
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(24),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -215,12 +225,9 @@ void showLogoutBottomSheet(BuildContext context) {
             /// DESCRIPTION
             const Text(
               "Are you sure you want to log out? "
-                  "You will need to sign in again to access your account.",
+              "You will need to sign in again to access your account.",
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey, fontSize: 14),
             ),
 
             const SizedBox(height: 28),
@@ -283,4 +290,3 @@ void showLogoutBottomSheet(BuildContext context) {
     },
   );
 }
-
