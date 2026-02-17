@@ -1,15 +1,14 @@
+import 'dart:io';
 import '../../../core/network/api_endpoints.dart';
 import '../../../core/network/api_service.dart';
 import '../../../core/offline_storage/shared_pref.dart';
 
 class CustomerApiService {
   /// ================= PROFILE =================
+
   static Future<Map<String, dynamic>> getProfile() async {
     final String? token = await SharedPreferencesHelper.getToken();
-
-    if (token == null || token.isEmpty) {
-      throw Exception("User token not found");
-    }
+    if (token == null || token.isEmpty) throw Exception("User token not found");
 
     return await ApiService.get(
       ApiEndpoints.userProfile,
@@ -17,15 +16,43 @@ class CustomerApiService {
     );
   }
 
+  /// Update Profile Info
+  /// Sends a PATCH multipart request to /users/profile.
+  /// [name], [dateOfBirth], [country] are optional text fields.
+  /// [imageFile] is optional — only sent when the user picks a new photo.
+  static Future<Map<String, dynamic>> updateProfile({
+    String? name,
+    String? dateOfBirth, // expected format: "YYYY-MM-DD"
+    String? country,
+    File? imageFile,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) throw Exception("User token not found");
+
+    // Build only the fields that were provided
+    final Map<String, String> fields = {};
+    if (name != null && name.isNotEmpty) fields['name'] = name;
+    if (dateOfBirth != null && dateOfBirth.isNotEmpty) {
+      fields['dateOfBirth'] = dateOfBirth;
+    }
+    if (country != null && country.isNotEmpty) fields['country'] = country;
+
+    return await ApiService.patchMultipart(
+      ApiEndpoints.updateProfile,
+      headers: {'Authorization': token},
+      fields: fields,
+      imageFile: imageFile,
+      imageFieldName: 'profileImage',
+    );
+  }
+
+  /// Change Password
   static Future<Map<String, dynamic>> changePassword({
     required String oldPassword,
     required String newPassword,
   }) async {
     final String? token = await SharedPreferencesHelper.getToken();
-
-    if (token == null || token.isEmpty) {
-      throw Exception("User token not found");
-    }
+    if (token == null || token.isEmpty) throw Exception("User token not found");
 
     return await ApiService.post(
       ApiEndpoints.changePassword,
@@ -34,7 +61,7 @@ class CustomerApiService {
     );
   }
 
-  /// ================= LIVE SCORES (PAGINATION READY) =================
+  /// ================= LIVE SCORES =================
   static Future<Map<String, dynamic>> getLiveScores({required int page}) async {
     return await ApiService.get("${ApiEndpoints.liveScores}?page=$page");
   }
@@ -56,14 +83,8 @@ class CustomerApiService {
     );
   }
 
-
-
   /// ================= LIVE TV =================
   static Future<Map<String, dynamic>> getLiveTvChannels() async {
-    return await ApiService.get(
-      ApiEndpoints.liveTv, // make sure this endpoint exists
-    );
+    return await ApiService.get(ApiEndpoints.liveTv);
   }
-
-
 }
