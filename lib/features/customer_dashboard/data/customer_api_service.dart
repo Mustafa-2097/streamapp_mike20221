@@ -12,12 +12,13 @@ class CustomerApiService {
 
     return await ApiService.get(
       ApiEndpoints.userProfile,
-      headers: {'Content-Type': 'application/json', 'Authorization': token},
+      headers: {'Authorization': token},
     );
   }
 
   /// Update Profile Info
-  /// Sends a PATCH multipart request to /users/profile.
+  /// ✅ Smart approach: uses JSON PATCH when no image, multipart only when image exists
+  /// This solves backend parsing issues where some APIs expect JSON body for text-only updates
   /// [name], [dateOfBirth], [country] are optional text fields.
   /// [imageFile] is optional — only sent when the user picks a new photo.
   static Future<Map<String, dynamic>> updateProfile({
@@ -30,20 +31,36 @@ class CustomerApiService {
     if (token == null || token.isEmpty) throw Exception("User token not found");
 
     // Build only the fields that were provided
-    final Map<String, String> fields = {};
-    if (name != null && name.isNotEmpty) fields['name'] = name;
+    final Map<String, dynamic> bodyFields = {};
+    if (name != null && name.isNotEmpty) bodyFields['name'] = name;
     if (dateOfBirth != null && dateOfBirth.isNotEmpty) {
-      fields['dateOfBirth'] = dateOfBirth;
+      bodyFields['dateOfBirth'] = dateOfBirth;
     }
-    if (country != null && country.isNotEmpty) fields['country'] = country;
+    if (country != null && country.isNotEmpty) bodyFields['country'] = country;
 
-    return await ApiService.patchMultipart(
-      ApiEndpoints.updateProfile,
-      headers: {'Authorization': token},
-      fields: fields,
-      imageFile: imageFile,
-      imageFieldName: 'profileImage',
-    );
+    // If there's an image, use multipart; otherwise use regular JSON PATCH
+    if (imageFile != null) {
+      // Convert map values to strings for multipart
+      final stringFields = bodyFields.map((k, v) => MapEntry(k, v.toString()));
+
+      return await ApiService.patchMultipart(
+        ApiEndpoints.updateProfile,
+        headers: {'Authorization': token},
+        fields: stringFields,
+        imageFile: imageFile,
+        imageFieldName: 'profileImage',
+      );
+    } else {
+      // No image — use simple JSON PATCH (more reliable for most backends)
+      return await ApiService.patch(
+        ApiEndpoints.updateProfile,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+        body: bodyFields,
+      );
+    }
   }
 
   /// Change Password

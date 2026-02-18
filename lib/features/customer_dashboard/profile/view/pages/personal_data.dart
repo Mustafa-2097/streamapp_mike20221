@@ -204,28 +204,37 @@ class PersonalData extends StatelessWidget {
                               ? null
                               : () => controller.saveProfile(),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
+                            backgroundColor: controller.buttonText.value == 'Saved!'
+                                ? Colors.green
+                                : Colors.white,
                             foregroundColor: Colors.black,
                             padding: EdgeInsets.symmetric(vertical: 16.h),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30.r),
                             ),
                           ),
-                          child: controller.isLoading.value
-                              ? SizedBox(
-                            height: 20.r,
-                            width: 20.r,
-                            child: const CircularProgressIndicator(
-                              color: Colors.black,
-                              strokeWidth: 2,
-                            ),
-                          )
-                              : Text(
-                            'Save',
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (controller.isLoading.value) ...[
+                                SizedBox(
+                                  height: 20.r,
+                                  width: 20.r,
+                                  child: const CircularProgressIndicator(
+                                    color: Colors.black,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                SizedBox(width: 10.w), // Add spacing between spinner and text
+                              ],
+                              Text(
+                                controller.buttonText.value,
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),

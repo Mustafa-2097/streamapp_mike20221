@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart'; // ← correct MediaType
+import 'package:http_parser/http_parser.dart';
 import 'package:get/get.dart';
 
 class ApiService {
@@ -86,6 +86,34 @@ class ApiService {
     }
   }
 
+  /// PATCH REQUEST (JSON body)
+  static Future<Map<String, dynamic>> patch(
+      String url, {
+        Map<String, String>? headers,
+        Map<String, dynamic>? body,
+      }) async {
+    try {
+      final response = await http
+          .patch(
+        Uri.parse(url),
+        headers: headers ?? {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      )
+          .timeout(timeout);
+
+      final decoded = jsonDecode(response.body);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return decoded;
+      } else {
+        throw decoded['message'] ?? 'Something went wrong';
+      }
+    } catch (e) {
+      Get.snackbar("Error", _friendlyError(e));
+      rethrow;
+    }
+  }
+
   /// PATCH MULTIPART REQUEST (for file uploads like profile image)
   static Future<Map<String, dynamic>> patchMultipart(
       String url, {
@@ -109,7 +137,6 @@ class ApiService {
       }
 
       if (imageFile != null) {
-        // ✅ Uses MediaType from http_parser — compatible with MultipartFile
         final mimeType = _getMimeType(imageFile.path);
         request.files.add(
           await http.MultipartFile.fromPath(
@@ -135,7 +162,7 @@ class ApiService {
     }
   }
 
-  /// ✅ Returns correct http_parser MediaType (not a custom class)
+  /// Returns correct http_parser MediaType
   static MediaType _getMimeType(String path) {
     final ext = path.split('.').last.toLowerCase();
     switch (ext) {
@@ -151,10 +178,12 @@ class ApiService {
     }
   }
 
-  /// ✅ Converts raw exceptions into user-friendly strings
+  /// Converts raw exceptions into user-friendly strings
   static String _friendlyError(Object e) {
     final msg = e.toString();
-    if (msg.contains('TimeoutException')) return 'Request timed out. Please try again.';
+    if (msg.contains('TimeoutException')) {
+      return 'Request timed out. Please try again.';
+    }
     if (msg.contains('SocketException')) return 'No internet connection.';
     if (msg.contains('FormatException')) return 'Unexpected server response.';
     // If it's already a clean API message string, return it directly
