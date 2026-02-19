@@ -48,14 +48,13 @@ class CustomerApiService {
         headers: {'Authorization': token},
         fields: stringFields,
         imageFile: imageFile,
-        imageFieldName: 'profileImage',
+        imageFieldName: 'image',
       );
     } else {
       // No image — use simple JSON PATCH (more reliable for most backends)
       return await ApiService.patch(
         ApiEndpoints.updateProfile,
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': token,
         },
         body: bodyFields,

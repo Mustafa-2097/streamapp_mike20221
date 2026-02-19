@@ -1,6 +1,6 @@
 class ApiEndpoints {
   /// Base URL
-  static const String baseUrl = 'https://mike20221.smtsigma.com/api/v1';
+  static const String baseUrl = 'http://206.162.244.189:5000/api/v1';
 
   /// Auth
   static const String register = '$baseUrl/auth/register';

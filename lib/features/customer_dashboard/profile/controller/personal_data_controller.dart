@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:testapp/features/customer_dashboard/profile/controller/profile_controller.dart';
 import '../../data/customer_api_service.dart';
+import '../model/customer_profile_model.dart';
 
 class PersonalDataController extends GetxController {
   // ── Observables ─────────────────────────────────────────────
@@ -220,8 +222,7 @@ class PersonalDataController extends GetxController {
     final countryChanged = _rawCountryName != _originalCountry;
     final imageChanged = profileImageFile.value != null;
 
-    final hasChanges =
-        nameChanged || dateChanged || countryChanged || imageChanged;
+    final hasChanges = nameChanged || dateChanged || countryChanged || imageChanged;
 
     if (!hasChanges) {
       Get.snackbar(
@@ -246,12 +247,23 @@ class PersonalDataController extends GetxController {
       );
 
       if (response['success'] == true) {
-        // Update original values after success
-        _originalName = currentName;
-        _originalDate = selectedDate.value;
-        _originalCountry = _rawCountryName;
+        final updatedUser = response['data'];
 
+        // Update main ProfileController (for ProfileScreen)
+        if (Get.isRegistered<ProfileController>()) {
+          ProfileController.instance.profile.value = CustomerProfile.fromJson(updatedUser);
+        }
+
+        // Update image locally for this page
+        networkImageUrl.value = updatedUser['profileImage'];
+
+        // Clear selected file (since now we use network image)
         profileImageFile.value = null;
+
+        // Update original values
+        _originalName = updatedUser['name'] ?? '';
+        _originalCountry = updatedUser['country'] ?? '';
+        _originalDate = selectedDate.value;
 
         buttonText.value = 'Saved!';
 
@@ -265,7 +277,8 @@ class PersonalDataController extends GetxController {
 
         await Future.delayed(const Duration(seconds: 2));
         buttonText.value = 'Save';
-      } else {
+      }
+      else {
         buttonText.value = 'Save';
 
         Get.snackbar(
