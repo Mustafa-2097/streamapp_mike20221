@@ -130,11 +130,17 @@ class ChangePasswordScreen extends StatelessWidget {
 
                 SizedBox(height: 40),
                 Center(
-                  child: CustomButton(
-                    text: "Change Password",
-                    color: Colors.white,
-                    textColor: Colors.black,
-                    onPressed: controller.handleChangePassword,
+                  child: Obx(
+                    () => CustomButton(
+                      text: controller.isLoading.value
+                          ? "Changing..."
+                          : "Change Password",
+                      color: Colors.white,
+                      textColor: Colors.black,
+                      onPressed: controller.isLoading.value
+                          ? null
+                          : controller.handleChangePassword,
+                    ),
                   ),
                 ),
               ],

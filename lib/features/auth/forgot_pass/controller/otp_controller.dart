@@ -2,9 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/offline_storage/shared_pref.dart';
-import '../../../customer_dashboard/dashboard/customer_dashboard.dart';
 import '../../data/auth_api_service.dart';
 import '../screen/success_screen.dart';
+import '../screen/reset_screen.dart';
+import './forgot_pass_controller.dart';
 
 class OtpController extends GetxController {
   // User information
@@ -23,10 +24,7 @@ class OtpController extends GetxController {
 
   Timer? _timer;
 
-  OtpController({
-    required this.email,
-    this.isSignUp = false,
-  });
+  OtpController({required this.email, this.isSignUp = false});
 
   @override
   void onInit() {
@@ -111,7 +109,7 @@ class OtpController extends GetxController {
   }
 
   Future<void> verifyOtp() async {
-    if(isLoading.value) return;
+    if (isLoading.value) return;
     final enteredOtp = otp.value;
 
     if (enteredOtp.length != 6) {
@@ -153,7 +151,9 @@ class OtpController extends GetxController {
 
           // Verify token was saved
           final savedToken = await SharedPreferencesHelper.getToken();
-          debugPrint('Verified saved token: ${savedToken?.substring(0, 20)}...');
+          debugPrint(
+            'Verified saved token: ${savedToken?.substring(0, 20)}...',
+          );
 
           // Save user role if available (might be in data directly)
           final userRole = data['role'] ?? data['user']?['role'];
@@ -170,8 +170,16 @@ class OtpController extends GetxController {
             'isSignUp': true,
           });
         } else {
-          // For login or forgot password: Go to dashboard
-          Get.offAll(() => CustomerDashboard());
+          // For forgot password: Save reset token and Go to reset screen
+          final tokenVal = data['token'] ?? data['accessToken'] ?? '';
+          if (tokenVal.isNotEmpty) {
+            final forgotPassController = Get.find<ForgotPasswordController>();
+            forgotPassController.resetToken = tokenVal;
+            Get.offAll(() => ResetPasswordScreen());
+          } else {
+            Get.snackbar("Error", "Missing reset token in response",
+                backgroundColor: Colors.red, colorText: Colors.white);
+          }
         }
       } else {
         debugPrint('OTP verification failed: ${response['message']}');

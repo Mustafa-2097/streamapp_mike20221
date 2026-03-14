@@ -32,57 +32,76 @@ class ChangePasswordController extends GetxController {
     Get.to(() => VerifyOtpScreen());
   }
 
-  // ---------------- RESET PASSWORD ----------------
+  final isLoading = false.obs;
+
   // ---------------- RESET PASSWORD ----------------
   Future<void> handleChangePassword() async {
     if (oldPasswordController.text.isEmpty ||
         newPasswordController.text.isEmpty ||
         confirmPasswordController.text.isEmpty) {
-      Get.snackbar("Error", "All fields are required");
+      Get.snackbar("Error", "All fields are required",
+          backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
     if (newPasswordController.text != confirmPasswordController.text) {
-      Get.snackbar("Error", "Passwords do not match");
+      Get.snackbar("Error", "Passwords do not match",
+          backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
     if (newPasswordController.text.length < 6) {
-      Get.snackbar("Error", "Password must be at least 6 characters long");
+      Get.snackbar("Error", "Password must be at least 6 characters long",
+          backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
     if (oldPasswordController.text == newPasswordController.text) {
-      Get.snackbar("Error", "New password cannot be the same as old password");
+      Get.snackbar("Error", "New password cannot be the same as old password",
+          backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
     try {
-      print("Sending change password request...");
+      isLoading.value = true;
+      debugPrint("Sending change password request...");
       final response = await CustomerApiService.changePassword(
         oldPassword: oldPasswordController.text.trim(),
         newPassword: newPasswordController.text.trim(),
+        confirmPassword: confirmPasswordController.text.trim(),
       );
-      print("Change password request successful: $response");
+      debugPrint("Change password request response: $response");
 
-      Get.back(); // Navigate back immediately
-      Get.snackbar(
-        "Success",
-        "Password changed successfully",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
+      if (response['success'] == true) {
+        Get.back(); // Navigate back immediately
+        Get.snackbar(
+          "Success",
+          "Password changed successfully",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      } else {
+        Get.snackbar(
+          "Error",
+          response['message'] ?? "Failed to change password",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
     } catch (e) {
-      print("Error changing password: $e");
-      // Get.snackbar(
-      //   "Error",
-      //   "Failed to change password: ${e.toString()}",
-      //   snackPosition: SnackPosition.BOTTOM,
-      //   backgroundColor: Colors.red,
-      //   colorText: Colors.white,
-      // );
+      debugPrint("Error changing password: $e");
+      Get.snackbar(
+        "Error",
+        "Failed to change password. Please try again.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
     }
   }
 

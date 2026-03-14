@@ -61,11 +61,14 @@ class ForgotPasswordScreen extends StatelessWidget {
 
                 // Continue Button
                 Center(
-                  child: CustomButton(
-                    text: "Send Code",
-                    color: Colors.white,
-                    textColor: Colors.black,
-                    onPressed: controller.sendOtp,
+                  child: Obx(
+                    () => CustomButton(
+                      text: controller.isLoading.value ? "Sending..." : "Send Code",
+                      color: Colors.white,
+                      textColor: Colors.black,
+                      onPressed:
+                          controller.isLoading.value ? null : controller.sendOtp,
+                    ),
                   ),
                 ),
                 SizedBox(height: 60),

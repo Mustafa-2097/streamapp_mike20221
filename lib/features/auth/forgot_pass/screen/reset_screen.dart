@@ -26,7 +26,7 @@ class ResetPasswordScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,7 +62,8 @@ class ResetPasswordScreen extends StatelessWidget {
                 // ---------------- NEW PASSWORD ----------------
                 const SizedBox(height: 8),
 
-                Obx(() => InputField(
+                Obx(
+                  () => InputField(
                     controller: controller.newPasswordController,
                     hint: "New Password",
                     obscureText: controller.isPasswordHidden.value,
@@ -83,32 +84,40 @@ class ResetPasswordScreen extends StatelessWidget {
                 // ---------------- CONFIRM PASSWORD ----------------
                 const SizedBox(height: 8),
 
-                Obx(() => InputField(
-                  controller: controller.confirmPasswordController,
-                  hint: "Confirm Password",
-                  obscureText: controller.isConfirmPasswordHidden.value,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      controller.isConfirmPasswordHidden.value
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: Colors.white,
+                Obx(
+                  () => InputField(
+                    controller: controller.confirmPasswordController,
+                    hint: "Confirm Password",
+                    obscureText: controller.isConfirmPasswordHidden.value,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        controller.isConfirmPasswordHidden.value
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: Colors.white,
+                      ),
+                      onPressed: () =>
+                          controller.isConfirmPasswordHidden.toggle(),
                     ),
-                    onPressed: () => controller.isConfirmPasswordHidden.toggle(),
                   ),
-                ),
                 ),
 
                 SizedBox(height: 40),
                 Center(
-                  child: CustomButton(
-                    text: "Reset Password",
-                    color: Colors.white,
-                    textColor: Colors.black,
-                    onPressed: controller.resetPassword,
+                  child: Obx(
+                    () => CustomButton(
+                      text: controller.isLoading.value
+                          ? "Resetting..."
+                          : "Reset Password",
+                      color: Colors.white,
+                      textColor: Colors.black,
+                      onPressed: controller.isLoading.value
+                          ? null
+                          : controller.resetPassword,
+                    ),
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(height: 40),
                 Align(
                   alignment: Alignment.center,
                   child: RichText(
