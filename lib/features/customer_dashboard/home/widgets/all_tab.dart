@@ -17,17 +17,17 @@ import '../../news/controller/news_controller.dart';
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
 
-  final List<String> _videoUrls = [
-    'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
-    'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv?autoplay=1',
-    'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
-  ];
+  // final List<String> _videoUrls = [
+  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
+  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv?autoplay=1',
+  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
+  // ];
 
-  final List<String> _videoTitles = [
-    'Live TV Channel 1',
-    'Live TV Channel 2',
-    'Live TV Channel 3',
-  ];
+  // final List<String> _videoTitles = [
+  //   'Live TV Channel 1',
+  //   'Live TV Channel 2',
+  //   'Live TV Channel 3',
+  // ];
 
   final List<String> _liveImages = [
     'assets/images/live01.png',
@@ -117,10 +117,9 @@ class ContentSection extends StatelessWidget {
         SizedBox(height: 26.h),
 
         // Upcoming section
-        // Upcoming section
         _sectionName("Upcoming", () {
           Get.to(
-            () => LiveMatchesScreen(initialTab: 1), // 👈 Upcoming tab index
+            () => LiveMatchesScreen(initialTab: 1), // Upcoming tab index
           );
         }),
 
@@ -497,11 +496,7 @@ class ContentSection extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Get.to(
-          () => openTvs(
-            videoUrl: _videoUrls[index],
-            videoTitle: _videoTitles[index],
-            viewerCount: _viewerCounts[index],
-          ),
+          () => OpenTvs(),
         );
       },
       child: ClipRRect(
