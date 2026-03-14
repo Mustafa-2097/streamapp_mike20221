@@ -18,20 +18,28 @@ class ApiEndpoints {
 
   /// Users Profile
   static const String userProfile = '$baseUrl/users/profile';
-  static const String updateProfile = '$baseUrl/user/update-profile';
+  static const String updateProfile = '$baseUrl/users/profile';
   static const String changePassword = '$baseUrl/users/change-password';
 
   /// Live
   static const String liveMatches = '$baseUrl/matches/live';
   static const String liveScores = '$baseUrl/sports/livescore/Soccer';
+<<<<<<< HEAD
   static const String upcomingMatchesAll = '$baseUrl/matches/upcoming';
   static const String recentMatches = '$baseUrl/matches/recent';
   static const String footballMatches = '$baseUrl/matches/football';
   static String upcomingMatches(String leagueId) =>
       '$baseUrl/sports/upcoming/$leagueId';
+=======
+  static String upcomingMatches(String leagueId) => '$baseUrl/sports/upcoming/$leagueId';
+>>>>>>> 4b3e3ce7b776859e02f9327be85c2b15f25e9e5a
 
   /// Table
   static const String leagueTable = '$baseUrl/sports/league-table';
+
+  /// Live TV
+  static const String liveTv = '$baseUrl/contents/live-tv';
+
 
   /// News
   static const String news = '$baseUrl/news?category=sports';

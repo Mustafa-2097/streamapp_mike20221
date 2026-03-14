@@ -10,7 +10,7 @@ import '../controller/profile_controller.dart';
 class ProfileScreen extends StatelessWidget {
   ProfileScreen({super.key});
 
-  final ProfileController controller = Get.put(ProfileController());
+  final ProfileController controller = Get.put(ProfileController(), permanent: true);
 
   @override
   Widget build(BuildContext context) {
