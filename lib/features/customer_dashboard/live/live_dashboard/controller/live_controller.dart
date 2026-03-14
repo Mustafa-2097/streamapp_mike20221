@@ -96,9 +96,9 @@ class LiveMatchesController extends GetxController {
 
       update();
 
-      final response = await CustomerApiService.getLiveScores(page: currentPage);
+      final response = await CustomerApiService.getLiveMatches(page: currentPage);
 
-      final List list = (response['data']?['livescore'] ?? []) as List;
+      final List list = (response['data'] ?? []) as List;
 
       final newMatches = list.map((e) => MatchModel.fromJson(e)).toList();
 

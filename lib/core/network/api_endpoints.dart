@@ -1,6 +1,6 @@
 class ApiEndpoints {
   /// Base URL
-  static const String baseUrl = 'http://206.162.244.189:5000/api/v1';
+  static const String baseUrl = 'http://10.0.30.59:8000/api/v1';
 
   /// Auth
   static const String register = '$baseUrl/auth/register';
@@ -10,8 +10,8 @@ class ApiEndpoints {
   static const String logout = '$baseUrl/auth/logout';
 
   /// Forgot Password
-  static const String sendResetOtp = '$baseUrl/auth/send-otp/password-reset';
-  static const String verifyResetOtp = '$baseUrl/auth/verify-otp/password-reset';
+  static const String forgotPassword = '$baseUrl/auth/forgot-password';
+  static const String verifyResetOtp = '$baseUrl/auth/verify-otp';
 
   /// Reset password (NEW)
   static const String resetPassword = '$baseUrl/auth/reset-password';
@@ -22,6 +22,7 @@ class ApiEndpoints {
   static const String changePassword = '$baseUrl/users/change-password';
 
   /// Live
+  static const String liveMatches = '$baseUrl/matches/live';
   static const String liveScores = '$baseUrl/sports/livescore/Soccer';
   static String upcomingMatches(String leagueId) => '$baseUrl/sports/upcoming/$leagueId';
 

@@ -217,9 +217,19 @@ class LiveMatchesScreen extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                Text(
-                  match.views,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.visibility_outlined,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      match.viewCount,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -228,7 +238,7 @@ class LiveMatchesScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _team(match.homeTeam, match.homeBadge),
+                _team(match.homeTeam, match.homeLogo),
                 Text(
                   "${match.homeScore}  -  ${match.awayScore}",
                   style: const TextStyle(
@@ -237,7 +247,7 @@ class LiveMatchesScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                _team(match.awayTeam, match.awayBadge),
+                _team(match.awayTeam, match.awayLogo),
               ],
             ),
           ],

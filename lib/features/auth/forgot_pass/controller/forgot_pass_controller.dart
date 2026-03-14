@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:testapp/features/auth/forgot_pass/screen/otp_screen.dart';
-import 'package:testapp/features/auth/forgot_pass/screen/reset_screen.dart';
 import 'package:testapp/features/auth/forgot_pass/screen/success_screen.dart';
+import '../../data/auth_api_service.dart';
 
 class ForgotPasswordController extends GetxController {
   // ---------------- EMAIL ----------------
@@ -17,40 +17,84 @@ class ForgotPasswordController extends GetxController {
   final isPasswordHidden = true.obs;
   var isConfirmPasswordHidden = true.obs;
 
-  // ---------------- TIMER ----------------
-  final secondsRemaining = 60.obs;
-  final isResendEnabled = false.obs;
+  final isLoading = false.obs;
+  String? resetToken;
 
   // ---------------- SEND OTP ----------------
-  void sendOtp() {
+  Future<void> sendOtp() async {
     if (emailController.text.isEmpty) {
-      Get.snackbar("Error", "Please enter your email");
+      Get.snackbar("Error", "Please enter your email",
+          backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
-    Get.to(() => VerifyOtpScreen());
+
+    try {
+      isLoading.value = true;
+      final response = await AuthApiService.forgotPassword(
+        email: emailController.text.trim(),
+      );
+
+      if (response['success'] == true) {
+        Get.to(() => const VerifyOtpScreen(), arguments: {
+          'email': emailController.text.trim(),
+          'isSignUp': false,
+        });
+        Get.snackbar("Success", response['message'] ?? "OTP sent successfully",
+            backgroundColor: Colors.green, colorText: Colors.white);
+      } else {
+        Get.snackbar("Error", response['message'] ?? "Failed to send OTP",
+            backgroundColor: Colors.red, colorText: Colors.white);
+      }
+    } catch (e) {
+      Get.snackbar("Error", e.toString(),
+          backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   // ---------------- RESET PASSWORD ----------------
-  void resetPassword() {
+  Future<void> resetPassword() async {
     if (newPasswordController.text.isEmpty ||
         confirmPasswordController.text.isEmpty) {
-      Get.snackbar("Error", "All fields are required");
+      Get.snackbar("Error", "All fields are required",
+          backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
     if (newPasswordController.text != confirmPasswordController.text) {
-      Get.snackbar("Error", "Passwords do not match");
+      Get.snackbar("Error", "Passwords do not match",
+          backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
-    Get.to(SuccessScreen());
+    if (resetToken == null) {
+      Get.snackbar("Error", "Session expired. Please verify OTP again.",
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      final response = await AuthApiService.resetPassword(
+        token: resetToken!,
+        newPassword: newPasswordController.text,
+      );
+
+      if (response['success'] == true) {
+        Get.offAll(() => const SuccessScreen());
+        Get.snackbar("Success", response['message'] ?? "Password reset successfully",
+            backgroundColor: Colors.green, colorText: Colors.white);
+      } else {
+        Get.snackbar("Error", response['message'] ?? "Failed to reset password",
+            backgroundColor: Colors.red, colorText: Colors.white);
+      }
+    } catch (e) {
+      Get.snackbar("Error", e.toString(),
+          backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  @override
-  void onClose() {
-    emailController.dispose();
-    newPasswordController.dispose();
-    confirmPasswordController.dispose();
-    super.onClose();
-  }
 }
