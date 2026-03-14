@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 import '../../../features/customer_dashboard/live/live_dashboard/model/recent_match_model.dart';
 
 class RecentMatchesWidget extends StatelessWidget {
-  final RecentMatchesData recentMatchesData;
+  final List<RecentMatchModel> recentMatches;
 
   const RecentMatchesWidget({
     Key? key,
-    required this.recentMatchesData,
+    required this.recentMatches,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: recentMatchesData.matches.length,
+      itemCount: recentMatches.length,
       itemBuilder: (context, index) {
-        return _buildMatchCard(recentMatchesData.matches[index]);
+        return _buildMatchCard(recentMatches[index]);
       },
     );
   }
 
-  Widget _buildMatchCard(RecentMatchItem match) {
+  Widget _buildMatchCard(RecentMatchModel match) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Container(
@@ -36,7 +36,7 @@ class RecentMatchesWidget extends StatelessWidget {
             SizedBox(
               width: 30,
               child: Text(
-                match.score1.toString(),
+                match.homeScore,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -52,16 +52,15 @@ class RecentMatchesWidget extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 16,
-                    backgroundColor: Colors.white12,
-                    child: Text(
-                      match.flag1,
-                      style: const TextStyle(fontSize: 18),
-                    ),
+                    backgroundColor: Colors.white,
+                    child: match.homeLogo.isNotEmpty
+                        ? Image.network(match.homeLogo, width: 24, height: 24)
+                        : const Icon(Icons.sports_soccer, size: 20),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      match.team1,
+                      match.homeTeam,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
@@ -80,9 +79,9 @@ class RecentMatchesWidget extends StatelessWidget {
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: const Text(
-                'vs',
-                style: TextStyle(
+              child: Text(
+                match.progress.isNotEmpty ? match.progress : 'vs',
+                style: const TextStyle(
                   color: Colors.white54,
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -97,7 +96,7 @@ class RecentMatchesWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      match.team2,
+                      match.awayTeam,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
@@ -109,11 +108,10 @@ class RecentMatchesWidget extends StatelessWidget {
                   const SizedBox(width: 10),
                   CircleAvatar(
                     radius: 16,
-                    backgroundColor: Colors.white12,
-                    child: Text(
-                      match.flag2,
-                      style: const TextStyle(fontSize: 18),
-                    ),
+                    backgroundColor: Colors.white,
+                    child: match.awayLogo.isNotEmpty
+                        ? Image.network(match.awayLogo, width: 24, height: 24)
+                        : const Icon(Icons.sports_soccer, size: 20),
                   ),
                 ],
               ),
@@ -123,7 +121,7 @@ class RecentMatchesWidget extends StatelessWidget {
             SizedBox(
               width: 30,
               child: Text(
-                match.score2.toString(),
+                match.awayScore,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,

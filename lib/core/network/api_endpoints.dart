@@ -24,6 +24,9 @@ class ApiEndpoints {
   /// Live
   static const String liveMatches = '$baseUrl/matches/live';
   static const String liveScores = '$baseUrl/sports/livescore/Soccer';
+  static const String upcomingMatchesAll = '$baseUrl/matches/upcoming';
+  static const String recentMatches = '$baseUrl/matches/recent';
+  static const String footballMatches = '$baseUrl/matches/football';
   static String upcomingMatches(String leagueId) =>
       '$baseUrl/sports/upcoming/$leagueId';
 
