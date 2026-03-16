@@ -30,6 +30,9 @@ class NewsScreen extends StatelessWidget {
               _buildCategoryTabs(controller),
               SizedBox(height: 20.h),
               Expanded(
+                child: _buildNewsList(controller),
+                /*
+                // Previous conditional implementation:
                 child: Obx(() {
                   if (controller.selectedTabIndex.value == 0) {
                     return _buildReplayList(controller);
@@ -42,6 +45,7 @@ class NewsScreen extends StatelessWidget {
                     );
                   }
                 }),
+                */
               ),
             ],
           ),
@@ -91,7 +95,7 @@ class NewsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildReplayList(NewsController controller) {
+  Widget _buildNewsList(NewsController controller) {
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification scrollInfo) {
         if (!controller.isLoadingMore.value &&

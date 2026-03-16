@@ -24,10 +24,6 @@ class ApiEndpoints {
   /// Live
   static const String liveMatches = '$baseUrl/matches/live';
   static const String liveScores = '$baseUrl/sports/livescore/Soccer';
-  static const String upcomingMatchesAll = '$baseUrl/matches/upcoming';
-  static const String recentMatches = '$baseUrl/matches/recent';
-  static const String footballMatches = '$baseUrl/matches/football';
-  static const String rugbyMatches = '$baseUrl/matches/rugby';
   static String upcomingMatches(String leagueId) =>
       '$baseUrl/sports/upcoming/$leagueId';
 
@@ -38,5 +34,8 @@ class ApiEndpoints {
   static const String liveTv = '$baseUrl/contents/live-tv';
 
   /// News
-  static const String news = '$baseUrl/news?category=sports';
+  ///  static const String news = '$baseUrl/news?category=sports';
+  static const String news = '$baseUrl/news';
+  static String comments(String newsId) => '$news/$newsId/comments';
+  static String engagement(String newsId) => '$news/$newsId/engagement';
 }

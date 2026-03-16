@@ -1,258 +1,382 @@
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
 import '../../news/model/news_model.dart';
+import '../../news/controller/news_controller.dart';
 
-class NewsDetailsScreen extends StatelessWidget {
+class NewsDetailsScreen extends StatefulWidget {
   final Article article;
   const NewsDetailsScreen({super.key, required this.article});
 
   @override
+  State<NewsDetailsScreen> createState() => _NewsDetailsScreenState();
+}
+
+class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
+  final NewsController controller = Get.find<NewsController>();
+  final TextEditingController _commentController = TextEditingController();
+  late Article currentArticle;
+  bool isLoading = false;
+  Comment? replyingToComment;
+
+  @override
+  void initState() {
+    super.initState();
+    currentArticle = widget.article;
+    _fetchFullArticle();
+  }
+
+  Future<void> _fetchFullArticle() async {
+    if (currentArticle.id == null) return;
+    setState(() => isLoading = true);
+    final fullArticle = await controller.fetchNewsById(currentArticle.id!);
+    if (fullArticle != null) {
+      setState(() {
+        currentArticle = fullArticle;
+        isLoading = false;
+      });
+    } else {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _handlePostComment() async {
+    if (_commentController.text.trim().isEmpty) return;
+    final parentId = replyingToComment?.id;
+    final newComment = await controller.postComment(
+      currentArticle.id!,
+      _commentController.text.trim(),
+      parentId: parentId,
+    );
+    if (newComment != null) {
+      setState(() {
+        if (parentId == null) {
+          currentArticle.comments ??= [];
+          currentArticle.comments!.insert(0, newComment);
+        } else {
+          _addCommentToParentLocally(currentArticle.comments, parentId, newComment);
+        }
+        currentArticle.commentCount = (currentArticle.commentCount ?? 0) + 1;
+        _commentController.clear();
+        replyingToComment = null;
+      });
+    }
+  }
+
+  void _addCommentToParentLocally(List<Comment>? comments, String parentId, Comment newComment) {
+    if (comments == null) return;
+    for (var comment in comments) {
+      if (comment.id == parentId) {
+        comment.replies ??= [];
+        comment.replies!.insert(0, newComment);
+        return;
+      }
+      if (comment.replies != null) {
+        _addCommentToParentLocally(comment.replies, parentId, newComment);
+      }
+    }
+  }
+
+  Future<void> _handleToggleEngagement(String type) async {
+    final data = await controller.toggleEngagement(currentArticle.id!, type);
+    if (data != null) {
+      setState(() {
+        currentArticle.likes = data['likes'];
+        currentArticle.dislikes = data['dislikes'];
+        if (type == 'like') {
+          currentArticle.isLiked = !(currentArticle.isLiked ?? false);
+          if (currentArticle.isLiked == true) currentArticle.isDisliked = false;
+        } else if (type == 'dislike') {
+          currentArticle.isDisliked = !(currentArticle.isDisliked ?? false);
+          if (currentArticle.isDisliked == true) currentArticle.isLiked = false;
+        }
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Exact colors from the screenshot
     final Color backgroundColor = const Color(0xFF15171E);
     final Color inputColor = const Color(0xFF3E3B50);
     final Color yellowAccent = const Color(0xFFFFD700);
-    final Color redAccent = Colors.redAccent;
 
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
         backgroundColor: backgroundColor,
         elevation: 0,
-        leading: const BackButton(
-          color: Colors.white,
-        ), // Assuming a back button exists
+        leading: const BackButton(color: Colors.white),
         actions: [
+          IconButton(
+            icon: Icon(
+              currentArticle.isLiked == true
+                  ? Icons.thumb_up
+                  : Icons.thumb_up_outlined,
+              color: currentArticle.isLiked == true
+                  ? yellowAccent
+                  : Colors.white,
+            ),
+            onPressed: () => _handleToggleEngagement('like'),
+          ),
+          IconButton(
+            icon: Icon(
+              currentArticle.isDisliked == true
+                  ? Icons.thumb_down
+                  : Icons.thumb_down_outlined,
+              color: currentArticle.isDisliked == true
+                  ? Colors.redAccent
+                  : Colors.white,
+            ),
+            onPressed: () => _handleToggleEngagement('dislike'),
+          ),
           IconButton(
             icon: const Icon(Icons.bookmark_border, color: Colors.white),
             onPressed: () {},
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Title
-              Text(
-                article.title ?? "No Title",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // 2. Metadata (Date & Reads)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    article.publishedAt != null &&
-                            article.publishedAt!.length >= 10
-                        ? article.publishedAt!.substring(0, 10)
-                        : "Unknown Date",
-                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                  ),
-                  Text(
-                    "${article.viewCount ?? 0} read",
-                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // 3. Intro Text
-              // 3. Intro Text (Description)
-              if (article.description != null)
-                Text(
-                  article.description!,
-                  style: TextStyle(
-                    color: Colors.grey[300],
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                ),
-              const SizedBox(height: 16),
-
-              // 4. Main Image
-              // 4. Main Image
-              if (article.urlToImage != null)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    article.urlToImage!,
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.fill,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 200,
-                      color: Colors.grey[800],
-                      child: const Center(
-                        child: Icon(Icons.error, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 16),
-
-              // 5. Body Text
-              // 5. Body Text (Content)
-              if (article.content != null)
-                Text(
-                  article.content!,
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                ),
-
-              const SizedBox(height: 30),
-
-              // 6. Comment Section Header
-              const Center(
-                child: Text(
-                  "Comment",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Divider(color: Colors.grey[700]),
-              const SizedBox(height: 10),
-
-              // 7. Comments List
-              _buildCommentItem(
-                username: "trunghieu1794",
-                content: "nice play pro!!!! keep playing",
-                color: yellowAccent,
-                likes: "3.2K",
-                dislikes: "368",
-              ),
-              const SizedBox(height: 16),
-
-              _buildCommentItem(
-                username: "alien.aa",
-                content: "shut down them please!!!!",
-                color: redAccent,
-                likes: "3.2K",
-                dislikes: "368",
-              ),
-
-              // Nested Reply Input
-              Padding(
-                padding: const EdgeInsets.only(left: 40, top: 12, bottom: 20),
-                child: Container(
-                  height: 40,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  alignment: Alignment.centerLeft,
-                  decoration: BoxDecoration(
-                    color: inputColor,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    "Reply.....",
-                    style: TextStyle(color: Colors.grey[500]),
-                  ),
-                ),
-              ),
-
-              _buildCommentItem(
-                username: "trunghieu1794",
-                content: "nice play pro!!!! keep playing",
-                color: yellowAccent,
-                likes: "3.2K",
-                dislikes: "368",
-              ),
-              const SizedBox(height: 20),
-
-              // 8. Add a comment Input (Static at bottom of comments)
-              Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 18,
-                    backgroundImage: NetworkImage(
-                      'https://i.pravatar.cc/150?img=12',
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Container(
-                      height: 50,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      alignment: Alignment.centerLeft,
-                      decoration: BoxDecoration(
-                        color: inputColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        "Add a comment...",
-                        style: TextStyle(color: Colors.grey[500], fontSize: 15),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 30),
-
-              // 9. Recommendation Section
-              const Text(
-                "Recommendation",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Horizontal List
-              SizedBox(
-                height: 180,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildRecommendationCard(
-                      "Indonesian national team who beat Europe",
-                      "https://english.news.cn/20260125/a7aad847dff1456f8a1a8b1344b705ca/20260125a7aad847dff1456f8a1a8b1344b705ca_2026012534f9350633db47728351d464902616e4.jpg",
+                    Text(
+                      currentArticle.title ?? "No Title",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    _buildRecommendationCard(
-                      "Indonesian national team who beat Europe",
-                      "https://english.news.cn/20260125/a7aad847dff1456f8a1a8b1344b705ca/20260125a7aad847dff1456f8a1a8b1344b705ca_2026012534f9350633db47728351d464902616e4.jpg",
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          currentArticle.publishedAt != null &&
+                                  currentArticle.publishedAt!.length >= 10
+                              ? currentArticle.publishedAt!.substring(0, 10)
+                              : "Unknown Date",
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 12,
+                          ),
+                        ),
+                        Text(
+                          "${currentArticle.viewCount ?? 0} read",
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    _buildRecommendationCard(
-                      "Indonesian national team who beat Europe",
-                      "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=500",
+                    const SizedBox(height: 16),
+                    if (currentArticle.description != null)
+                      Text(
+                        currentArticle.description!,
+                        style: TextStyle(
+                          color: Colors.grey[300],
+                          fontSize: 14,
+                          height: 1.4,
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    if (currentArticle.urlToImage != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          currentArticle.urlToImage!,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                height: 200,
+                                color: Colors.grey[800],
+                                child: const Center(
+                                  child: Icon(Icons.error, color: Colors.white),
+                                ),
+                              ),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    if (currentArticle.content != null)
+                      Text(
+                        currentArticle.content!,
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      ),
+                    const SizedBox(height: 30),
+                    Center(
+                      child: Text(
+                        "Comments (${currentArticle.commentCount ?? 0})",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
+                    const SizedBox(height: 10),
+                    Divider(color: Colors.grey[700]),
+                    const SizedBox(height: 10),
+
+                    // Comments List
+                    if (currentArticle.comments != null &&
+                        currentArticle.comments!.isNotEmpty)
+                      _buildCommentList(currentArticle.comments!)
+                    else
+                      const Center(
+                        child: Text(
+                          "No comments yet",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    if (replyingToComment != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 48, bottom: 8),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Replying to ${replyingToComment!.userName}",
+                              style: const TextStyle(
+                                  color: Color(0xFFFFD700), fontSize: 12),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () =>
+                                  setState(() => replyingToComment = null),
+                              child: const Icon(Icons.close,
+                                  color: Colors.grey, size: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Comment Input
+                    Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 18,
+                          backgroundImage: NetworkImage(
+                            'https://i.pravatar.cc/150?img=12',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: inputColor,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: TextField(
+                              controller: _commentController,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                hintText: "Add a comment...",
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 15,
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 10,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: const Icon(
+                                    Icons.send,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: _handlePostComment,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+                    const Text(
+                      "Recommendation",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 180,
+                      child: Obx(
+                        () => ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: controller.newsList.length,
+                          separatorBuilder: (c, i) => const SizedBox(width: 12),
+                          itemBuilder: (context, index) {
+                            final item = controller.newsList[index];
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        NewsDetailsScreen(article: item),
+                                  ),
+                                );
+                              },
+                              child: _buildRecommendationCard(
+                                item.title ?? "No Title",
+                                item.urlToImage ?? "",
+                                item.publishedAt ?? "",
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
-              const SizedBox(height: 40),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
-  // Helper for Comment Item
-  Widget _buildCommentItem({
-    required String username,
-    required String content,
-    required Color color,
-    required String likes,
-    required String dislikes,
-  }) {
+  Widget _buildCommentList(List<Comment> comments, {double padding = 0}) {
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: comments.length,
+      separatorBuilder: (c, i) =>
+          SizedBox(height: padding > 0 ? 8 : 16), // Smaller spacing for replies
+      itemBuilder: (context, index) {
+        final comment = comments[index];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: padding),
+              child: _buildCommentItem(comment),
+            ),
+            if (comment.replies != null && comment.replies!.isNotEmpty)
+              _buildCommentList(comment.replies!, padding: padding + 24),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildCommentItem(Comment comment) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -260,15 +384,15 @@ class NewsDetailsScreen extends StatelessWidget {
           text: TextSpan(
             children: [
               TextSpan(
-                text: "$username: ",
-                style: TextStyle(
-                  color: color,
+                text: "${comment.userName ?? "User"}: ",
+                style: const TextStyle(
+                  color: Color(0xFFFFD700),
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                 ),
               ),
               TextSpan(
-                text: content,
+                text: comment.comment ?? "",
                 style: const TextStyle(color: Colors.white, fontSize: 13),
               ),
             ],
@@ -280,22 +404,33 @@ class NewsDetailsScreen extends StatelessWidget {
             Icon(Icons.thumb_up_outlined, color: Colors.grey[400], size: 16),
             const SizedBox(width: 4),
             Text(
-              likes,
+              "0",
               style: TextStyle(color: Colors.grey[400], fontSize: 12),
             ),
             const SizedBox(width: 16),
             Icon(Icons.thumb_down_outlined, color: Colors.grey[400], size: 16),
             const SizedBox(width: 4),
             Text(
-              dislikes,
+              "0",
               style: TextStyle(color: Colors.grey[400], fontSize: 12),
             ),
             const SizedBox(width: 16),
-            Icon(Icons.reply, color: Colors.grey[400], size: 16),
-            const SizedBox(width: 4),
-            Text(
-              "Reply",
-              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            GestureDetector(
+              onTap: () {
+                setState(() => replyingToComment = comment);
+                FocusScope.of(context).unfocus(); // Scroll to input
+                // Scroll calculation would go here if using a controller
+              },
+              child: Row(
+                children: [
+                  const Icon(Icons.reply, color: Colors.grey, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    "Reply",
+                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -303,14 +438,15 @@ class NewsDetailsScreen extends StatelessWidget {
     );
   }
 
-  // Helper for Recommendation Card
-  Widget _buildRecommendationCard(String title, String imageUrl) {
+  Widget _buildRecommendationCard(String title, String imageUrl, String date) {
     return Container(
       width: 140,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         image: DecorationImage(
-          image: NetworkImage(imageUrl),
+          image: imageUrl.isNotEmpty
+              ? NetworkImage(imageUrl)
+              : const AssetImage('assets/images/news.png') as ImageProvider,
           fit: BoxFit.cover,
         ),
       ),
@@ -341,7 +477,7 @@ class NewsDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              "October 12",
+              date.length >= 10 ? date.substring(5, 10) : date,
               style: TextStyle(color: Colors.grey[400], fontSize: 10),
             ),
           ],

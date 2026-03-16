@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../../../core/network/api_service.dart';
@@ -54,16 +53,19 @@ class CustomerApiService {
 
       return await ApiService.patchMultipart(
         ApiEndpoints.updateProfile,
-        headers: {'Authorization': token},
+        headers: {'Authorization': 'Bearer $token'},
         fields: stringFields,
         imageFile: imageFile,
-        imageFieldName: 'image',
+        imageFieldName: 'profilePhoto',
       );
     } else {
       // No image — use simple JSON PATCH (more reliable for most backends)
       return await ApiService.patch(
         ApiEndpoints.updateProfile,
-        headers: {'Authorization': token},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: bodyFields,
       );
     }

@@ -57,17 +57,25 @@ class PersonalData extends StatelessWidget {
                               imageProvider = NetworkImage(networkUrl);
                             }
 
-                            return CircleAvatar(
-                              radius: 45.w,
-                              backgroundColor: AppColors.primaryColor,
-                              backgroundImage: imageProvider,
-                              child: imageProvider == null
-                                  ? Icon(
-                                Icons.person,
-                                size: 50.r,
-                                color: Colors.white,
-                              )
-                                  : null,
+                            return Container(
+                              width: 90.w,
+                              height: 90.w,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.primaryColor,
+                                border: Border.all(color: Colors.white24, width: 2),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: imageProvider != null
+                                  ? (localFile != null 
+                                      ? Image.file(localFile, fit: BoxFit.cover)
+                                      : Image.network(
+                                          networkUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 50.r, color: Colors.white),
+                                          loadingBuilder: (context, child, progress) => progress == null ? child : const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                                        ))
+                                  : Icon(Icons.person, size: 50.r, color: Colors.white),
                             );
                           }),
                           GestureDetector(
