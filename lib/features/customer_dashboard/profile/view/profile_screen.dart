@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../../core/common/widgets/scaffold_bg.dart';
 import '../../../../core/const/app_colors.dart';
 import '../../home/widgets/personal_details.dart';
+import '../../subscription/view/subscription_screen.dart';
 import '../controller/profile_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -34,22 +35,32 @@ class ProfileScreen extends StatelessWidget {
                   /// ================= USER IMAGE =================
                   Obx(() {
                     final profile = controller.profile.value;
+                    final photoUrl = profile?.profilePhoto;
+                    final hasPhoto = photoUrl != null && photoUrl.trim().isNotEmpty;
 
-                    return CircleAvatar(
-                      radius: 45.w,
-                      backgroundColor: AppColors.primaryColor,
-                      backgroundImage:
-                      profile?.profileImage != null &&
-                          profile!.profileImage!.isNotEmpty
-                          ? NetworkImage(profile.profileImage!)
-                          : null,
-                      child: profile?.profileImage == null
-                          ? Icon(
-                        Icons.person,
-                        size: 50.r,
-                        color: Colors.white,
-                      )
-                          : null,
+                    return Container(
+                      width: 90.w,
+                      height: 90.w,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primaryColor,
+                        border: Border.all(color: Colors.white24, width: 2),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: hasPhoto 
+                        ? Image.network(
+                            photoUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              debugPrint("Image Load Error: $error");
+                              return Icon(Icons.person, size: 50.r, color: Colors.white);
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2));
+                            },
+                          )
+                        : Icon(Icons.person, size: 50.r, color: Colors.white),
                     );
                   }),
 
@@ -92,6 +103,7 @@ class ProfileScreen extends StatelessWidget {
                   SizedBox(height: 10),
 
                   /// ================= PLAN STATUS =================
+                  /*
                   Container(
                     height: 100,
                     width: double.infinity,
@@ -168,6 +180,94 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ],
                     ),
+                  ),
+                  */
+
+                  Container(
+                    height: 100,
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.grey.shade800,
+                    ),
+                    child: Obx(() {
+                      final profile = controller.profile.value;
+                      final planName = profile?.subscription?.plan?.name ?? "Basic";
+                      final endDate = profile?.subscription?.endDate ?? "dd/mm/yyyy";
+
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "Your Plan Status",
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8.w,
+                                  vertical: 4.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  color: AppColors.primaryColor,
+                                ),
+                                child: InkWell(
+                                  onTap: () => Get.to(() => SubscriptionPage()),
+                                  child: Text(
+                                    "Upgrade",
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8.w,
+                                  vertical: 4.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  color: Colors.white,
+                                ),
+                                child: Text(
+                                  planName,
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 20.w),
+                              Text(
+                                "Plan expire: $endDate",
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.grey.shade100,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    }),
                   ),
 
                   SizedBox(height: 16),
