@@ -11,17 +11,17 @@ class ApiService {
 
   /// POST REQUEST
   static Future<Map<String, dynamic>> post(
-      String url, {
-        Map<String, String>? headers,
-        Map<String, dynamic>? body,
-      }) async {
+    String url, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
+  }) async {
     try {
       final response = await http
           .post(
-        Uri.parse(url),
-        headers: headers ?? {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      )
+            Uri.parse(url),
+            headers: headers ?? {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
           .timeout(timeout);
 
       final decoded = jsonDecode(response.body);
@@ -44,10 +44,10 @@ class ApiService {
 
   /// GET REQUEST
   static Future<Map<String, dynamic>> get(
-      String url, {
-        Map<String, String>? headers,
-        Map<String, dynamic>? queryParameters,
-      }) async {
+    String url, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
       final uri = Uri.parse(url).replace(queryParameters: queryParameters);
       final response = await http.get(uri, headers: headers).timeout(timeout);
@@ -72,17 +72,17 @@ class ApiService {
 
   /// PUT REQUEST
   static Future<Map<String, dynamic>> put(
-      String url, {
-        Map<String, String>? headers,
-        Map<String, dynamic>? body,
-      }) async {
+    String url, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
+  }) async {
     try {
       final response = await http
           .put(
-        Uri.parse(url),
-        headers: headers ?? {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      )
+            Uri.parse(url),
+            headers: headers ?? {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
           .timeout(timeout);
 
       final decoded = jsonDecode(response.body);
@@ -105,17 +105,17 @@ class ApiService {
 
   /// PATCH REQUEST (JSON body)
   static Future<Map<String, dynamic>> patch(
-      String url, {
-        Map<String, String>? headers,
-        Map<String, dynamic>? body,
-      }) async {
+    String url, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
+  }) async {
     try {
       final response = await http
           .patch(
-        Uri.parse(url),
-        headers: headers ?? {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      )
+            Uri.parse(url),
+            headers: headers ?? {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
           .timeout(timeout);
 
       final decoded = jsonDecode(response.body);
@@ -138,12 +138,12 @@ class ApiService {
 
   /// PATCH MULTIPART REQUEST (for file uploads like profile image)
   static Future<Map<String, dynamic>> patchMultipart(
-      String url, {
-        required Map<String, String> headers,
-        Map<String, String>? fields,
-        File? imageFile,
-        String imageFieldName = 'profileImage',
-      }) async {
+    String url, {
+    required Map<String, String> headers,
+    Map<String, String>? fields,
+    File? imageFile,
+    String imageFieldName = 'profileImage',
+  }) async {
     try {
       final request = http.MultipartRequest('PATCH', Uri.parse(url));
 
@@ -202,6 +202,37 @@ class ApiService {
         return MediaType('image', 'webp');
       default:
         return MediaType('image', 'jpeg');
+    }
+  }
+
+  /// DELETE REQUEST
+  static Future<Map<String, dynamic>> delete(
+    String url, {
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final response = await http
+          .delete(
+            Uri.parse(url),
+            headers: headers ?? {'Content-Type': 'application/json'},
+          )
+          .timeout(timeout);
+
+      final decoded = jsonDecode(response.body);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return decoded;
+      } else {
+        throw decoded['message'] ?? 'Something went wrong';
+      }
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        _friendlyError(e),
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.black,
+      );
+      rethrow;
     }
   }
 

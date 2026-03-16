@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:testapp/features/customer_dashboard/profile/controller/profile_controller.dart';
+import 'package:flutter/foundation.dart';
 import '../../data/customer_api_service.dart';
 import '../model/customer_profile_model.dart';
 
@@ -76,7 +77,9 @@ class PersonalDataController extends GetxController {
         // Profile image - robust localhost fix
         String? imageUrl = data['profilePhoto']?.toString();
         if (imageUrl != null && imageUrl.isNotEmpty) {
-          imageUrl = imageUrl.replaceAll('localhost', '10.0.30.59').replaceAll('127.0.0.1', '10.0.30.59');
+          imageUrl = imageUrl
+              .replaceAll('localhost', '10.0.30.59')
+              .replaceAll('127.0.0.1', '10.0.30.59');
           networkImageUrl.value = imageUrl;
         }
       }
@@ -92,7 +95,7 @@ class PersonalDataController extends GetxController {
   String _isoToDisplay(String iso) {
     try {
       final dt = DateTime.parse(iso);
-      return "${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}";
+      return "${dt.day}/${dt.month}/${dt.year}";
     } catch (_) {
       return "dd/mm/yyyy";
     }
@@ -107,30 +110,29 @@ class PersonalDataController extends GetxController {
     final month = parts[1].padLeft(2, '0');
     final year = parts[2];
 
-    // Reverting to full ISO string as backend specifically requested it in previous logs
-    return "${year}-${month}-${day}T00:00:00.000Z";
+    return "$year-$month-$day";
   }
 
   String _stripEmoji(String input) {
     return input
         .replaceAll(
-      RegExp(
-        r'[\u{1F1E0}-\u{1F1FF}'
-        r'\u{1F300}-\u{1F5FF}'
-        r'\u{1F600}-\u{1F64F}'
-        r'\u{1F680}-\u{1F6FF}'
-        r'\u{1F700}-\u{1F77F}'
-        r'\u{1F780}-\u{1F7FF}'
-        r'\u{1F800}-\u{1F8FF}'
-        r'\u{1F900}-\u{1F9FF}'
-        r'\u{1FA00}-\u{1FA6F}'
-        r'\u{1FA70}-\u{1FAFF}'
-        r'\u{2600}-\u{26FF}'
-        r'\u{2700}-\u{27BF}]',
-        unicode: true,
-      ),
-      '',
-    )
+          RegExp(
+            r'[\u{1F1E0}-\u{1F1FF}'
+            r'\u{1F300}-\u{1F5FF}'
+            r'\u{1F600}-\u{1F64F}'
+            r'\u{1F680}-\u{1F6FF}'
+            r'\u{1F700}-\u{1F77F}'
+            r'\u{1F780}-\u{1F7FF}'
+            r'\u{1F800}-\u{1F8FF}'
+            r'\u{1F900}-\u{1F9FF}'
+            r'\u{1FA00}-\u{1FA6F}'
+            r'\u{1FA70}-\u{1FAFF}'
+            r'\u{2600}-\u{26FF}'
+            r'\u{2700}-\u{27BF}]',
+            unicode: true,
+          ),
+          '',
+        )
         .trim();
   }
 
@@ -156,14 +158,16 @@ class PersonalDataController extends GetxController {
 
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: initialDate.isAfter(DateTime.now()) ? DateTime.now() : initialDate,
+      initialDate: initialDate.isAfter(DateTime.now())
+          ? DateTime.now()
+          : initialDate,
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
     );
 
     if (pickedDate != null) {
       selectedDate.value =
-      "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
+          "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
     }
   }
 
@@ -185,8 +189,10 @@ class PersonalDataController extends GetxController {
     if (source == null) return;
 
     final ImagePicker picker = ImagePicker();
-    final XFile? picked =
-    await picker.pickImage(source: source, imageQuality: 80);
+    final XFile? picked = await picker.pickImage(
+      source: source,
+      imageQuality: 80,
+    );
 
     if (picked != null) {
       profileImageFile.value = File(picked.path);
@@ -205,13 +211,11 @@ class PersonalDataController extends GetxController {
         actions: [
           TextButton(
             onPressed: () => Get.back(result: ImageSource.camera),
-            child: const Text("Camera",
-                style: TextStyle(color: Colors.white)),
+            child: const Text("Camera", style: TextStyle(color: Colors.white)),
           ),
           TextButton(
             onPressed: () => Get.back(result: ImageSource.gallery),
-            child: const Text("Gallery",
-                style: TextStyle(color: Colors.white)),
+            child: const Text("Gallery", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -229,7 +233,8 @@ class PersonalDataController extends GetxController {
     final countryChanged = _rawCountryName != _originalCountry;
     final imageChanged = profileImageFile.value != null;
 
-    final hasChanges = nameChanged || dateChanged || countryChanged || imageChanged;
+    final hasChanges =
+        nameChanged || dateChanged || countryChanged || imageChanged;
 
     if (!hasChanges) {
       Get.snackbar(
@@ -246,11 +251,6 @@ class PersonalDataController extends GetxController {
       buttonText.value = 'Saving...';
       isLoading.value = true;
 
-      debugPrint("DEBUG: Sending Update Profile Request...");
-      debugPrint("DEBUG: Name: ${nameChanged ? currentName : 'Not Changed'}");
-      debugPrint("DEBUG: DOB: ${dateChanged ? currentIsoDate : 'Not Changed'}");
-      debugPrint("DEBUG: Country: ${countryChanged ? _rawCountryName : 'Not Changed'}");
-
       final response = await CustomerApiService.updateProfile(
         name: nameChanged ? currentName : null,
         dateOfBirth: dateChanged ? currentIsoDate : null,
@@ -258,9 +258,7 @@ class PersonalDataController extends GetxController {
         imageFile: profileImageFile.value,
       );
 
-      debugPrint("DEBUG: Update Profile Response: $response");
-
-      if (response != null && response['success'] == true && response['data'] != null) {
+      if (response['success'] == true && response['data'] != null) {
         final updatedUser = response['data'] as Map<String, dynamic>;
 
         // Update main ProfileController (for ProfileScreen) using global method
@@ -271,10 +269,11 @@ class PersonalDataController extends GetxController {
         // Update image locally for this page - robust localhost fix
         String? updatedPhoto = updatedUser['profilePhoto']?.toString();
         if (updatedPhoto != null) {
-          updatedPhoto = updatedPhoto.replaceAll('localhost', '10.0.30.59').replaceAll('127.0.0.1', '10.0.30.59');
-          networkImageUrl.value = updatedPhoto;
-          networkImageUrl.refresh();
+          updatedPhoto = updatedPhoto
+              .replaceAll('localhost', '10.0.30.59')
+              .replaceAll('127.0.0.1', '10.0.30.59');
         }
+        networkImageUrl.value = updatedPhoto;
 
         // Clear selected file (since now we use network image)
         profileImageFile.value = null;
@@ -296,8 +295,7 @@ class PersonalDataController extends GetxController {
 
         await Future.delayed(const Duration(seconds: 2));
         buttonText.value = 'Save';
-      }
-      else {
+      } else {
         buttonText.value = 'Save';
 
         Get.snackbar(
@@ -308,13 +306,12 @@ class PersonalDataController extends GetxController {
           duration: const Duration(seconds: 3),
         );
       }
-    } catch (e) {
+    } catch (_) {
       buttonText.value = 'Save';
-      debugPrint("DEBUG: Update Profile Exception: $e");
 
       Get.snackbar(
         "Error",
-        e.toString(),
+        "Failed to update profile. Please try again.",
         backgroundColor: Colors.red,
         colorText: Colors.white,
         duration: const Duration(seconds: 3),

@@ -54,6 +54,8 @@ class Article {
   int? commentCount;
   bool? isLiked;
   bool? isDisliked;
+  bool? isBookmarked;
+  int? bookmarks;
   List<Comment>? comments;
 
   Article({
@@ -72,6 +74,8 @@ class Article {
     this.commentCount,
     this.isLiked,
     this.isDisliked,
+    this.isBookmarked,
+    this.bookmarks,
     this.comments,
   });
 
@@ -94,12 +98,15 @@ class Article {
     commentCount = json['commentCount'];
     isLiked = json['isLiked'];
     isDisliked = json['isDisliked'];
+    isBookmarked = json['isBookmarked'];
+    bookmarks = json['bookmarks'];
     if (json['comments'] != null) {
       comments = <Comment>[];
       json['comments'].forEach((v) {
         comments!.add(Comment.fromJson(v));
       });
     }
+    commentCount ??= comments?.length ?? 0;
   }
 }
 
@@ -113,6 +120,10 @@ class Comment {
   String? parentId;
   String? createdAt;
   String? updatedAt;
+  int? likeCount;
+  int? dislikeCount;
+  bool? isLiked;
+  bool? isDisliked;
   List<Comment>? replies;
 
   Comment({
@@ -125,19 +136,32 @@ class Comment {
     this.parentId,
     this.createdAt,
     this.updatedAt,
+    this.likeCount,
+    this.dislikeCount,
+    this.isLiked,
+    this.isDisliked,
     this.replies,
   });
 
   Comment.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    newsId = json['newsId'];
+    id = json['id'] ?? json['commentId']?.toString();
+    newsId = json['newsId']?.toString();
     userId = json['userId'];
     userName = json['userName'];
     userImage = json['userImage'];
-    comment = json['comment'];
-    parentId = json['parentId'];
+    comment = json['comment'] ?? json['content'];
+    parentId = (json['parentId'] ?? json['parentCommentId'])?.toString();
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
+    likeCount = json['likeCount'] ?? 0;
+    dislikeCount = json['dislikeCount'] ?? 0;
+    if (json['userStatus'] != null) {
+      isLiked = json['userStatus']['isLiked'];
+      isDisliked = json['userStatus']['isDisliked'];
+    } else {
+      isLiked = json['isLiked'];
+      isDisliked = json['isDisliked'];
+    }
     if (json['replies'] != null) {
       replies = <Comment>[];
       json['replies'].forEach((v) {
