@@ -48,15 +48,15 @@ class PersonalDataController extends GetxController {
       isInitializing.value = true;
       final response = await CustomerApiService.getProfile();
 
-      if (response['success'] == true) {
+      if (response['success'] == true && response['data'] != null) {
         final data = response['data'] as Map<String, dynamic>;
 
         // Name
-        nameController.text = data['name'] ?? '';
+        nameController.text = data['name']?.toString() ?? '';
         _originalName = nameController.text;
 
         // Email
-        email.value = data['email'] ?? '';
+        email.value = data['email']?.toString() ?? '';
 
         // Date of Birth
         final rawDob = data['dateOfBirth'];
@@ -73,10 +73,11 @@ class PersonalDataController extends GetxController {
           selectedCountry.value = _rawCountryName;
         }
 
-        // Profile image
-        final imageUrl = data['profileImage'];
-        if (imageUrl != null && imageUrl.toString().isNotEmpty) {
-          networkImageUrl.value = imageUrl.toString();
+        // Profile image - robust localhost fix
+        String? imageUrl = data['profilePhoto']?.toString();
+        if (imageUrl != null && imageUrl.isNotEmpty) {
+          imageUrl = imageUrl.replaceAll('localhost', '10.0.30.59').replaceAll('127.0.0.1', '10.0.30.59');
+          networkImageUrl.value = imageUrl;
         }
       }
     } catch (_) {
@@ -91,7 +92,7 @@ class PersonalDataController extends GetxController {
   String _isoToDisplay(String iso) {
     try {
       final dt = DateTime.parse(iso);
-      return "${dt.day}/${dt.month}/${dt.year}";
+      return "${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}";
     } catch (_) {
       return "dd/mm/yyyy";
     }
@@ -106,7 +107,8 @@ class PersonalDataController extends GetxController {
     final month = parts[1].padLeft(2, '0');
     final year = parts[2];
 
-    return "$year-$month-$day";
+    // Reverting to full ISO string as backend specifically requested it in previous logs
+    return "${year}-${month}-${day}T00:00:00.000Z";
   }
 
   String _stripEmoji(String input) {
@@ -136,27 +138,32 @@ class PersonalDataController extends GetxController {
   Future<void> chooseDate(BuildContext context) async {
     DateTime initialDate = DateTime.now();
 
-    if (selectedDate.value != "dd/mm/yyyy") {
+    if (selectedDate.value != "dd/mm/yyyy" && selectedDate.value.isNotEmpty) {
       try {
         final parts = selectedDate.value.split('/');
-        initialDate = DateTime(
-          int.parse(parts[2]),
-          int.parse(parts[1]),
-          int.parse(parts[0]),
-        );
-      } catch (_) {}
+        if (parts.length == 3) {
+          final day = int.tryParse(parts[0]);
+          final month = int.tryParse(parts[1]);
+          final year = int.tryParse(parts[2]);
+          if (day != null && month != null && year != null) {
+            initialDate = DateTime(year, month, day);
+          }
+        }
+      } catch (_) {
+        initialDate = DateTime.now();
+      }
     }
 
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: initialDate,
+      initialDate: initialDate.isAfter(DateTime.now()) ? DateTime.now() : initialDate,
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
     );
 
     if (pickedDate != null) {
       selectedDate.value =
-      "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+      "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
     }
   }
 
@@ -239,6 +246,11 @@ class PersonalDataController extends GetxController {
       buttonText.value = 'Saving...';
       isLoading.value = true;
 
+      debugPrint("DEBUG: Sending Update Profile Request...");
+      debugPrint("DEBUG: Name: ${nameChanged ? currentName : 'Not Changed'}");
+      debugPrint("DEBUG: DOB: ${dateChanged ? currentIsoDate : 'Not Changed'}");
+      debugPrint("DEBUG: Country: ${countryChanged ? _rawCountryName : 'Not Changed'}");
+
       final response = await CustomerApiService.updateProfile(
         name: nameChanged ? currentName : null,
         dateOfBirth: dateChanged ? currentIsoDate : null,
@@ -246,23 +258,30 @@ class PersonalDataController extends GetxController {
         imageFile: profileImageFile.value,
       );
 
-      if (response['success'] == true) {
-        final updatedUser = response['data'];
+      debugPrint("DEBUG: Update Profile Response: $response");
 
-        // Update main ProfileController (for ProfileScreen)
+      if (response != null && response['success'] == true && response['data'] != null) {
+        final updatedUser = response['data'] as Map<String, dynamic>;
+
+        // Update main ProfileController (for ProfileScreen) using global method
         if (Get.isRegistered<ProfileController>()) {
-          ProfileController.instance.profile.value = CustomerProfile.fromJson(updatedUser);
+          ProfileController.instance.updateProfileData(updatedUser);
         }
 
-        // Update image locally for this page
-        networkImageUrl.value = updatedUser['profileImage'];
+        // Update image locally for this page - robust localhost fix
+        String? updatedPhoto = updatedUser['profilePhoto']?.toString();
+        if (updatedPhoto != null) {
+          updatedPhoto = updatedPhoto.replaceAll('localhost', '10.0.30.59').replaceAll('127.0.0.1', '10.0.30.59');
+          networkImageUrl.value = updatedPhoto;
+          networkImageUrl.refresh();
+        }
 
         // Clear selected file (since now we use network image)
         profileImageFile.value = null;
 
         // Update original values
-        _originalName = updatedUser['name'] ?? '';
-        _originalCountry = updatedUser['country'] ?? '';
+        _originalName = updatedUser['name']?.toString() ?? '';
+        _originalCountry = updatedUser['country']?.toString() ?? '';
         _originalDate = selectedDate.value;
 
         buttonText.value = 'Saved!';
@@ -289,12 +308,13 @@ class PersonalDataController extends GetxController {
           duration: const Duration(seconds: 3),
         );
       }
-    } catch (_) {
+    } catch (e) {
       buttonText.value = 'Save';
+      debugPrint("DEBUG: Update Profile Exception: $e");
 
       Get.snackbar(
         "Error",
-        "Failed to update profile. Please try again.",
+        e.toString(),
         backgroundColor: Colors.red,
         colorText: Colors.white,
         duration: const Duration(seconds: 3),
