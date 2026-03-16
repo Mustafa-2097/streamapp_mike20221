@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:testapp/features/splash/views/splash_screen.dart';
+import 'features/customer_dashboard/news/controller/news_controller.dart';
 import 'features/customer_dashboard/profile/controller/bookmarks_controller.dart';
 
 void main() {
+  Get.put(NewsController(), permanent: true);
   Get.put(BookmarkController(), permanent: true);
   runApp(const MyApp());
 }

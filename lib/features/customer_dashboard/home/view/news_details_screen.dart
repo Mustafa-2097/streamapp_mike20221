@@ -18,6 +18,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   late Article currentArticle;
   bool isLoading = false;
   Comment? replyingToComment;
+  Map<String, bool> loadingReplies = {};
 
   @override
   void initState() {
@@ -102,20 +103,65 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
     final data = await controller.toggleCommentEngagement(comment.id!, type);
     if (data != null) {
       setState(() {
-        comment.likeCount = data['likeCount'];
-        comment.dislikeCount = data['dislikeCount'];
+        // If backend provides updated counts, use them
+        if (data.containsKey('likeCount')) {
+          comment.likeCount = data['likeCount'];
+        }
+        if (data.containsKey('dislikeCount')) {
+          comment.dislikeCount = data['dislikeCount'];
+        }
+
+        // If backend provides 'status' (often used for toggle)
+        bool newStatus = data['status'] ?? false;
+
         if (type == 'like') {
-          comment.isLiked = !(comment.isLiked ?? false);
-          if (comment.isLiked == true) comment.isDisliked = false;
+          // If backend didn't give likeCount, update locally based on status change
+          if (!data.containsKey('likeCount')) {
+            if (newStatus && !(comment.isLiked ?? false)) {
+              comment.likeCount = (comment.likeCount ?? 0) + 1;
+            } else if (!newStatus && (comment.isLiked ?? false)) {
+              comment.likeCount = (comment.likeCount ?? 0) - 1;
+              if (comment.likeCount! < 0) comment.likeCount = 0;
+            }
+          }
+          comment.isLiked = newStatus;
+          if (comment.isLiked == true) {
+            comment.isDisliked = false;
+          }
         } else if (type == 'dislike') {
-          comment.isDisliked = !(comment.isDisliked ?? false);
-          if (comment.isDisliked == true) comment.isLiked = false;
+          // Dislike handling
+          if (!data.containsKey('dislikeCount')) {
+            if (newStatus && !(comment.isDisliked ?? false)) {
+              comment.dislikeCount = (comment.dislikeCount ?? 0) + 1;
+            } else if (!newStatus && (comment.isDisliked ?? false)) {
+              comment.dislikeCount = (comment.dislikeCount ?? 0) - 1;
+              if (comment.dislikeCount! < 0) comment.dislikeCount = 0;
+            }
+          }
+          comment.isDisliked = newStatus;
+          if (comment.isDisliked == true) {
+            comment.isLiked = false;
+          }
         }
       });
     }
   }
 
-  @override
+  Future<void> _handleLoadReplies(Comment comment) async {
+    if (comment.id == null) return;
+    setState(() => loadingReplies[comment.id!] = true);
+    try {
+      final replies = await controller.fetchCommentReplies(comment.id!);
+      setState(() {
+        comment.replies = replies;
+      });
+    } catch (e) {
+      debugPrint("Error loading replies: $e");
+    } finally {
+      setState(() => loadingReplies[comment.id!] = false);
+    }
+  }
+
   Widget build(BuildContext context) {
     final Color backgroundColor = const Color(0xFF15171E);
     final Color inputColor = const Color(0xFF3E3B50);
@@ -491,6 +537,27 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                 ],
               ),
             ),
+            const SizedBox(width: 16),
+            if (loadingReplies[comment.id!] == true)
+              const SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
+              )
+            else
+              GestureDetector(
+                onTap: () => _handleLoadReplies(comment),
+                child: Row(
+                  children: [
+                    const Icon(Icons.comment_outlined, color: Colors.grey, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      "Replies",
+                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ],
