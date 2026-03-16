@@ -4,7 +4,7 @@ class ApiEndpoints {
 
   /// Auth
   static const String register = '$baseUrl/auth/register';
-  static const String verifySigUupOtp = '$baseUrl/auth/verify-otp';
+  static const String verifySignUpOtp = '$baseUrl/auth/verify-otp';
   static const String resendOtp = '$baseUrl/auth/resend-otp';
   static const String login = '$baseUrl/auth/login';
   static const String logout = '$baseUrl/auth/logout';
@@ -27,6 +27,11 @@ class ApiEndpoints {
   static String upcomingMatches(String leagueId) =>
       '$baseUrl/sports/upcoming/$leagueId';
 
+  static const String upcomingMatchesAll = '$baseUrl/matches/upcoming';
+  static const String recentMatches = '$baseUrl/matches/recent';
+  static const String footballMatches = '$baseUrl/matches/football';
+  static const String rugbyMatches = '$baseUrl/matches/rugby';
+
   /// Table
   static const String leagueTable = '$baseUrl/sports/league-table';
 
@@ -38,4 +43,9 @@ class ApiEndpoints {
   static const String news = '$baseUrl/news';
   static String comments(String newsId) => '$news/$newsId/comments';
   static String engagement(String newsId) => '$news/$newsId/engagement';
+  static String bookmark(String newsId) => '$news/$newsId/bookmark';
+  static const String myBookmarks = '$news/my-bookmarks';
+  static String deleteBookmark(String bookmarkId) => '$myBookmarks/$bookmarkId';
+  static String commentEngagement(String commentId) =>
+      '$news/comments/$commentId/engagement';
 }

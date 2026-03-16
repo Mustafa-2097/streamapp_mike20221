@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../news/model/news_model.dart';
 import '../../news/controller/news_controller.dart';
+import '../../profile/controller/bookmarks_controller.dart';
 
 class NewsDetailsScreen extends StatefulWidget {
   final Article article;
@@ -77,17 +78,38 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   }
 
   Future<void> _handleToggleEngagement(String type) async {
-    final data = await controller.toggleEngagement(currentArticle.id!, type);
+    // Article engagement is currently disabled per request
+  }
+
+  Future<void> _handleToggleBookmark() async {
+    final newStatus = await controller.toggleBookmark(currentArticle.id!);
+    if (newStatus != null) {
+      setState(() {
+        currentArticle.isBookmarked = newStatus;
+      });
+      // Refresh Bookmark Screen if controller is active
+      try {
+        if (Get.isRegistered<BookmarkController>()) {
+          Get.find<BookmarkController>().fetchNewsBookmarks();
+        }
+      } catch (e) {
+        debugPrint("BookmarkController not found: $e");
+      }
+    }
+  }
+
+  Future<void> _handleToggleCommentEngagement(Comment comment, String type) async {
+    final data = await controller.toggleCommentEngagement(comment.id!, type);
     if (data != null) {
       setState(() {
-        currentArticle.likes = data['likes'];
-        currentArticle.dislikes = data['dislikes'];
+        comment.likeCount = data['likeCount'];
+        comment.dislikeCount = data['dislikeCount'];
         if (type == 'like') {
-          currentArticle.isLiked = !(currentArticle.isLiked ?? false);
-          if (currentArticle.isLiked == true) currentArticle.isDisliked = false;
+          comment.isLiked = !(comment.isLiked ?? false);
+          if (comment.isLiked == true) comment.isDisliked = false;
         } else if (type == 'dislike') {
-          currentArticle.isDisliked = !(currentArticle.isDisliked ?? false);
-          if (currentArticle.isDisliked == true) currentArticle.isLiked = false;
+          comment.isDisliked = !(comment.isDisliked ?? false);
+          if (comment.isDisliked == true) comment.isLiked = false;
         }
       });
     }
@@ -106,6 +128,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
         elevation: 0,
         leading: const BackButton(color: Colors.white),
         actions: [
+          /*
           IconButton(
             icon: Icon(
               currentArticle.isLiked == true
@@ -128,9 +151,17 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
             ),
             onPressed: () => _handleToggleEngagement('dislike'),
           ),
+          */
           IconButton(
-            icon: const Icon(Icons.bookmark_border, color: Colors.white),
-            onPressed: () {},
+            icon: Icon(
+              currentArticle.isBookmarked == true
+                  ? Icons.bookmark
+                  : Icons.bookmark_border,
+              color: currentArticle.isBookmarked == true
+                  ? yellowAccent
+                  : Colors.white,
+            ),
+            onPressed: _handleToggleBookmark,
           ),
         ],
       ),
@@ -401,18 +432,46 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
         const SizedBox(height: 6),
         Row(
           children: [
-            Icon(Icons.thumb_up_outlined, color: Colors.grey[400], size: 16),
-            const SizedBox(width: 4),
-            Text(
-              "0",
-              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            GestureDetector(
+              onTap: () => _handleToggleCommentEngagement(comment, 'like'),
+              child: Row(
+                children: [
+                  Icon(
+                    comment.isLiked == true ? Icons.thumb_up : Icons.thumb_up_outlined,
+                    color: comment.isLiked == true ? const Color(0xFFFFD700) : Colors.grey[400],
+                    size: 16,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    "${comment.likeCount ?? 0}",
+                    style: TextStyle(
+                      color: comment.isLiked == true ? const Color(0xFFFFD700) : Colors.grey[400],
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(width: 16),
-            Icon(Icons.thumb_down_outlined, color: Colors.grey[400], size: 16),
-            const SizedBox(width: 4),
-            Text(
-              "0",
-              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            GestureDetector(
+              onTap: () => _handleToggleCommentEngagement(comment, 'dislike'),
+              child: Row(
+                children: [
+                  Icon(
+                    comment.isDisliked == true ? Icons.thumb_down : Icons.thumb_down_outlined,
+                    color: comment.isDisliked == true ? Colors.redAccent : Colors.grey[400],
+                    size: 16,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    "${comment.dislikeCount ?? 0}",
+                    style: TextStyle(
+                      color: comment.isDisliked == true ? Colors.redAccent : Colors.grey[400],
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(width: 16),
             GestureDetector(

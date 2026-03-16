@@ -162,8 +162,11 @@ class NewsController extends GetxController {
     return null;
   }
 
-  Future<Comment?> postComment(String newsId, String comment,
-      {String? parentId}) async {
+  Future<Comment?> postComment(
+    String newsId,
+    String comment, {
+    String? parentId,
+  }) async {
     try {
       final String? token = await SharedPreferencesHelper.getToken();
       final headers = {
@@ -174,8 +177,8 @@ class NewsController extends GetxController {
         ApiEndpoints.comments(newsId),
         headers: headers,
         body: {
-          'comment': comment,
-          if (parentId != null) 'parentId': parentId,
+          'content': comment,
+          if (parentId != null) 'parentCommentId': parentId,
         },
       );
       if (response['success'] == true && response['data'] != null) {
@@ -206,7 +209,10 @@ class NewsController extends GetxController {
   }
 
   void _addCommentToParent(
-      List<Comment>? comments, String parentId, Comment newComment) {
+    List<Comment>? comments,
+    String parentId,
+    Comment newComment,
+  ) {
     if (comments == null) return;
     for (var comment in comments) {
       if (comment.id == parentId) {
@@ -230,7 +236,9 @@ class NewsController extends GetxController {
         'Content-Type': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
       };
-      print("Toggling engagement: ${ApiEndpoints.engagement(newsId)} with body: {'type': $type}");
+      print(
+        "Toggling engagement: ${ApiEndpoints.engagement(newsId)} with body: {'type': $type}",
+      );
       final response = await ApiService.post(
         ApiEndpoints.engagement(newsId),
         headers: headers,
@@ -258,6 +266,64 @@ class NewsController extends GetxController {
       }
     } catch (e) {
       print("Error toggling engagement: $e");
+    }
+    return null;
+  }
+
+  Future<bool?> toggleBookmark(String newsId) async {
+    try {
+      final String? token = await SharedPreferencesHelper.getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+
+      print("Sending bookmark request: ${ApiEndpoints.bookmark(newsId)}");
+
+      final response = await ApiService.post(
+        ApiEndpoints.bookmark(newsId),
+        headers: headers,
+        body: {},
+      );
+
+      print("Bookmark Response: $response");
+
+      if (response['success'] == true) {
+        int index = newsList.indexWhere((a) => a.id == newsId);
+        final bool isBookmarked = response['data']?['status'] ?? false;
+        if (index != -1) {
+          newsList[index].isBookmarked = isBookmarked;
+          // newsList[index].bookmarks = response['data']?['bookmarks'] ?? newsList[index].bookmarks;
+          newsList.refresh();
+        }
+        return isBookmarked;
+      }
+    } catch (e) {
+      print("Error toggling bookmark: $e");
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> toggleCommentEngagement(
+    String commentId,
+    String type,
+  ) async {
+    try {
+      final String? token = await SharedPreferencesHelper.getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+      final response = await ApiService.post(
+        ApiEndpoints.commentEngagement(commentId),
+        headers: headers,
+        body: {'type': type},
+      );
+      if (response['success'] == true && response['data'] != null) {
+        return response['data'];
+      }
+    } catch (e) {
+      print("Error toggling comment engagement: $e");
     }
     return null;
   }

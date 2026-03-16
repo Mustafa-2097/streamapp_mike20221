@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../../core/common/widgets/scaffold_bg.dart';
 import '../../../clips/widgets/clips_card.dart';
+import '../../../home/view/news_details_screen.dart';
+import '../../../news/model/news_model.dart';
 import '../../controller/bookmarks_controller.dart';
 
 class BookmarkScreen extends StatelessWidget {
@@ -22,7 +24,11 @@ class BookmarkScreen extends StatelessWidget {
         ),
         title: Text(
           "BOOKMARKS",
-          style: TextStyle(color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: ScaffoldBg(
@@ -40,8 +46,15 @@ class BookmarkScreen extends StatelessWidget {
                     return _buildReplayList(controller);
                   } else if (controller.selectedTabIndex.value == 2) {
                     return _buildClipsGrid(controller);
+                  } else if (controller.selectedTabIndex.value == 3) {
+                    return _buildNewsList(controller);
                   } else {
-                    return const Center(child: Text("No Data", style: TextStyle(color: Colors.white)));
+                    return const Center(
+                      child: Text(
+                        "No Data",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
                   }
                 }),
               ),
@@ -155,8 +168,6 @@ class BookmarkScreen extends StatelessWidget {
     });
   }
 
-
-
   Widget _buildDeleteBackground() {
     return Container(
       alignment: Alignment.centerLeft,
@@ -180,12 +191,25 @@ class BookmarkScreen extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: ["12H", "12M", "12S"].map((t) => Container(
-              margin: EdgeInsets.symmetric(horizontal: 4.w),
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-              decoration: BoxDecoration(color: Colors.grey.shade600, borderRadius: BorderRadius.circular(4.r)),
-              child: Text(t, style: TextStyle(color: Colors.white, fontSize: 14.sp)),
-            )).toList(),
+            children: ["12H", "12M", "12S"]
+                .map(
+                  (t) => Container(
+                    margin: EdgeInsets.symmetric(horizontal: 4.w),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 4.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade600,
+                      borderRadius: BorderRadius.circular(4.r),
+                    ),
+                    child: Text(
+                      t,
+                      style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                    ),
+                  ),
+                )
+                .toList(),
           ),
           SizedBox(height: 15.h),
           Row(
@@ -194,8 +218,14 @@ class BookmarkScreen extends StatelessWidget {
               _buildTeam(item['team1'], Icons.sports_soccer),
               Column(
                 children: [
-                  Text(item['date'], style: TextStyle(color: Colors.white, fontSize: 14.sp)),
-                  Text(item['time'], style: TextStyle(color: Colors.white, fontSize: 14.sp)),
+                  Text(
+                    item['date'],
+                    style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                  ),
+                  Text(
+                    item['time'],
+                    style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                  ),
                 ],
               ),
               _buildTeam(item['team2'], Icons.sports_football),
@@ -217,19 +247,28 @@ class BookmarkScreen extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10.r),
-                child: Image.asset("assets/images/replay2.png", width: 145, height: 85, fit: BoxFit.cover),
+                child: Image.asset(
+                  "assets/images/replay2.png",
+                  width: 145,
+                  height: 85,
+                  fit: BoxFit.cover,
+                ),
               ),
               Positioned(
-                bottom: 5, right: 5,
+                bottom: 5,
+                right: 5,
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 6.w),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(10.r),
                   ),
-                  child: Text(item['duration'], style: TextStyle(color: Colors.white, fontSize: 10.sp)),
+                  child: Text(
+                    item['duration'],
+                    style: TextStyle(color: Colors.white, fontSize: 10.sp),
+                  ),
                 ),
-              )
+              ),
             ],
           ),
           SizedBox(width: 12.w),
@@ -237,14 +276,124 @@ class BookmarkScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item['title'], style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14.sp)),
+                Text(
+                  item['title'],
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.sp,
+                  ),
+                ),
                 Container(
                   margin: EdgeInsets.symmetric(vertical: 4.h),
                   padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                  decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(11.r)),
-                  child: Text("Highlights", style: TextStyle(color: Colors.grey.shade100, fontSize: 10.sp)),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade800,
+                    borderRadius: BorderRadius.circular(11.r),
+                  ),
+                  child: Text(
+                    "Highlights",
+                    style: TextStyle(
+                      color: Colors.grey.shade100,
+                      fontSize: 10.sp,
+                    ),
+                  ),
                 ),
-                Text("${item['views']}  •  ${item['time']}", style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
+                Text(
+                  "${item['views']}  •  ${item['time']}",
+                  style: TextStyle(color: Colors.grey, fontSize: 11.sp),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNewsList(BookmarkController controller) {
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        );
+      }
+      if (controller.newsBookmarks.isEmpty) {
+        return const Center(
+          child: Text(
+            "No news bookmarks",
+            style: TextStyle(color: Colors.white),
+          ),
+        );
+      }
+      return ListView.builder(
+        itemCount: controller.newsBookmarks.length,
+        padding: EdgeInsets.symmetric(horizontal: 15.w),
+        itemBuilder: (context, index) {
+          final item = controller.newsBookmarks[index];
+          final articleMap = item['news'];
+          if (articleMap == null) return const SizedBox();
+          final article = Article.fromJson(articleMap);
+
+          return Dismissible(
+            key: UniqueKey(),
+            direction: DismissDirection.startToEnd,
+            onDismissed: (_) => controller.removeNews(index),
+            background: _buildDeleteBackground(),
+            child: GestureDetector(
+              onTap: () => Get.to(() => NewsDetailsScreen(article: article)),
+              child: _buildNewsItem(article),
+            ),
+          );
+        },
+      );
+    });
+  }
+
+  Widget _buildNewsItem(Article article) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10.r),
+            child: article.urlToImage != null && article.urlToImage!.isNotEmpty
+                ? Image.network(
+                    article.urlToImage!,
+                    width: 120.w,
+                    height: 80.h,
+                    fit: BoxFit.cover,
+                  )
+                : Image.asset(
+                    "assets/images/news.png",
+                    width: 120.w,
+                    height: 80.h,
+                    fit: BoxFit.cover,
+                  ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  article.title ?? "No Title",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.sp,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  article.publishedAt != null && article.publishedAt!.length >= 10
+                      ? article.publishedAt!.substring(0, 10)
+                      : "Unknown Date",
+                  style: TextStyle(color: Colors.grey, fontSize: 11.sp),
+                ),
               ],
             ),
           )
@@ -255,12 +404,14 @@ class BookmarkScreen extends StatelessWidget {
 
   /// News Section will added in future
 
-
   Widget _buildTeam(String name, IconData icon) {
     return Column(
       children: [
         Icon(icon, color: Colors.orange, size: 40.r),
-        Text(name, style: TextStyle(color: Colors.white, fontSize: 14.sp)),
+        Text(
+          name,
+          style: TextStyle(color: Colors.white, fontSize: 14.sp),
+        ),
       ],
     );
   }
