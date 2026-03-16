@@ -23,9 +23,9 @@ class LiveCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (!isLocked) {
-          Get.to(VideoLiveScreen());
-        }
+        // if (!isLocked) {
+        //   Get.to(VideoLiveScreen());
+        // }
       },
       child: Container(
         width: 210.w,

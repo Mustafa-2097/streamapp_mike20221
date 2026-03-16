@@ -47,22 +47,20 @@ class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
             /// Profile avatar
             GestureDetector(
-              onTap: (){
+              onTap: () {
                 Get.to(PersonalData());
               },
               child: CircleAvatar(
-                  radius: 12.r,
-                  child: Icon(Icons.person, size: 20.r, color: Colors.black)
+                radius: 12.r,
+                child: Icon(Icons.person, size: 20.r, color: Colors.black),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 }
-
-
 
 void showSearchOverlay(BuildContext context) {
   final overlay = Overlay.of(context);
