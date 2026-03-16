@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../../../core/network/api_service.dart';
@@ -61,9 +63,7 @@ class CustomerApiService {
       // No image — use simple JSON PATCH (more reliable for most backends)
       return await ApiService.patch(
         ApiEndpoints.updateProfile,
-        headers: {
-          'Authorization': token,
-        },
+        headers: {'Authorization': token},
         body: bodyFields,
       );
     }
@@ -102,7 +102,9 @@ class CustomerApiService {
   }
 
   /// New Live Matches API
-  static Future<Map<String, dynamic>> getLiveMatches({required int page}) async {
+  static Future<Map<String, dynamic>> getLiveMatches({
+    required int page,
+  }) async {
     return await ApiService.get("${ApiEndpoints.liveMatches}?page=$page");
   }
 
@@ -114,18 +116,33 @@ class CustomerApiService {
   }
 
   /// New Upcoming Matches API (All)
-  static Future<Map<String, dynamic>> getUpcomingMatchesAll({required int page}) async {
-    return await ApiService.get("${ApiEndpoints.upcomingMatchesAll}?page=$page");
+  static Future<Map<String, dynamic>> getUpcomingMatchesAll({
+    required int page,
+  }) async {
+    return await ApiService.get(
+      "${ApiEndpoints.upcomingMatchesAll}?page=$page",
+    );
   }
 
   /// Recent Matches API
-  static Future<Map<String, dynamic>> getRecentMatches({required int page}) async {
+  static Future<Map<String, dynamic>> getRecentMatches({
+    required int page,
+  }) async {
     return await ApiService.get("${ApiEndpoints.recentMatches}?page=$page");
   }
 
   /// Football Matches API
-  static Future<Map<String, dynamic>> getFootballMatches({required int page}) async {
+  static Future<Map<String, dynamic>> getFootballMatches({
+    required int page,
+  }) async {
     return await ApiService.get("${ApiEndpoints.footballMatches}?page=$page");
+  }
+
+  /// Rugby Matches API
+  static Future<Map<String, dynamic>> getRugbyMatches({
+    required int page,
+  }) async {
+    return await ApiService.get("${ApiEndpoints.rugbyMatches}?page=$page");
   }
 
   /// ================= LEAGUE TABLE =================

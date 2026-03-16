@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/offline_storage/shared_pref.dart';
+import '../../../../core/const/app_colors.dart';
 import '../../../customer_dashboard/dashboard/customer_dashboard.dart';
 import '../../data/auth_api_service.dart';
 
@@ -101,21 +102,14 @@ class SignInController extends GetxController {
         Get.snackbar(
           "Error",
           response['message'] ?? 'Login failed',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+          backgroundColor: AppColors.errorColor,
+          colorText: Colors.black,
         );
       }
     } catch (e) {
       debugPrint('Exception during sign in: $e');
       debugPrint('Exception type: ${e.runtimeType}');
-
-      // Error already handled in ApiService, but show a fallback message
-      Get.snackbar(
-        "Connection Error",
-        "Unable to connect to server. Please check your internet connection.",
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      // Error already handled in ApiService globally
     } finally {
       isLoading.value = false;
       debugPrint('Sign In Process Completed');
