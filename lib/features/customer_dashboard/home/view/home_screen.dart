@@ -25,22 +25,13 @@ class HomeScreen extends StatelessWidget {
                 flexibleSpace: const CustomHomeAppBar(),
               ),
 
-              SliverToBoxAdapter(
-                child: const HomeCarouselSlider(),
-              ),
+              SliverToBoxAdapter(child: const HomeCarouselSlider()),
 
-              SliverToBoxAdapter(
-                child: const SportsCategoryFilter(),
-              ),
+              SliverToBoxAdapter(child: const SportsCategoryFilter()),
 
-              SliverToBoxAdapter(
-                child: SizedBox(height: 10),
-              ),
+              SliverToBoxAdapter(child: SizedBox(height: 10)),
 
-              SliverToBoxAdapter(
-                child: ContentSection(),
-              ),
-
+              SliverToBoxAdapter(child: ContentSection()),
             ],
           ),
         ),

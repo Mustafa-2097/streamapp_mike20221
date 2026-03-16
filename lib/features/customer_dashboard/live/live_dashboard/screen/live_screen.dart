@@ -98,6 +98,14 @@ class LiveMatchesScreen extends StatelessWidget {
                       return _footballMatchList();
                     }
 
+                    /// RUGBY
+                    if (controller.isRugby) {
+                      if (controller.isRugbyLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      return _rugbyMatchList();
+                    }
+
                     /// STATS
                     if (controller.isStats) {
                       return controller.statsData == null
@@ -199,7 +207,7 @@ class LiveMatchesScreen extends StatelessWidget {
   // MATCH CARD
   Widget _matchCard(MatchModel match) {
     return GestureDetector(
-      onTap: () => Get.to(VideoLiveScreen()),
+      // onTap: () => Get.to(VideoLiveScreen()),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
@@ -439,7 +447,7 @@ class LiveMatchesScreen extends StatelessWidget {
 
   Widget _recentMatchCard(RecentMatchModel match) {
     return GestureDetector(
-      onTap: () => Get.to(VideoLiveScreen()),
+      // onTap: () => Get.to(VideoLiveScreen()),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
@@ -516,6 +524,25 @@ class LiveMatchesScreen extends StatelessWidget {
       itemCount: controller.footballMatches.length,
       itemBuilder: (context, index) {
         return _upcomingMatchCard(controller.footballMatches[index]);
+      },
+    );
+  }
+
+  Widget _rugbyMatchList() {
+    if (controller.rugbyMatches.isEmpty) {
+      return const Center(
+        child: Text(
+          "No Rugby Matches",
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: controller.rugbyMatches.length,
+      itemBuilder: (context, index) {
+        return _upcomingMatchCard(controller.rugbyMatches[index]);
       },
     );
   }

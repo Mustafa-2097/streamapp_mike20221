@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:get/get.dart';
+import 'package:flutter/material.dart';
+import '../const/app_colors.dart';
 
 class ApiService {
   static const Duration timeout = Duration(seconds: 30);
@@ -30,7 +32,12 @@ class ApiService {
         throw decoded['message'] ?? 'Something went wrong';
       }
     } catch (e) {
-      Get.snackbar("Error", _friendlyError(e));
+      Get.snackbar(
+        "Error",
+        _friendlyError(e),
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.black,
+      );
       rethrow;
     }
   }
@@ -53,7 +60,12 @@ class ApiService {
         throw decoded['message'] ?? 'Something went wrong';
       }
     } catch (e) {
-      Get.snackbar("Error", _friendlyError(e));
+      Get.snackbar(
+        "Error",
+        _friendlyError(e),
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.black,
+      );
       rethrow;
     }
   }
@@ -81,7 +93,12 @@ class ApiService {
         throw decoded['message'] ?? 'Something went wrong';
       }
     } catch (e) {
-      Get.snackbar("Error", _friendlyError(e));
+      Get.snackbar(
+        "Error",
+        _friendlyError(e),
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.black,
+      );
       rethrow;
     }
   }
@@ -109,7 +126,12 @@ class ApiService {
         throw decoded['message'] ?? 'Something went wrong';
       }
     } catch (e) {
-      Get.snackbar("Error", _friendlyError(e));
+      Get.snackbar(
+        "Error",
+        _friendlyError(e),
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.black,
+      );
       rethrow;
     }
   }
@@ -157,7 +179,12 @@ class ApiService {
         throw decoded['message'] ?? 'Something went wrong';
       }
     } catch (e) {
-      Get.snackbar("Error", _friendlyError(e));
+      Get.snackbar(
+        "Error",
+        _friendlyError(e),
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.black,
+      );
       rethrow;
     }
   }
