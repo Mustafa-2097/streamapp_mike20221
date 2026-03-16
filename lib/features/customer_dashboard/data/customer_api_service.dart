@@ -104,7 +104,9 @@ class CustomerApiService {
   }
 
   /// New Live Matches API
-  static Future<Map<String, dynamic>> getLiveMatches({required int page}) async {
+  static Future<Map<String, dynamic>> getLiveMatches({
+    required int page,
+  }) async {
     return await ApiService.get("${ApiEndpoints.liveMatches}?page=$page");
   }
 
@@ -113,6 +115,36 @@ class CustomerApiService {
     required String leagueId,
   }) async {
     return await ApiService.get(ApiEndpoints.upcomingMatches(leagueId));
+  }
+
+  /// New Upcoming Matches API (All)
+  static Future<Map<String, dynamic>> getUpcomingMatchesAll({
+    required int page,
+  }) async {
+    return await ApiService.get(
+      "${ApiEndpoints.upcomingMatchesAll}?page=$page",
+    );
+  }
+
+  /// Recent Matches API
+  static Future<Map<String, dynamic>> getRecentMatches({
+    required int page,
+  }) async {
+    return await ApiService.get("${ApiEndpoints.recentMatches}?page=$page");
+  }
+
+  /// Football Matches API
+  static Future<Map<String, dynamic>> getFootballMatches({
+    required int page,
+  }) async {
+    return await ApiService.get("${ApiEndpoints.footballMatches}?page=$page");
+  }
+
+  /// Rugby Matches API
+  static Future<Map<String, dynamic>> getRugbyMatches({
+    required int page,
+  }) async {
+    return await ApiService.get("${ApiEndpoints.rugbyMatches}?page=$page");
   }
 
   /// ================= LEAGUE TABLE =================

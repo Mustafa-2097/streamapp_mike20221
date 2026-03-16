@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:testapp/core/common/widgets/custom_button.dart';
 import 'package:testapp/core/const/icons_path.dart';
 import 'package:testapp/features/auth/login/screen/login_screen.dart';
+import 'package:testapp/core/const/app_colors.dart';
 import '../../../../core/offline_storage/shared_pref.dart';
 import '../../data/auth_api_service.dart';
 import '../../forgot_pass/screen/otp_screen.dart';
@@ -105,21 +106,15 @@ class SignUpController extends GetxController {
         Get.snackbar(
           "Error",
           response['message'] ?? 'Signup failed',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
         );
       }
     } catch (e) {
       debugPrint('Exception during sign up: $e');
       debugPrint('Exception type: ${e.runtimeType}');
       debugPrint('Stack trace: ${e.toString()}');
-
-      Get.snackbar(
-        "Connection Error",
-        "Unable to connect to server. Please check your internet connection.",
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      // Error handled globally in ApiService
     } finally {
       isLoading.value = false;
       debugPrint('Sign Up Process Completed');

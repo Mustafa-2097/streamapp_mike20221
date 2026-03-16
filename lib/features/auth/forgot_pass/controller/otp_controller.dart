@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/offline_storage/shared_pref.dart';
+import '../../../../core/const/app_colors.dart';
 import '../../data/auth_api_service.dart';
 import '../screen/success_screen.dart';
 import '../screen/reset_screen.dart';
@@ -89,18 +90,13 @@ class OtpController extends GetxController {
         Get.snackbar(
           "Failed",
           response['message'] ?? 'Failed to resend OTP',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+          backgroundColor: AppColors.errorColor,
+          colorText: Colors.black,
         );
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Failed to resend OTP. Please try again.",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
       debugPrint('Error resending OTP: $e');
+      // Error handled globally in ApiService
     } finally {
       if (!isClosed) {
         isLoading.value = false;
@@ -116,8 +112,8 @@ class OtpController extends GetxController {
       Get.snackbar(
         "Invalid OTP",
         "Please enter the complete 6-digit OTP",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
       );
       return;
     }
@@ -177,8 +173,12 @@ class OtpController extends GetxController {
             forgotPassController.resetToken = tokenVal;
             Get.offAll(() => ResetPasswordScreen());
           } else {
-            Get.snackbar("Error", "Missing reset token in response",
-                backgroundColor: Colors.red, colorText: Colors.white);
+            Get.snackbar(
+              "Error",
+              "Missing reset token in response",
+              backgroundColor: AppColors.errorColor,
+              colorText: Colors.black,
+            );
           }
         }
       } else {
@@ -186,21 +186,15 @@ class OtpController extends GetxController {
         Get.snackbar(
           "Verification Failed",
           response['message'] ?? 'Invalid OTP',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+          backgroundColor: AppColors.errorColor,
+          colorText: Colors.black,
         );
       }
     } catch (e) {
       debugPrint('Exception during OTP verification: $e');
       debugPrint('Exception type: ${e.runtimeType}');
       debugPrint('Stack trace: ${e.toString()}');
-
-      Get.snackbar(
-        "Connection Error",
-        "Failed to verify OTP. Please check your internet connection.",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      // Error handled globally in ApiService
     } finally {
       isLoading.value = false;
     }

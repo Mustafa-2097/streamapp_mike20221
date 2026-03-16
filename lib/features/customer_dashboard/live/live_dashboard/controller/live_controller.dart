@@ -16,10 +16,11 @@ class LiveMatchesController extends GetxController {
     "Upcoming",
     "Recent Match",
     "Football",
-    "Stats",
-    "Line-Ups",
-    "Table",
-    "H2H"
+    "Rugby",
+    // "Stats",
+    // "Line-Ups",
+    // "Table",
+    // "H2H"
   ];
 
   int selectedTab = 0;
@@ -27,16 +28,23 @@ class LiveMatchesController extends GetxController {
   bool get isLive => selectedTab == 0;
   bool get isUpcoming => selectedTab == 1;
   bool get isRecentMatch => selectedTab == 2;
-  bool get isStats => selectedTab == 4;
-  bool get isLineup => selectedTab == 5;
-  bool get isTable => selectedTab == 6;
-  bool get isH2H => selectedTab == 7;
+  bool get isFootball => selectedTab == 3;
+  bool get isRugby => selectedTab == 4;
+  bool get isStats => selectedTab == 5;
+  bool get isLineup => selectedTab == 6;
+  bool get isTable => selectedTab == 7;
+  bool get isH2H => selectedTab == 8;
 
   MatchStatsData? statsData;
   LineupData? lineupData;
   TableData? tableData;
   H2HData? h2hData;
-  RecentMatchesData? recentMatchesData;
+  List<RecentMatchModel> recentMatches = [];
+  bool isRecentMatchLoading = false;
+  List<UpcomingMatchModel> footballMatches = [];
+  bool isFootballLoading = false;
+  List<UpcomingMatchModel> rugbyMatches = [];
+  bool isRugbyLoading = false;
 
   int currentPage = 1;
   bool hasMore = true;
@@ -58,7 +66,7 @@ class LiveMatchesController extends GetxController {
 
     scrollController.addListener(() {
       if (scrollController.position.pixels >=
-          scrollController.position.maxScrollExtent - 200 &&
+              scrollController.position.maxScrollExtent - 200 &&
           !isPaginationLoading &&
           hasMore &&
           isLive) {
@@ -74,13 +82,24 @@ class LiveMatchesController extends GetxController {
       fetchUpcomingMatches();
     }
 
+    if (isRecentMatch && recentMatches.isEmpty) {
+      fetchRecentMatches();
+    }
+
+    if (isFootball && footballMatches.isEmpty) {
+      fetchFootballMatches();
+    }
+
+    if (isRugby && rugbyMatches.isEmpty) {
+      fetchRugbyMatches();
+    }
+
     if (isTable && tableData == null) {
       fetchLeagueTable();
     }
 
     update();
   }
-
 
   /// ================= LIVE =================
   Future<void> fetchLiveMatches({bool isRefresh = false}) async {
@@ -96,7 +115,9 @@ class LiveMatchesController extends GetxController {
 
       update();
 
-      final response = await CustomerApiService.getLiveMatches(page: currentPage);
+      final response = await CustomerApiService.getLiveMatches(
+        page: currentPage,
+      );
 
       final List list = (response['data'] ?? []) as List;
 
@@ -117,6 +138,17 @@ class LiveMatchesController extends GetxController {
     }
   }
 
+  final Set<String> remindedMatchIds = {};
+
+  void toggleReminder(String matchId) {
+    if (remindedMatchIds.contains(matchId)) {
+      remindedMatchIds.remove(matchId);
+    } else {
+      remindedMatchIds.add(matchId);
+    }
+    update();
+  }
+
   Future<void> refreshMatches() async {
     await fetchLiveMatches(isRefresh: true);
   }
@@ -127,16 +159,80 @@ class LiveMatchesController extends GetxController {
       isUpcomingLoading = true;
       update();
 
-      final response = await CustomerApiService.getUpcomingMatches(leagueId: "4328");
+      final response = await CustomerApiService.getUpcomingMatchesAll(page: 1);
       print("Upcoming Response: $response");
 
-      final List list = (response['data']?['events'] ?? []) as List;
+      final List list = (response['data'] ?? []) as List;
 
-      upcomingMatches = list.map((e) => UpcomingMatchModel.fromJson(e)).toList();
+      upcomingMatches = list
+          .map((e) => UpcomingMatchModel.fromJson(e))
+          .toList();
     } catch (e) {
       print("Upcoming API error: $e");
     } finally {
       isUpcomingLoading = false;
+      update();
+    }
+  }
+
+  /// ================= Recent Match =================
+  Future<void> fetchRecentMatches() async {
+    try {
+      isRecentMatchLoading = true;
+      update();
+
+      final response = await CustomerApiService.getRecentMatches(page: 1);
+      print("Recent Response: $response");
+
+      final List list = (response['data'] ?? []) as List;
+
+      recentMatches = list.map((e) => RecentMatchModel.fromJson(e)).toList();
+    } catch (e) {
+      print("Recent API error: $e");
+    } finally {
+      isRecentMatchLoading = false;
+      update();
+    }
+  }
+
+  /// ================= Football Match =================
+  Future<void> fetchFootballMatches() async {
+    try {
+      isFootballLoading = true;
+      update();
+
+      final response = await CustomerApiService.getFootballMatches(page: 1);
+      print("Football Response: $response");
+
+      final List list = (response['data'] ?? []) as List;
+
+      footballMatches = list
+          .map((e) => UpcomingMatchModel.fromJson(e))
+          .toList();
+    } catch (e) {
+      print("Football API error: $e");
+    } finally {
+      isFootballLoading = false;
+      update();
+    }
+  }
+
+  /// ================= Rugby Match =================
+  Future<void> fetchRugbyMatches() async {
+    try {
+      isRugbyLoading = true;
+      update();
+
+      final response = await CustomerApiService.getRugbyMatches(page: 1);
+      print("Rugby Response: $response");
+
+      final List list = (response['data'] ?? []) as List;
+
+      rugbyMatches = list.map((e) => UpcomingMatchModel.fromJson(e)).toList();
+    } catch (e) {
+      print("Rugby API error: $e");
+    } finally {
+      isRugbyLoading = false;
       update();
     }
   }
@@ -166,12 +262,9 @@ class LiveMatchesController extends GetxController {
     }
   }
 
-
   @override
   void onClose() {
     scrollController.dispose();
     super.onClose();
   }
 }
-
-

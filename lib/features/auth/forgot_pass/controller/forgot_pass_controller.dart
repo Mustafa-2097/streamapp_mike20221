@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import 'package:testapp/features/auth/forgot_pass/screen/otp_screen.dart';
 import 'package:testapp/features/auth/forgot_pass/screen/success_screen.dart';
+import 'package:testapp/core/const/app_colors.dart';
 import '../../data/auth_api_service.dart';
 
 class ForgotPasswordController extends GetxController {
@@ -23,8 +24,12 @@ class ForgotPasswordController extends GetxController {
   // ---------------- SEND OTP ----------------
   Future<void> sendOtp() async {
     if (emailController.text.isEmpty) {
-      Get.snackbar("Error", "Please enter your email",
-          backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        "Error",
+        "Please enter your email",
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.black,
+      );
       return;
     }
 
@@ -35,19 +40,26 @@ class ForgotPasswordController extends GetxController {
       );
 
       if (response['success'] == true) {
-        Get.to(() => const VerifyOtpScreen(), arguments: {
-          'email': emailController.text.trim(),
-          'isSignUp': false,
-        });
-        Get.snackbar("Success", response['message'] ?? "OTP sent successfully",
-            backgroundColor: Colors.green, colorText: Colors.white);
+        Get.to(
+          () => const VerifyOtpScreen(),
+          arguments: {'email': emailController.text.trim(), 'isSignUp': false},
+        );
+        Get.snackbar(
+          "Success",
+          response['message'] ?? "OTP sent successfully",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
       } else {
-        Get.snackbar("Error", response['message'] ?? "Failed to send OTP",
-            backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar(
+          "Error",
+          response['message'] ?? "Failed to send OTP",
+          backgroundColor: AppColors.errorColor,
+          colorText: Colors.black,
+        );
       }
     } catch (e) {
-      Get.snackbar("Error", e.toString(),
-          backgroundColor: Colors.red, colorText: Colors.white);
+      // Error handled globally in ApiService
     } finally {
       isLoading.value = false;
     }
@@ -57,20 +69,32 @@ class ForgotPasswordController extends GetxController {
   Future<void> resetPassword() async {
     if (newPasswordController.text.isEmpty ||
         confirmPasswordController.text.isEmpty) {
-      Get.snackbar("Error", "All fields are required",
-          backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        "Error",
+        "All fields are required",
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.black,
+      );
       return;
     }
 
     if (newPasswordController.text != confirmPasswordController.text) {
-      Get.snackbar("Error", "Passwords do not match",
-          backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        "Error",
+        "Passwords do not match",
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.black,
+      );
       return;
     }
 
     if (resetToken == null) {
-      Get.snackbar("Error", "Session expired. Please verify OTP again.",
-          backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        "Error",
+        "Session expired. Please verify OTP again.",
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.black,
+      );
       return;
     }
 
@@ -83,18 +107,29 @@ class ForgotPasswordController extends GetxController {
 
       if (response['success'] == true) {
         Get.offAll(() => const SuccessScreen());
-        Get.snackbar("Success", response['message'] ?? "Password reset successfully",
-            backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar(
+          "Success",
+          response['message'] ?? "Password reset successfully",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
       } else {
-        Get.snackbar("Error", response['message'] ?? "Failed to reset password",
-            backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar(
+          "Error",
+          response['message'] ?? "Failed to reset password",
+          backgroundColor: AppColors.errorColor,
+          colorText: Colors.black,
+        );
       }
     } catch (e) {
-      Get.snackbar("Error", e.toString(),
-          backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        "Error",
+        e.toString(),
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.black,
+      );
     } finally {
       isLoading.value = false;
     }
   }
-
 }
