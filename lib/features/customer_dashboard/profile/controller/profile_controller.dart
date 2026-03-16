@@ -20,7 +20,7 @@ class ProfileController extends GetxController {
       isLoading.value = true;
 
       final response = await CustomerApiService.getProfile();
-      
+
       if (response['success'] == true && response['data'] != null) {
         profile.value = CustomerProfile.fromJson(response['data']);
       }
@@ -34,20 +34,8 @@ class ProfileController extends GetxController {
   // Helper dedicated to updating the profile from any other controller
   void updateProfileData(Map<String, dynamic> userData) {
     try {
-      debugPrint("DEBUG: ProfileController updating with raw data...");
-      
-      // Fix image URL mapping if key is inconsistent
-      String? photo = userData['profilePhoto']?.toString();
-      
-      if (photo != null) {
-        photo = photo.replaceAll('localhost', '10.0.30.59').replaceAll('127.0.0.1', '10.0.30.59');
-        userData['profilePhoto'] = photo;
-        debugPrint("DEBUG: Fixed photo URL for global sync: $photo");
-      }
-
       profile.value = CustomerProfile.fromJson(userData);
-      profile.refresh(); 
-      debugPrint("DEBUG: ProfileController refresh() called.");
+      profile.refresh(); // Force GetX to notify all observers
     } catch (e) {
       debugPrint("Error updating profile globally: $e");
     }

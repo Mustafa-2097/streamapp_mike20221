@@ -62,10 +62,7 @@ class CustomerApiService {
       // No image — use simple JSON PATCH (more reliable for most backends)
       return await ApiService.patch(
         ApiEndpoints.updateProfile,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Authorization': 'Bearer $token'},
         body: bodyFields,
       );
     }
@@ -104,7 +101,9 @@ class CustomerApiService {
   }
 
   /// New Live Matches API
-  static Future<Map<String, dynamic>> getLiveMatches({required int page}) async {
+  static Future<Map<String, dynamic>> getLiveMatches({
+    required int page,
+  }) async {
     return await ApiService.get("${ApiEndpoints.liveMatches}?page=$page");
   }
 
