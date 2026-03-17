@@ -4,6 +4,7 @@ import '../../../../core/network/api_service.dart';
 import '../../../../core/offline_storage/shared_pref.dart';
 import '../../clips/model/clips_model.dart';
 import '../../news/controller/news_controller.dart';
+import '../../replay/model/replay_model.dart';
 
 class BookmarkController extends GetxController {
   static BookmarkController get to => Get.find();
@@ -13,6 +14,7 @@ class BookmarkController extends GetxController {
 
   final List<String> categories = ["Live", "Replay", "Clips", "News"];
   final RxList<ClipModel> clipBookmarks = <ClipModel>[].obs;
+  final RxList<ReplayModel> replayBookmarks = <ReplayModel>[].obs;
   final RxList<Map<String, dynamic>> newsBookmarks =
       <Map<String, dynamic>>[].obs;
   var isLoading = false.obs;
@@ -22,6 +24,7 @@ class BookmarkController extends GetxController {
     super.onInit();
     fetchNewsBookmarks();
     fetchClipBookmarks();
+    fetchReplayBookmarks();
   }
 
   Future<void> fetchNewsBookmarks() async {
@@ -95,6 +98,29 @@ class BookmarkController extends GetxController {
       }
     } catch (e) {
       print("Error fetching clip bookmarks: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchReplayBookmarks() async {
+    try {
+      isLoading.value = true;
+      final String? token = await SharedPreferencesHelper.getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+      final response = await ApiService.get(
+        ApiEndpoints.myReplayBookmarks,
+        headers: headers,
+      );
+      if (response['success'] == true && response['data'] != null) {
+        List data = response['data'];
+        replayBookmarks.value = data.map((e) => ReplayModel.fromJson(e as Map<String, dynamic>)).toList();
+      }
+    } catch (e) {
+      print("Error fetching replay bookmarks: $e");
     } finally {
       isLoading.value = false;
     }
@@ -187,32 +213,37 @@ class BookmarkController extends GetxController {
     },
   ].obs;
 
-  // Mock Data for Replays
-  var replayBookmarks = [
-    {
-      "title": "Brazil VS Spain - Best Goals & Highlights",
-      "duration": "5:52",
-      "views": "2.1M views",
-      "time": "2 hours ago",
-    },
-    {
-      "title": "Brazil VS Spain - Best Goals & Highlights",
-      "duration": "5:52",
-      "views": "2.1M views",
-      "time": "2 hours ago",
-    },
-    {
-      "title": "Brazil VS Spain - Best Goals & Highlights",
-      "duration": "5:52",
-      "views": "2.1M views",
-      "time": "2 hours ago",
-    },
-  ].obs;
+  // Mock Data for Replays (Removed)
+  // var replayBookmarks = [...]
+
 
   void changeTab(int index) => selectedTabIndex.value = index;
 
   void removeLive(int index) => liveBookmarks.removeAt(index);
-  void removeReplay(int index) => replayBookmarks.removeAt(index);
+  
+  Future<void> removeReplay(int index) async {
+    if (index < replayBookmarks.length) {
+      final replay = replayBookmarks[index];
+      try {
+        final String? token = await SharedPreferencesHelper.getToken();
+        final headers = {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        };
+        final body = {"replayId": replay.replayId};
+        final response = await ApiService.post(
+          ApiEndpoints.replaysBookmark,
+          body: body,
+          headers: headers,
+        );
+        if (response['success'] == true) {
+          replayBookmarks.removeAt(index);
+        }
+      } catch (e) {
+        print("Error removing replay bookmark: $e");
+      }
+    }
+  }
   
   Future<void> removeClip(int index) async {
     if (index < clipBookmarks.length) {

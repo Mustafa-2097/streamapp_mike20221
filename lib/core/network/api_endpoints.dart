@@ -66,4 +66,11 @@ class ApiEndpoints {
   static String singleClipComments(String clipId) => '$clips/comments/$clipId';
   static String commentReplies(String commentId) =>
       '$clips/comments/$commentId/replies';
+
+  /// Replays
+  static const String replays = '$baseUrl/replays';
+  static String singleReplay(String id) => '$replays/$id';
+  static const String replaysAction = '$replays/action';
+  static const String replaysBookmark = '$replays/bookmark';
+  static const String myReplayBookmarks = '$replays/my-bookmarks';
 }

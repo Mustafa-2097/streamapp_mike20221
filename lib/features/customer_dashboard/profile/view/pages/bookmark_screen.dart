@@ -5,15 +5,32 @@ import '../../../../../core/common/widgets/scaffold_bg.dart';
 import '../../../clips/widgets/clips_card.dart';
 import '../../../home/view/news_details_screen.dart';
 import '../../../home/view/open_reels_video.dart';
+import '../../../live/live_video/screen/video_screen.dart';
 import '../../../news/model/news_model.dart';
 import '../../controller/bookmarks_controller.dart';
+import '../../../replay/model/replay_model.dart';
 
-class BookmarkScreen extends StatelessWidget {
+class BookmarkScreen extends StatefulWidget {
   const BookmarkScreen({super.key});
 
   @override
+  State<BookmarkScreen> createState() => _BookmarkScreenState();
+}
+
+class _BookmarkScreenState extends State<BookmarkScreen> {
+  final controller = BookmarkController.to;
+
+  @override
+  void initState() {
+    super.initState();
+    // Refresh all bookmarks when the screen is opened
+    controller.fetchNewsBookmarks();
+    controller.fetchClipBookmarks();
+    controller.fetchReplayBookmarks();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final controller = BookmarkController.to;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -65,6 +82,9 @@ class BookmarkScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+extension on _BookmarkScreenState {
 
   // --- Widgets ---
 
@@ -121,20 +141,36 @@ class BookmarkScreen extends StatelessWidget {
   }
 
   Widget _buildReplayList(BookmarkController controller) {
-    return ListView.builder(
-      itemCount: controller.replayBookmarks.length,
-      padding: EdgeInsets.symmetric(horizontal: 15.w),
-      itemBuilder: (context, index) {
-        final item = controller.replayBookmarks[index];
-        return Dismissible(
-          key: UniqueKey(),
-          direction: DismissDirection.startToEnd,
-          onDismissed: (_) => controller.removeReplay(index),
-          background: _buildDeleteBackground(),
-          child: _buildReplayItem(item),
+    return Obx(() {
+      if (controller.isLoading.value && controller.replayBookmarks.isEmpty) {
+        return const Center(child: CircularProgressIndicator(color: Colors.white));
+      }
+      if (controller.replayBookmarks.isEmpty) {
+        return const Center(
+          child: Text(
+            "No replay bookmarks",
+            style: TextStyle(color: Colors.white),
+          ),
         );
-      },
-    );
+      }
+      return ListView.builder(
+        itemCount: controller.replayBookmarks.length,
+        padding: EdgeInsets.symmetric(horizontal: 15.w),
+        itemBuilder: (context, index) {
+          final item = controller.replayBookmarks[index];
+          return Dismissible(
+            key: UniqueKey(),
+            direction: DismissDirection.startToEnd,
+            onDismissed: (_) => controller.removeReplay(index),
+            background: _buildDeleteBackground(),
+            child: GestureDetector(
+              onTap: () => Get.to(() => VideoLiveScreen(replayId: item.replayId)),
+              child: _buildReplayItem(item),
+            ),
+          );
+        },
+      );
+    });
   }
 
   Widget _buildClipsGrid(BookmarkController controller) {
@@ -256,8 +292,14 @@ class BookmarkScreen extends StatelessWidget {
     );
   }
 
+  String _fixUrl(String url) {
+    return url
+        .replaceAll('localhost', '10.0.30.59')
+        .replaceAll('127.0.0.1', '10.0.30.59');
+  }
+
   /// Replay Section
-  Widget _buildReplayItem(Map item) {
+  Widget _buildReplayItem(ReplayModel item) {
     return Padding(
       padding: EdgeInsets.only(bottom: 16.h),
       child: Row(
@@ -267,11 +309,18 @@ class BookmarkScreen extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10.r),
-                child: Image.asset(
-                  "assets/images/replay2.png",
+                child: Image.network(
+                  _fixUrl(item.thumbnailUrl),
                   width: 145,
                   height: 85,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 145,
+                    height: 85,
+                    color: Colors.grey[900],
+                    child: const Icon(Icons.play_circle_outline,
+                        color: Colors.white, size: 40),
+                  ),
                 ),
               ),
               Positioned(
@@ -284,7 +333,7 @@ class BookmarkScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Text(
-                    item['duration'],
+                    "00:00",
                     style: TextStyle(color: Colors.white, fontSize: 10.sp),
                   ),
                 ),
@@ -297,7 +346,7 @@ class BookmarkScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item['title'],
+                  item.title,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -312,7 +361,7 @@ class BookmarkScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(11.r),
                   ),
                   child: Text(
-                    "Highlights",
+                    item.category,
                     style: TextStyle(
                       color: Colors.grey.shade100,
                       fontSize: 10.sp,
@@ -320,7 +369,7 @@ class BookmarkScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "${item['views']}  •  ${item['time']}",
+                  "${item.formattedViews}  •  ${item.timeAgo}",
                   style: TextStyle(color: Colors.grey, fontSize: 11.sp),
                 ),
               ],
