@@ -1,14 +1,17 @@
-class ClipModel {
-  final String clipId;
+class ReplayModel {
+  final String replayId;
   final String userId;
   final String videoUrl;
+  final String thumbnailUrl;
   final String title;
+  final String description;
   final List<String> tags;
   final int viewCount;
+  final String category;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final ClipUser user;
-  final ClipCount count;
+  final ReplayUser user;
+  final ReplayCount count;
   final String timeAgo;
   final String formattedViews;
   final String shareUrl;
@@ -16,13 +19,16 @@ class ClipModel {
   final Engagement engagement;
   final UserStatus userStatus;
 
-  ClipModel({
-    required this.clipId,
+  ReplayModel({
+    required this.replayId,
     required this.userId,
     required this.videoUrl,
+    required this.thumbnailUrl,
     required this.title,
+    required this.description,
     required this.tags,
     required this.viewCount,
+    required this.category,
     required this.createdAt,
     required this.updatedAt,
     required this.user,
@@ -35,18 +41,21 @@ class ClipModel {
     required this.userStatus,
   });
 
-  factory ClipModel.fromJson(Map<String, dynamic> json) {
-    return ClipModel(
-      clipId: json['clipId'] ?? '',
+  factory ReplayModel.fromJson(Map<String, dynamic> json) {
+    return ReplayModel(
+      replayId: json['replayId'] ?? '',
       userId: json['userId'] ?? '',
       videoUrl: json['videoUrl'] ?? '',
+      thumbnailUrl: json['thumbnailUrl'] ?? '',
       title: json['title'] ?? '',
+      description: json['description'] ?? '',
       tags: List<String>.from(json['tags'] ?? []),
       viewCount: json['viewCount'] ?? 0,
+      category: json['category'] ?? '',
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
-      user: ClipUser.fromJson(json['user'] ?? {}),
-      count: ClipCount.fromJson(json['_count'] ?? {}),
+      user: ReplayUser.fromJson(json['user'] ?? {}),
+      count: ReplayCount.fromJson(json['_count'] ?? {}),
       timeAgo: json['timeAgo'] ?? '',
       formattedViews: json['formattedViews'] ?? '',
       shareUrl: json['shareUrl'] ?? '',
@@ -57,19 +66,19 @@ class ClipModel {
   }
 }
 
-class ClipUser {
+class ReplayUser {
   final String id;
   final String name;
   final String profilePhoto;
 
-  ClipUser({
+  ReplayUser({
     required this.id,
     required this.name,
     required this.profilePhoto,
   });
 
-  factory ClipUser.fromJson(Map<String, dynamic> json) {
-    return ClipUser(
+  factory ReplayUser.fromJson(Map<String, dynamic> json) {
+    return ReplayUser(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       profilePhoto: json['profilePhoto'] ?? '',
@@ -77,19 +86,19 @@ class ClipUser {
   }
 }
 
-class ClipCount {
+class ReplayCount {
   final int comments;
   final int actions;
   final int bookmarks;
 
-  ClipCount({
+  ReplayCount({
     required this.comments,
     required this.actions,
     required this.bookmarks,
   });
 
-  factory ClipCount.fromJson(Map<String, dynamic> json) {
-    return ClipCount(
+  factory ReplayCount.fromJson(Map<String, dynamic> json) {
+    return ReplayCount(
       comments: json['comments'] ?? 0,
       actions: json['actions'] ?? 0,
       bookmarks: json['bookmarks'] ?? 0,
@@ -122,18 +131,19 @@ class SocialLinks {
 
 class Engagement {
   final String id;
-  final String clipId;
-  final int likes;
-  final int dislikes;
-  final int shares;
-  final int comments;
-  final int bookmarks;
+  final String replayId;
+  int likes;
+  int dislikes;
+  int shares;
+  int comments;
+  int bookmarks;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String formattedComments;
 
   Engagement({
     required this.id,
-    required this.clipId,
+    required this.replayId,
     required this.likes,
     required this.dislikes,
     required this.shares,
@@ -141,12 +151,13 @@ class Engagement {
     required this.bookmarks,
     required this.createdAt,
     required this.updatedAt,
+    required this.formattedComments,
   });
 
   factory Engagement.fromJson(Map<String, dynamic> json) {
     return Engagement(
       id: json['id'] ?? '',
-      clipId: json['clipId'] ?? '',
+      replayId: json['replayId'] ?? '',
       likes: json['likes'] ?? 0,
       dislikes: json['dislikes'] ?? 0,
       shares: json['shares'] ?? 0,
@@ -154,6 +165,7 @@ class Engagement {
       bookmarks: json['bookmarks'] ?? 0,
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
+      formattedComments: json['formattedComments'] ?? '0',
     );
   }
 }

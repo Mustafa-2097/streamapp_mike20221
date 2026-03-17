@@ -4,6 +4,7 @@ import '../../../../core/network/api_service.dart';
 import '../../../../core/offline_storage/shared_pref.dart';
 import '../../clips/model/clips_model.dart';
 import '../../news/controller/news_controller.dart';
+import '../../replay/model/replay_model.dart';
 
 class BookmarkController extends GetxController {
   static BookmarkController get to => Get.find();
@@ -13,6 +14,7 @@ class BookmarkController extends GetxController {
 
   final List<String> categories = ["Live", "Replay", "Clips", "News"];
   final RxList<ClipModel> clipBookmarks = <ClipModel>[].obs;
+  final RxList<ReplayModel> replayBookmarks = <ReplayModel>[].obs;
   final RxList<Map<String, dynamic>> newsBookmarks =
       <Map<String, dynamic>>[].obs;
   var isLoading = false.obs;
@@ -21,6 +23,8 @@ class BookmarkController extends GetxController {
   void onInit() {
     super.onInit();
     fetchNewsBookmarks();
+    fetchClipBookmarks();
+    fetchReplayBookmarks();
   }
 
   Future<void> fetchNewsBookmarks() async {
@@ -76,6 +80,52 @@ class BookmarkController extends GetxController {
     }
   }
 
+  Future<void> fetchClipBookmarks() async {
+    try {
+      isLoading.value = true;
+      final String? token = await SharedPreferencesHelper.getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+      final response = await ApiService.get(
+        ApiEndpoints.myClipBookmarks,
+        headers: headers,
+      );
+      if (response['success'] == true && response['data'] != null) {
+        List data = response['data'];
+        clipBookmarks.value = data.map((e) => ClipModel.fromJson(e as Map<String, dynamic>)).toList();
+      }
+    } catch (e) {
+      print("Error fetching clip bookmarks: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchReplayBookmarks() async {
+    try {
+      isLoading.value = true;
+      final String? token = await SharedPreferencesHelper.getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+      final response = await ApiService.get(
+        ApiEndpoints.myReplayBookmarks,
+        headers: headers,
+      );
+      if (response['success'] == true && response['data'] != null) {
+        List data = response['data'];
+        replayBookmarks.value = data.map((e) => ReplayModel.fromJson(e as Map<String, dynamic>)).toList();
+      }
+    } catch (e) {
+      print("Error fetching replay bookmarks: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> deleteNewsBookmark(String bookmarkId, int index) async {
     try {
       final String? token = await SharedPreferencesHelper.getToken();
@@ -99,11 +149,45 @@ class BookmarkController extends GetxController {
     return clipBookmarks.any((c) => c.clipId == clip.clipId);
   }
 
-  void toggleClip(ClipModel clip) {
-    if (isBookmarked(clip)) {
+  Future<void> toggleClip(ClipModel clip) async {
+    // Optimistic Update
+    bool wasBookmarked = isBookmarked(clip);
+    if (wasBookmarked) {
       clipBookmarks.removeWhere((c) => c.clipId == clip.clipId);
     } else {
       clipBookmarks.add(clip);
+    }
+
+    try {
+      final String? token = await SharedPreferencesHelper.getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+      
+      final body = {"clipId": clip.clipId};
+      final response = await ApiService.post(
+        ApiEndpoints.clipBookmark,
+        body: body,
+        headers: headers,
+      );
+      
+      if (response['success'] != true) {
+        // Revert optimistic update on failure
+        if (wasBookmarked) {
+          clipBookmarks.add(clip);
+        } else {
+          clipBookmarks.removeWhere((c) => c.clipId == clip.clipId);
+        }
+      }
+    } catch (e) {
+      // Revert optimistic update on error
+      if (wasBookmarked) {
+        clipBookmarks.add(clip);
+      } else {
+        clipBookmarks.removeWhere((c) => c.clipId == clip.clipId);
+      }
+      print("Error toggling clip bookmark: $e");
     }
   }
 
@@ -129,33 +213,59 @@ class BookmarkController extends GetxController {
     },
   ].obs;
 
-  // Mock Data for Replays
-  var replayBookmarks = [
-    {
-      "title": "Brazil VS Spain - Best Goals & Highlights",
-      "duration": "5:52",
-      "views": "2.1M views",
-      "time": "2 hours ago",
-    },
-    {
-      "title": "Brazil VS Spain - Best Goals & Highlights",
-      "duration": "5:52",
-      "views": "2.1M views",
-      "time": "2 hours ago",
-    },
-    {
-      "title": "Brazil VS Spain - Best Goals & Highlights",
-      "duration": "5:52",
-      "views": "2.1M views",
-      "time": "2 hours ago",
-    },
-  ].obs;
+  // Mock Data for Replays (Removed)
+  // var replayBookmarks = [...]
+
 
   void changeTab(int index) => selectedTabIndex.value = index;
 
   void removeLive(int index) => liveBookmarks.removeAt(index);
-  void removeReplay(int index) => replayBookmarks.removeAt(index);
-  void removeClip(int index) => clipBookmarks.removeAt(index);
+  
+  Future<void> removeReplay(int index) async {
+    if (index < replayBookmarks.length) {
+      final replay = replayBookmarks[index];
+      try {
+        final String? token = await SharedPreferencesHelper.getToken();
+        final headers = {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        };
+        final body = {"replayId": replay.replayId};
+        final response = await ApiService.post(
+          ApiEndpoints.replaysBookmark,
+          body: body,
+          headers: headers,
+        );
+        if (response['success'] == true) {
+          replayBookmarks.removeAt(index);
+        }
+      } catch (e) {
+        print("Error removing replay bookmark: $e");
+      }
+    }
+  }
+  
+  Future<void> removeClip(int index) async {
+    if (index < clipBookmarks.length) {
+      final clip = clipBookmarks[index];
+      try {
+        final String? token = await SharedPreferencesHelper.getToken();
+        final headers = {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        };
+        final response = await ApiService.delete(
+          ApiEndpoints.deleteClipBookmark(clip.clipId),
+          headers: headers,
+        );
+        if (response['success'] == true) {
+          clipBookmarks.removeAt(index);
+        }
+      } catch (e) {
+        print("Error deleting clip bookmark: $e");
+      }
+    }
+  }
 
   void removeNews(int index) {
     if (index < newsBookmarks.length) {

@@ -77,10 +77,16 @@ class ClipsScreen extends StatelessWidget {
                         return const Center(child: CircularProgressIndicator());
                       }
                       final clip = controller.clipsList[index];
+                      // The true state is either if it's in the local session list OR it came from server as bookmarked
+                      // But since we are toggling clip.userStatus.isBookmarked locally now, we can rely solely on that
+                      // combined with controller's local list syncing.
+                      final isBookmarked = clip.userStatus.isBookmarked;
                       return ClipCard(
                         clip: clip,
-                        isBookmarked: bookmarkController.isBookmarked(clip),
+                        isBookmarked: isBookmarked,
                         onBookmark: () {
+                          clip.userStatus.isBookmarked = !clip.userStatus.isBookmarked;
+                          controller.clipsList.refresh(); // Ensure the Obx GridView.builder updates
                           bookmarkController.toggleClip(clip);
                         },
                         showBookmarkIcon: true,

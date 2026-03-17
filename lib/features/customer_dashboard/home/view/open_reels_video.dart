@@ -132,20 +132,19 @@ class ClipPageView extends StatelessWidget {
               const SizedBox(height: 25),
 
               // Bookmark
-              Obx(() {
-                final isBookmarked =
-                    Get.find<BookmarkController>().isBookmarked(clip);
-                return SideButton(
-                  icon: Icons.bookmark,
-                  label: "", // No count needed
-                  activeColor: const Color(0xFFFFD700),
-                  initialIsActive: isBookmarked,
-                  size: 32,
-                  onTap: () {
-                    Get.find<BookmarkController>().toggleClip(clip);
-                  },
-                );
-              }),
+              SideButton(
+                icon: Icons.bookmark,
+                label: "", // No count needed
+                activeColor: const Color(0xFFFFD700),
+                initialIsActive: clip.userStatus.isBookmarked,
+                size: 32,
+                onTap: () {
+                  clip.userStatus.isBookmarked = !clip.userStatus.isBookmarked;
+                  // Ensure the list changes so that if we go back to ClipsScreen it reflects the change
+                  Get.find<ClipsController>().clipsList.refresh();
+                  Get.find<BookmarkController>().toggleClip(clip);
+                },
+              ),
               const SizedBox(height: 20),
 
 
@@ -354,8 +353,9 @@ class _SideButtonState extends State<SideButton>
   }
 
   void _toggleState() {
-    // We don't necessarily need to toggle local state if the parent is Obx-reactive,
-    // but the animation still looks good.
+    setState(() {
+      isActive = !isActive;
+    });
     _controller.forward().then((_) => _controller.reverse());
     if (widget.onTap != null) widget.onTap!();
   }
@@ -370,7 +370,7 @@ class _SideButtonState extends State<SideButton>
             scale: _scaleAnimation,
             child: Icon(
               widget.icon,
-              color: widget.initialIsActive
+              color: isActive
                   ? widget.activeColor
                   : widget.inactiveColor,
               size: widget.size,

@@ -56,6 +56,9 @@ class ApiEndpoints {
   static String singleClip(String clipId) => '$clips/$clipId';
   static const String clipsAction = '$clips/action';
   static String shareClip(String clipId) => '$clips/share/$clipId';
+  static const String clipBookmark = '$clips/bookmark';
+  static const String myClipBookmarks = '$clips/my-bookmarks';
+  static String deleteClipBookmark(String bookmarkId) => '$myClipBookmarks/$bookmarkId';
 
   /// Clips Comments
   static const String clipsComments = '$clips/comments';
@@ -63,4 +66,11 @@ class ApiEndpoints {
   static String singleClipComments(String clipId) => '$clips/comments/$clipId';
   static String commentReplies(String commentId) =>
       '$clips/comments/$commentId/replies';
+
+  /// Replays
+  static const String replays = '$baseUrl/replays';
+  static String singleReplay(String id) => '$replays/$id';
+  static const String replaysAction = '$replays/action';
+  static const String replaysBookmark = '$replays/bookmark';
+  static const String myReplayBookmarks = '$replays/my-bookmarks';
 }

@@ -3,66 +3,104 @@ import 'package:get/get.dart';
 
 import '../controller/video_controller.dart';
 
-class VideoLiveScreen extends StatelessWidget {
-  VideoLiveScreen({super.key});
+class VideoLiveScreen extends StatefulWidget {
+  final String? replayId;
+  const VideoLiveScreen({super.key, this.replayId});
 
+  @override
+  State<VideoLiveScreen> createState() => _VideoLiveScreenState();
+}
+
+class _VideoLiveScreenState extends State<VideoLiveScreen> {
   final VideoLiveController controller = Get.put(VideoLiveController());
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.replayId != null) {
+      controller.fetchReplay(widget.replayId!);
+    }
+  }
+
+  String _fixUrl(String url) {
+    return url
+        .replaceAll('localhost', '10.0.30.59')
+        .replaceAll('127.0.0.1', '10.0.30.59');
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: Column(
-          children: [
-            // ✅ TOP VIDEO SECTION
-            _videoPreviewSection(),
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
 
-            // ✅ DETAILS + COMMENTS
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0E0E0E),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(18),
-                    topRight: Radius.circular(18),
+          final replay = controller.replay.value;
+          if (replay == null) {
+            return const Center(
+              child: Text(
+                "Video not found",
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
+
+          return Column(
+            children: [
+              // ✅ TOP VIDEO SECTION
+              _videoPreviewSection(replay),
+
+              // ✅ DETAILS + COMMENTS
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
                   ),
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _titleAndDropdown(),
-                      const SizedBox(height: 6),
-                      _viewsRow(),
-                      const SizedBox(height: 12),
-                      _actionRow(),
-                      const SizedBox(height: 12),
-                      _hashtagsRow(),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "Comments",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF0E0E0E),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(18),
+                      topRight: Radius.circular(18),
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _titleAndDropdown(replay),
+                        const SizedBox(height: 6),
+                        _viewsRow(replay),
+                        const SizedBox(height: 12),
+                        _actionRow(replay),
+                        const SizedBox(height: 12),
+                        _hashtagsRow(replay),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "Comments",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      _commentsList(),
-                      const SizedBox(height: 90), // spacing for input bar
-                    ],
+                        const SizedBox(height: 10),
+                        _commentsList(),
+                        const SizedBox(height: 90), // spacing for input bar
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        }),
       ),
 
       // ✅ COMMENT INPUT
@@ -71,16 +109,16 @@ class VideoLiveScreen extends StatelessWidget {
   }
 
   // ------------------------------ VIDEO PREVIEW ------------------------------
-  Widget _videoPreviewSection() {
+  Widget _videoPreviewSection(replay) {
     return Stack(
       children: [
         // Preview Image Placeholder
         Container(
           height: 240,
           width: double.infinity,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             image: DecorationImage(
-              image: NetworkImage("https://i.ibb.co/WFZ1wpL/soccer.jpg"),
+              image: NetworkImage(_fixUrl(replay.thumbnailUrl)),
               fit: BoxFit.cover,
             ),
           ),
@@ -173,14 +211,14 @@ class VideoLiveScreen extends StatelessWidget {
   }
 
   // ------------------------------ TITLE + DROPDOWN ------------------------------
-  Widget _titleAndDropdown() {
+  Widget _titleAndDropdown(replay) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Expanded(
+        Expanded(
           child: Text(
-            "Brazil VS Spain || World Cup Live Match",
-            style: TextStyle(
+            replay.title,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: Colors.white,
@@ -195,38 +233,46 @@ class VideoLiveScreen extends StatelessWidget {
     );
   }
 
-  Widget _viewsRow() {
-    return const Text(
-      "125K views • 1 day ago",
-      style: TextStyle(color: Colors.white54, fontSize: 12),
+  Widget _viewsRow(replay) {
+    return Text(
+      "${replay.formattedViews} • ${replay.timeAgo}",
+      style: const TextStyle(color: Colors.white54, fontSize: 12),
     );
   }
 
   // ------------------------------ ACTION ROW ------------------------------
-  Widget _actionRow() {
+  Widget _actionRow(replay) {
     return Row(
       children: [
-        Obx(
-          () => _actionItem(
-            icon: controller.isLiked.value
-                ? Icons.thumb_up
-                : Icons.thumb_up_alt_outlined,
-            label: _formatCount(controller.likesCount.value),
-            onTap: controller.toggleLike,
-          ),
+        _actionItem(
+          icon: replay.userStatus.isLiked
+              ? Icons.thumb_up
+              : Icons.thumb_up_alt_outlined,
+          label: _formatCount(replay.engagement.likes),
+          onTap: () => controller.toggleAction("LIKE"),
         ),
         const SizedBox(width: 16),
-        Obx(
-          () => _actionItem(
-            icon: Icons.thumb_down_alt_outlined,
-            label: _formatCount(controller.dislikesCount.value),
-            onTap: () {},
-          ),
+        _actionItem(
+          icon: replay.userStatus.isDisliked
+              ? Icons.thumb_down
+              : Icons.thumb_down_alt_outlined,
+          label: _formatCount(replay.engagement.dislikes),
+          onTap: () => controller.toggleAction("DISLIKE"),
         ),
         const SizedBox(width: 16),
-        _actionItem(icon: Icons.share_outlined, label: "2.2K", onTap: () {}),
+        _actionItem(
+          icon: Icons.share_outlined,
+          label: _formatCount(replay.engagement.shares),
+          onTap: () {},
+        ),
         const SizedBox(width: 16),
-        _actionItem(icon: Icons.flag_outlined, label: "Report", onTap: () {}),
+        _actionItem(
+          icon: replay.userStatus.isBookmarked
+              ? Icons.bookmark
+              : Icons.bookmark_outline,
+          label: replay.userStatus.isBookmarked ? "Bookmarked" : "Bookmark",
+          onTap: controller.toggleBookmark,
+        ),
       ],
     );
   }
@@ -256,27 +302,15 @@ class VideoLiveScreen extends StatelessWidget {
   }
 
   // ------------------------------ HASHTAGS ------------------------------
-  Widget _hashtagsRow() {
+  Widget _hashtagsRow(replay) {
     return Wrap(
       spacing: 8,
-      children: const [
-        Text(
-          "#football",
-          style: TextStyle(color: Colors.redAccent, fontSize: 12),
-        ),
-        Text(
-          "#worldcup2022",
-          style: TextStyle(color: Colors.redAccent, fontSize: 12),
-        ),
-        Text(
-          "#portugal",
-          style: TextStyle(color: Colors.redAccent, fontSize: 12),
-        ),
-        Text(
-          "#switzerland",
-          style: TextStyle(color: Colors.redAccent, fontSize: 12),
-        ),
-      ],
+      children: replay.tags.map<Widget>((tag) {
+        return Text(
+          "#$tag",
+          style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+        );
+      }).toList(),
     );
   }
 

@@ -1,4 +1,8 @@
 import 'package:get/get.dart';
+import '../../../../core/network/api_endpoints.dart';
+import '../../../../core/network/api_service.dart';
+import '../../../../core/offline_storage/shared_pref.dart';
+import '../model/replay_model.dart';
 
 class ReplayController extends GetxController {
   static ReplayController get to => Get.find();
@@ -8,14 +12,38 @@ class ReplayController extends GetxController {
 
   final List<String> categories = ["All", "Replay", "Full Game"];
 
-  // Mock Data for Replays
-  var replayBookmarks = [
-    {"title": "Brazil VS Spain - Best Goals & Highlights", "duration": "5:52", "views": "2.1M views", "time": "2 hours ago"},
-    {"title": "Brazil VS Spain - Best Goals & Highlights", "duration": "5:52", "views": "2.1M views", "time": "2 hours ago"},
-    {"title": "Brazil VS Spain - Best Goals & Highlights", "duration": "5:52", "views": "2.1M views", "time": "2 hours ago"},
-  ].obs;
+  var isLoading = false.obs;
+  var replaysList = <ReplayModel>[].obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchReplays();
+  }
+
+  Future<void> fetchReplays() async {
+    try {
+      isLoading.value = true;
+      final String? token = await SharedPreferencesHelper.getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+
+      final response = await ApiService.get(ApiEndpoints.replays, headers: headers);
+
+      if (response['success'] == true) {
+        final List data = response['data'] ?? [];
+        replaysList.value = data.map((json) => ReplayModel.fromJson(json)).toList();
+      }
+    } catch (e) {
+      print("Error fetching replays: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   void changeTab(int index) => selectedTabIndex.value = index;
 
-  void removeReplay(int index) => replayBookmarks.removeAt(index);
+  void removeReplay(int index) => replaysList.removeAt(index);
 }

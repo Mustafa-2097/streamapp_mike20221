@@ -46,10 +46,14 @@ class ClipCard extends StatelessWidget {
                 top: 8,
                 right: 8,
                 child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: onBookmark,
-                  child: Icon(
-                    isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                    color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
