@@ -8,14 +8,15 @@ class BookmarkController extends GetxController {
   var selectedTabIndex = 0.obs;
 
   final List<String> categories = ["Live", "Replay", "Clips", "News"];
-  final RxList<ClipItem> clipBookmarks = <ClipItem>[].obs;
+  final RxList<ClipModel> clipBookmarks = <ClipModel>[].obs;
 
-  bool isBookmarked(ClipItem clip) {
-    return clipBookmarks.any((c) => c.id == clip.id);
+  bool isBookmarked(ClipModel clip) {
+    return clipBookmarks.any((c) => c.clipId == clip.clipId);
   }
-  void toggleClip(ClipItem clip) {
+
+  void toggleClip(ClipModel clip) {
     if (isBookmarked(clip)) {
-      clipBookmarks.removeWhere((c) => c.id == clip.id);
+      clipBookmarks.removeWhere((c) => c.clipId == clip.clipId);
     } else {
       clipBookmarks.add(clip);
     }
@@ -23,16 +24,46 @@ class BookmarkController extends GetxController {
 
   // Mock Data for Live Matches
   var liveBookmarks = [
-    {"team1": "Betis", "team2": "Barcelona", "date": "Mon, Marc 23, 21", "time": "Soon"},
-    {"team1": "Betis", "team2": "Barcelona", "date": "Mon, Marc 23, 21", "time": "Soon"},
-    {"team1": "Betis", "team2": "Barcelona", "date": "Mon, Marc 23, 21", "time": "Soon"},
+    {
+      "team1": "Betis",
+      "team2": "Barcelona",
+      "date": "Mon, Marc 23, 21",
+      "time": "Soon",
+    },
+    {
+      "team1": "Betis",
+      "team2": "Barcelona",
+      "date": "Mon, Marc 23, 21",
+      "time": "Soon",
+    },
+    {
+      "team1": "Betis",
+      "team2": "Barcelona",
+      "date": "Mon, Marc 23, 21",
+      "time": "Soon",
+    },
   ].obs;
 
   // Mock Data for Replays
   var replayBookmarks = [
-    {"title": "Brazil VS Spain - Best Goals & Highlights", "duration": "5:52", "views": "2.1M views", "time": "2 hours ago"},
-    {"title": "Brazil VS Spain - Best Goals & Highlights", "duration": "5:52", "views": "2.1M views", "time": "2 hours ago"},
-    {"title": "Brazil VS Spain - Best Goals & Highlights", "duration": "5:52", "views": "2.1M views", "time": "2 hours ago"},
+    {
+      "title": "Brazil VS Spain - Best Goals & Highlights",
+      "duration": "5:52",
+      "views": "2.1M views",
+      "time": "2 hours ago",
+    },
+    {
+      "title": "Brazil VS Spain - Best Goals & Highlights",
+      "duration": "5:52",
+      "views": "2.1M views",
+      "time": "2 hours ago",
+    },
+    {
+      "title": "Brazil VS Spain - Best Goals & Highlights",
+      "duration": "5:52",
+      "views": "2.1M views",
+      "time": "2 hours ago",
+    },
   ].obs;
 
   void changeTab(int index) => selectedTabIndex.value = index;
@@ -40,5 +71,4 @@ class BookmarkController extends GetxController {
   void removeLive(int index) => liveBookmarks.removeAt(index);
   void removeReplay(int index) => replayBookmarks.removeAt(index);
   void removeClip(int index) => clipBookmarks.removeAt(index);
-
 }

@@ -6,7 +6,6 @@ import '../../../../../core/common/widgets/h2h_widget.dart';
 import '../../../../../core/common/widgets/lineup_widget.dart';
 import '../../../../../core/common/widgets/match_stats_widget.dart';
 import '../../../../../core/common/widgets/table_widget.dart';
-import '../../live_video/screen/video_screen.dart';
 import '../controller/live_controller.dart';
 import '../model/live_model.dart';
 import '../model/recent_match_model.dart';

@@ -32,7 +32,7 @@ class AuthApiService {
     required bool isSignUp,
   }) async {
     return await ApiService.post(
-      isSignUp ? ApiEndpoints.verifySigUupOtp : ApiEndpoints.verifyResetOtp,
+      isSignUp ? ApiEndpoints.verifySignUpOtp : ApiEndpoints.verifyResetOtp,
       body: {"email": email, "otp": otp},
     );
   }
