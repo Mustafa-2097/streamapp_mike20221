@@ -93,6 +93,7 @@ class PersonalDataController extends GetxController {
   // ── Date Helpers ────────────────────────────────────────────
 
   String _isoToDisplay(String iso) {
+    if (iso.contains('/')) return iso;
     try {
       final dt = DateTime.parse(iso);
       return "${dt.day}/${dt.month}/${dt.year}";
@@ -103,14 +104,7 @@ class PersonalDataController extends GetxController {
 
   String? _displayToIso(String display) {
     if (display == "dd/mm/yyyy") return null;
-    final parts = display.split('/');
-    if (parts.length != 3) return null;
-
-    final day = parts[0].padLeft(2, '0');
-    final month = parts[1].padLeft(2, '0');
-    final year = parts[2];
-
-    return "$year-$month-$day";
+    return display;
   }
 
   String _stripEmoji(String input) {

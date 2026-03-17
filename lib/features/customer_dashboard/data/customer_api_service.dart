@@ -31,7 +31,7 @@ class CustomerApiService {
   /// [imageFile] is optional — only sent when the user picks a new photo.
   static Future<Map<String, dynamic>> updateProfile({
     String? name,
-    String? dateOfBirth, // expected format: "YYYY-MM-DD"
+    String? dateOfBirth, // expected format: "DD/MM/YYYY"
     String? country,
     File? imageFile,
   }) async {
@@ -157,5 +157,116 @@ class CustomerApiService {
   /// ================= LIVE TV =================
   static Future<Map<String, dynamic>> getLiveTvChannels() async {
     return await ApiService.get(ApiEndpoints.liveTv);
+  }
+
+  /// ================= CLIPS =================
+  static Future<Map<String, dynamic>> getClips({required int page}) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    return await ApiService.get(
+      "${ApiEndpoints.clips}?page=$page",
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      },
+    );
+  }
+
+  static Future<Map<String, dynamic>> getClipById(String clipId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    return await ApiService.get(
+      ApiEndpoints.singleClip(clipId),
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      },
+    );
+  }
+
+  static Future<Map<String, dynamic>> performClipAction({
+    required String clipId,
+    required String type, // "LIKE", "DISLIKE", "SHARE"
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) throw Exception("User token not found");
+
+    return await ApiService.post(
+      ApiEndpoints.clipsAction,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'clipId': clipId,
+        'type': type,
+      },
+    );
+  }
+
+  /// ================= CLIPS COMMENTS =================
+
+  static Future<Map<String, dynamic>> postComment({
+    required String clipId,
+    required String content,
+    String? parentId,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) throw Exception("User token not found");
+
+    return await ApiService.post(
+      ApiEndpoints.clipsComments,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'clipId': clipId,
+        'content': content,
+        if (parentId != null) 'parentId': parentId,
+      },
+    );
+  }
+
+  static Future<Map<String, dynamic>> postCommentAction({
+    required String commentId,
+    required String type, // "LIKE", "DISLIKE"
+    String? parentId,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) throw Exception("User token not found");
+
+    return await ApiService.post(
+      ApiEndpoints.clipsCommentsAction,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'commentId': commentId,
+        'type': type,
+        if (parentId != null) 'parentId': parentId,
+      },
+    );
+  }
+
+  static Future<Map<String, dynamic>> getClipComments(String clipId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    return await ApiService.get(
+      ApiEndpoints.singleClipComments(clipId),
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      },
+    );
+  }
+
+  static Future<Map<String, dynamic>> getCommentReplies(String commentId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    return await ApiService.get(
+      ApiEndpoints.commentReplies(commentId),
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      },
+    );
   }
 }

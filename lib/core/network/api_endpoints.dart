@@ -48,6 +48,19 @@ class ApiEndpoints {
   static String deleteBookmark(String bookmarkId) => '$myBookmarks/$bookmarkId';
   static String commentAction(String commentId) =>
       '$news/comments/$commentId/action';
-  static String commentReplies(String commentId) =>
+  static String newsCommentReplies(String commentId) =>
       '$news/comments/$commentId/replies';
+
+  /// Clips
+  static const String clips = '$baseUrl/clips';
+  static String singleClip(String clipId) => '$clips/$clipId';
+  static const String clipsAction = '$clips/action';
+  static String shareClip(String clipId) => '$clips/share/$clipId';
+
+  /// Clips Comments
+  static const String clipsComments = '$clips/comments';
+  static const String clipsCommentsAction = '$clips/comments/action';
+  static String singleClipComments(String clipId) => '$clips/comments/$clipId';
+  static String commentReplies(String commentId) =>
+      '$clips/comments/$commentId/replies';
 }

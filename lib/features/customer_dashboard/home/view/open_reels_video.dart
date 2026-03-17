@@ -1,228 +1,333 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:share_plus/share_plus.dart';
+import 'package:get/get.dart';
 import '../widgets/show_comments_bottom_sheet.dart';
+import '../../clips/model/clips_model.dart';
+import '../../clips/controller/clips_controller.dart';
+import '../../profile/controller/bookmarks_controller.dart';
+import 'package:testapp/core/network/api_endpoints.dart';
 
-class OpenReelsVideo extends StatelessWidget {
-  const OpenReelsVideo({super.key});
+class OpenReelsVideo extends StatefulWidget {
+  final List<ClipModel> clips;
+  final int initialIndex;
+
+  const OpenReelsVideo({
+    super.key,
+    required this.clips,
+    required this.initialIndex,
+  });
+
+  @override
+  State<OpenReelsVideo> createState() => _OpenReelsVideoState();
+}
+
+class _OpenReelsVideoState extends State<OpenReelsVideo> {
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final clipsController = Get.find<ClipsController>();
+    Get.put(BookmarkController());
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 1. Background Image
-          Image.network(
-            'https://upload.wikimedia.org/wikipedia/commons/4/42/Football_in_Bloomington%2C_Indiana%2C_1995.jpg',
-            fit: BoxFit.cover,
-          ),
+      body: Obx(() {
+        return PageView.builder(
+          scrollDirection: Axis.vertical,
+          controller: _pageController,
+          itemCount: clipsController.clipsList.length,
+          itemBuilder: (context, index) {
+            final clip = clipsController.clipsList[index];
+            return ClipPageView(clip: clip);
+          },
+        );
+      }),
+    );
+  }
+}
 
-          // 2. Dark Gradient Overlay
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.transparent,
-                  Colors.black54,
-                  Colors.black87
-                ],
-                stops: [0.0, 0.6, 0.8, 1.0],
+class ClipPageView extends StatelessWidget {
+  final ClipModel clip;
+
+  const ClipPageView({super.key, required this.clip});
+
+  String _fixUrl(String url) {
+    return url
+        .replaceAll('localhost', '10.0.30.59')
+        .replaceAll('127.0.0.1', '10.0.30.59');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // 1. Background (Placeholder for VideoPlayer)
+        Container(
+          color: Colors.black,
+          child: Image.network(
+            _fixUrl(clip.videoUrl),
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => const Center(
+              child: Icon(
+                Icons.play_circle_outline,
+                color: Colors.white,
+                size: 80,
               ),
             ),
           ),
+        ),
 
-          // 3. Top Search Bar
-          Positioned(
-            top: 50,
-            left: 20,
-            child: Row(
-              children: const [
-                Icon(Icons.search, color: Colors.white, size: 30),
-                SizedBox(width: 10),
-                Text(
-                  "Search here",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    shadows: [Shadow(blurRadius: 2, color: Colors.black26)],
-                  ),
-                ),
+        // 2. Dark Gradient Overlay
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                Colors.transparent,
+                Colors.black54,
+                Colors.black87,
               ],
+              stops: [0.0, 0.6, 0.8, 1.0],
             ),
           ),
+        ),
 
-          // 4. Right Sidebar (Action Buttons)
-          Positioned(
-            right: 10,
-            bottom: 100,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Flag (Toggleable)
-                const SideButton(icon: Icons.flag, label: ""),
-                const SizedBox(height: 20),
+        // 3. Top Section (Back button)
+        Positioned(
+          top: 50,
+          left: 10,
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
+            onPressed: () => Get.back(),
+          ),
+        ),
 
-                // Bookmark (Toggleable - Turns Yellow)
-                const SideButton(
-                    icon: Icons.bookmark,
-                    label: "",
-                    activeColor: Color(0xFFFFD700), // Gold
-                    size: 35
-                ),
-                const SizedBox(height: 20),
+        // 4. Right Sidebar (Action Buttons)
+        Positioned(
+          right: 10,
+          bottom: 100,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // User Profile Photo
+              // CircleAvatar(
+              //   radius: 22,
+              //   backgroundImage: NetworkImage(_fixUrl(clip.user.profilePhoto)),
+              // ),
+              const SizedBox(height: 25),
 
-                // Like (Toggleable - Turns Red)
-                const SideButton(icon: Icons.thumb_up, label: "27.8K"),
-                const SizedBox(height: 20),
-
-                // Dislike (Toggleable)
-                const SideButton(icon: Icons.thumb_down, label: "3.6K"),
-                const SizedBox(height: 20),
-
-                // --- COMMENT BUTTON (Stateless / No Toggle) ---
-                GestureDetector(
+              // Bookmark
+              Obx(() {
+                final isBookmarked =
+                    Get.find<BookmarkController>().isBookmarked(clip);
+                return SideButton(
+                  icon: Icons.bookmark,
+                  label: "", // No count needed
+                  activeColor: const Color(0xFFFFD700),
+                  initialIsActive: isBookmarked,
+                  size: 32,
                   onTap: () {
-                    showCommentBottomSheet(context);
+                    Get.find<BookmarkController>().toggleClip(clip);
                   },
-                  child: Column(
-                    children: const [
-                      Icon(
-                        Icons.chat_bubble_rounded, // Using rounded to match design
-                        color: Colors.white,
-                        size: 32,
-                        shadows: [
-                          Shadow(offset: Offset(0, 1), blurRadius: 4.0, color: Colors.black54)
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        "2.4K",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          shadows: [Shadow(blurRadius: 2, color: Colors.black)],
-                        ),
-                      )
-                    ],
-                  ),
+                );
+              }),
+              const SizedBox(height: 20),
+
+
+              // Like
+              SideButton(
+                icon: Icons.thumb_up,
+                label: clip.engagement.likes.toString(),
+                initialIsActive: clip.userStatus.isLiked,
+                onTap: () => Get.find<ClipsController>().toggleAction(
+                  clip.clipId,
+                  "LIKE",
                 ),
-                const SizedBox(height: 20),
+              ),
+              const SizedBox(height: 20),
 
-                // Share Icon
-                GestureDetector(
-                  onTap: (){
-                    final message =
-                        "test test test link";
-
-                    Share.share(message);
-
-                  },
-                  child: Column(
-                    children: [
-                      Transform(
-                        alignment: Alignment.center,
-                        transform: Matrix4.rotationY(math.pi),
-                        child: const Icon(Icons.reply, color: Colors.white, size: 35),
-                      ),
-                      const SizedBox(height: 5),
-                      const Text(
-                        "2.2K",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                      )
-                    ],
-                  ),
+              // Dislike
+              SideButton(
+                icon: Icons.thumb_down,
+                label: clip.engagement.dislikes.toString(),
+                initialIsActive: clip.userStatus.isDisliked,
+                onTap: () => Get.find<ClipsController>().toggleAction(
+                  clip.clipId,
+                  "DISLIKE",
                 ),
-              ],
-            ),
-          ),
+              ),
+              const SizedBox(height: 20),
 
-          // 5. Bottom Info Section
-          Positioned(
-            left: 15,
-            bottom: 20,
-            right: 80,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "Portugal 6-1 Switzerland: Ramos treble sees Selecao in...",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    shadows: [Shadow(blurRadius: 4, color: Colors.black)],
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Row(
+              // Comment Button
+              GestureDetector(
+                onTap: () {
+                  showCommentBottomSheet(context, clip.clipId);
+                },
+                child: Column(
                   children: [
-                    Text(
-                      "125K views",
-                      style: TextStyle(color: Colors.grey[300], fontSize: 12),
+                    const Icon(
+                      Icons.chat_bubble_rounded,
+                      color: Colors.white,
+                      size: 32,
+                      shadows: [
+                        Shadow(
+                          offset: Offset(0, 1),
+                          blurRadius: 4.0,
+                          color: Colors.black54,
+                        ),
+                      ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Text("•", style: TextStyle(color: Colors.grey[300])),
-                    ),
+                    const SizedBox(height: 5),
                     Text(
-                      "1 day ago",
-                      style: TextStyle(color: Colors.grey[300], fontSize: 12),
+                      clip.engagement.comments.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        shadows: [Shadow(blurRadius: 2, color: Colors.black)],
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                const Text(
-                  "#football #worldcup2022 #portugal #switzerland",
-                  style: TextStyle(
+              ),
+              const SizedBox(height: 20),
+
+              // Share Icon
+              GestureDetector(
+                onTap: () {
+                  final shareLink = ApiEndpoints.shareClip(clip.clipId)
+                      .replaceAll('localhost', '10.0.30.59')
+                      .replaceAll('127.0.0.1', '10.0.30.59');
+                  Share.share("${clip.title}\n\n$shareLink");
+                  Get.find<ClipsController>().toggleAction(
+                    clip.clipId,
+                    "SHARE",
+                  );
+                },
+                child: Column(
+                  children: [
+                    Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.rotationY(math.pi),
+                      child: const Icon(
+                        Icons.reply,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      clip.engagement.shares.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // 5. Bottom Info Section
+        Positioned(
+          left: 15,
+          bottom: 20,
+          right: 80,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                clip.title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  shadows: [Shadow(blurRadius: 4, color: Colors.black)],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Text(
+                    clip.formattedViews,
+                    style: TextStyle(color: Colors.grey[300], fontSize: 12),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text("•", style: TextStyle(color: Colors.grey[300])),
+                  ),
+                  Text(
+                    clip.timeAgo,
+                    style: TextStyle(color: Colors.grey[300], fontSize: 12),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              if (clip.tags.isNotEmpty)
+                Text(
+                  clip.tags.map((t) => "#$t").join(" "),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 10),
-              ],
-            ),
+              const SizedBox(height: 10),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-// Helper Widget for Toggleable Buttons (Like, Dislike, Bookmark)
 class SideButton extends StatefulWidget {
   final IconData icon;
   final String label;
   final double size;
-  final Color activeColor; // Color when enabled
-  final Color inactiveColor; // Color when disabled
+  final Color activeColor;
+  final Color inactiveColor;
   final bool initialIsActive;
+  final VoidCallback? onTap;
 
   const SideButton({
     super.key,
     required this.icon,
     required this.label,
     this.size = 32,
-    this.activeColor = Colors.redAccent,
+    this.activeColor = const Color.fromARGB(255, 14, 126, 255),
     this.inactiveColor = Colors.white,
     this.initialIsActive = false,
+    this.onTap,
   });
 
   @override
   State<SideButton> createState() => _SideButtonState();
 }
 
-class _SideButtonState extends State<SideButton> with SingleTickerProviderStateMixin {
+class _SideButtonState extends State<SideButton>
+    with SingleTickerProviderStateMixin {
   late bool isActive;
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
@@ -236,9 +341,10 @@ class _SideButtonState extends State<SideButton> with SingleTickerProviderStateM
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.8).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.8,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -248,10 +354,10 @@ class _SideButtonState extends State<SideButton> with SingleTickerProviderStateM
   }
 
   void _toggleState() {
-    setState(() {
-      isActive = !isActive;
-    });
+    // We don't necessarily need to toggle local state if the parent is Obx-reactive,
+    // but the animation still looks good.
     _controller.forward().then((_) => _controller.reverse());
+    if (widget.onTap != null) widget.onTap!();
   }
 
   @override
@@ -264,10 +370,16 @@ class _SideButtonState extends State<SideButton> with SingleTickerProviderStateM
             scale: _scaleAnimation,
             child: Icon(
               widget.icon,
-              color: isActive ? widget.activeColor : widget.inactiveColor,
+              color: widget.initialIsActive
+                  ? widget.activeColor
+                  : widget.inactiveColor,
               size: widget.size,
               shadows: const [
-                Shadow(offset: Offset(0, 1), blurRadius: 4.0, color: Colors.black54)
+                Shadow(
+                  offset: Offset(0, 1),
+                  blurRadius: 4.0,
+                  color: Colors.black54,
+                ),
               ],
             ),
           ),
@@ -281,7 +393,7 @@ class _SideButtonState extends State<SideButton> with SingleTickerProviderStateM
                 fontWeight: FontWeight.bold,
                 shadows: [Shadow(blurRadius: 2, color: Colors.black)],
               ),
-            )
+            ),
           ],
         ],
       ),

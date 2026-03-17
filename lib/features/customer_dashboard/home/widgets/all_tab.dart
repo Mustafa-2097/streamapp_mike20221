@@ -13,6 +13,7 @@ import '../view/open_reels_video.dart';
 import '../view/open_tvs.dart';
 import 'live_card.dart';
 import '../../news/controller/news_controller.dart';
+import '../../clips/controller/clips_controller.dart';
 
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
@@ -55,6 +56,7 @@ class ContentSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final NewsController newsController = Get.put(NewsController());
+    final ClipsController clipsController = Get.put(ClipsController());
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -250,81 +252,104 @@ class ContentSection extends StatelessWidget {
         SizedBox(height: 16.h),
 
         // Horizontal Clips List
-        SizedBox(
-          height: 280.h,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            itemCount: 3,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.only(right: 12.w),
-                child: GestureDetector(
-                  onTap: () {
-                    Get.to(OpenReelsVideo());
-                  },
-                  child: Container(
-                    width: 180.w,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      image: DecorationImage(
-                        image: AssetImage('assets/images/clip${index + 1}.png'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+        Obx(() {
+          if (clipsController.isLoading.value &&
+              clipsController.clipsList.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (clipsController.clipsList.isEmpty) {
+            return const SizedBox();
+          }
+
+          return SizedBox(
+            height: 280.h,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              itemCount: clipsController.clipsList.length > 5
+                  ? 5
+                  : clipsController.clipsList.length,
+              itemBuilder: (context, index) {
+                final clip = clipsController.clipsList[index];
+                return Padding(
+                  padding: EdgeInsets.only(right: 12.w),
+                  child: GestureDetector(
+                    onTap: () {
+                      Get.to(OpenReelsVideo(
+                        clips: clipsController.clipsList,
+                        initialIndex: index,
+                      ));
+                    },
                     child: Container(
+                      width: 180.w,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.7),
+                        color: Colors.grey[900],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.network(
+                              clip.videoUrl.replaceAll('localhost', '10.0.30.59').replaceAll('127.0.0.1', '10.0.30.59'),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.play_circle_outline,
+                                      color: Colors.white, size: 40),
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(0.7),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 12.h,
+                              left: 12.w,
+                              right: 12.w,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    clip.title,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 5,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  SizedBox(height: 4.h),
+                                  Text(
+                                    clip.formattedViews,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11.sp,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      child: Stack(
-                        children: [
-                          // Text at bottom
-                          Positioned(
-                            bottom: 12.h,
-                            left: 12.w,
-                            right: 12.w,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Lionel Messi embarrassed the goalkeeper with a brilliant chip',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 5,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                SizedBox(height: 4.h),
-                                Text(
-                                  '3.4M views',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11.sp,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-        ),
+                );
+              },
+            ),
+          );
+        }),
         SizedBox(height: 24.h),
 
         // Latest News Section
@@ -495,9 +520,7 @@ class ContentSection extends StatelessWidget {
   Widget _buildTVChannel(String imagePath, int index) {
     return GestureDetector(
       onTap: () {
-        Get.to(
-          () => OpenTvs(),
-        );
+        Get.to(() => OpenTvs());
       },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
