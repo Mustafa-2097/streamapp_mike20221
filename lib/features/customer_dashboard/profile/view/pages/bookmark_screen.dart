@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../../../core/common/widgets/scaffold_bg.dart';
 import '../../../clips/widgets/clips_card.dart';
 import '../../../home/view/news_details_screen.dart';
+import '../../../home/view/open_reels_video.dart';
 import '../../../news/model/news_model.dart';
 import '../../controller/bookmarks_controller.dart';
 
@@ -138,6 +139,19 @@ class BookmarkScreen extends StatelessWidget {
 
   Widget _buildClipsGrid(BookmarkController controller) {
     return Obx(() {
+      if (controller.isLoading.value && controller.clipBookmarks.isEmpty) {
+        return const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        );
+      }
+      if (controller.clipBookmarks.isEmpty) {
+        return const Center(
+          child: Text(
+            "No clip bookmarks",
+            style: TextStyle(color: Colors.white),
+          ),
+        );
+      }
       return GridView.builder(
         padding: EdgeInsets.symmetric(horizontal: 12.w),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -161,6 +175,12 @@ class BookmarkScreen extends StatelessWidget {
               isBookmarked: true,
               onBookmark: () {},
               showBookmarkIcon: false,
+              onTap: () {
+                Get.to(() => OpenReelsVideo(
+                  clips: controller.clipBookmarks,
+                  initialIndex: index,
+                ));
+              },
             ),
           );
         },

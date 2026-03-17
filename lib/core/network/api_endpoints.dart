@@ -56,6 +56,9 @@ class ApiEndpoints {
   static String singleClip(String clipId) => '$clips/$clipId';
   static const String clipsAction = '$clips/action';
   static String shareClip(String clipId) => '$clips/share/$clipId';
+  static const String clipBookmark = '$clips/bookmark';
+  static const String myClipBookmarks = '$clips/my-bookmarks';
+  static String deleteClipBookmark(String bookmarkId) => '$myClipBookmarks/$bookmarkId';
 
   /// Clips Comments
   static const String clipsComments = '$clips/comments';

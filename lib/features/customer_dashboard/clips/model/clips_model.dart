@@ -159,9 +159,9 @@ class Engagement {
 }
 
 class UserStatus {
-  final bool isLiked;
-  final bool isDisliked;
-  final bool isBookmarked;
+  bool isLiked;
+  bool isDisliked;
+  bool isBookmarked;
 
   UserStatus({
     required this.isLiked,
