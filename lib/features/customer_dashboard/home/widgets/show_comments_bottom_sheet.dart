@@ -49,26 +49,37 @@ class CommentBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Divider(color: Colors.grey[800], thickness: 1),
-          
-          Obx(() => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Comments  ${controller.formattedTotalCount.value}",
-                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
-                  ),
+
+          Obx(
+            () => Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Comments  ${controller.formattedTotalCount.value}",
+                  style: TextStyle(color: Colors.grey[400], fontSize: 13),
                 ),
-              )),
+              ),
+            ),
+          ),
 
           Expanded(
             child: Obx(() {
-              if (controller.isLoading.value && controller.commentsList.isEmpty) {
-                return const Center(child: CircularProgressIndicator(color: Colors.white));
+              if (controller.isLoading.value &&
+                  controller.commentsList.isEmpty) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                );
               }
               if (controller.commentsList.isEmpty) {
                 return const Center(
-                  child: Text("No comments yet", style: TextStyle(color: Colors.white70)),
+                  child: Text(
+                    "No comments yet",
+                    style: TextStyle(color: Colors.white70),
+                  ),
                 );
               }
               return ListView.builder(
@@ -108,9 +119,11 @@ class _CommentTile extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 16,
-                backgroundImage: NetworkImage(comment.user.profilePhoto
-                    .replaceAll('localhost', '10.0.30.59')
-                    .replaceAll('127.0.0.1', '10.0.30.59')),
+                backgroundImage: NetworkImage(
+                  comment.user.profilePhoto
+                      .replaceAll('localhost', '10.0.30.59')
+                      .replaceAll('127.0.0.1', '10.0.30.59'),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -142,17 +155,31 @@ class _CommentTile extends StatelessWidget {
                     Row(
                       children: [
                         _actionIcon(
-                          comment.userStatus.isLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
+                          comment.userStatus.isLiked
+                              ? Icons.thumb_up
+                              : Icons.thumb_up_alt_outlined,
                           comment.likeCount.toString(),
-                          comment.userStatus.isLiked ? Colors.blue : Colors.grey,
-                          () => controller.toggleCommentAction(comment.commentId, "LIKE"),
+                          comment.userStatus.isLiked
+                              ? Colors.blue
+                              : Colors.grey,
+                          () => controller.toggleCommentAction(
+                            comment.commentId,
+                            "LIKE",
+                          ),
                         ),
                         const SizedBox(width: 16),
                         _actionIcon(
-                          comment.userStatus.isDisliked ? Icons.thumb_down : Icons.thumb_down_alt_outlined,
+                          comment.userStatus.isDisliked
+                              ? Icons.thumb_down
+                              : Icons.thumb_down_alt_outlined,
                           comment.dislikeCount.toString(),
-                          comment.userStatus.isDisliked ? Colors.red : Colors.grey,
-                          () => controller.toggleCommentAction(comment.commentId, "DISLIKE"),
+                          comment.userStatus.isDisliked
+                              ? Colors.red
+                              : Colors.grey,
+                          () => controller.toggleCommentAction(
+                            comment.commentId,
+                            "DISLIKE",
+                          ),
                         ),
                         const SizedBox(width: 24),
                         GestureDetector(
@@ -163,7 +190,10 @@ class _CommentTile extends StatelessWidget {
                               SizedBox(width: 6),
                               Text(
                                 "Reply",
-                                style: TextStyle(color: Colors.grey, fontSize: 12),
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
@@ -175,7 +205,11 @@ class _CommentTile extends StatelessWidget {
                     if (comment.replies.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 12),
-                        child: _RepliesList(replies: comment.replies, controller: controller, parentCommentId: comment.commentId),
+                        child: _RepliesList(
+                          replies: comment.replies,
+                          controller: controller,
+                          parentCommentId: comment.commentId,
+                        ),
                       ),
                   ],
                 ),
@@ -187,17 +221,19 @@ class _CommentTile extends StatelessWidget {
     );
   }
 
-  Widget _actionIcon(IconData icon, String count, Color color, VoidCallback onTap) {
+  Widget _actionIcon(
+    IconData icon,
+    String count,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Row(
         children: [
           Icon(icon, color: color, size: 18),
           const SizedBox(width: 6),
-          Text(
-            count,
-            style: TextStyle(color: color, fontSize: 12),
-          ),
+          Text(count, style: TextStyle(color: color, fontSize: 12)),
         ],
       ),
     );
@@ -209,86 +245,114 @@ class _RepliesList extends StatelessWidget {
   final ClipCommentController controller;
   final String parentCommentId;
 
-  const _RepliesList({required this.replies, required this.controller, required this.parentCommentId});
+  const _RepliesList({
+    required this.replies,
+    required this.controller,
+    required this.parentCommentId,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: replies.map((reply) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              radius: 12,
-              backgroundImage: NetworkImage(reply.user.profilePhoto
-                  .replaceAll('localhost', '10.0.30.59')
-                  .replaceAll('127.0.0.1', '10.0.30.59')),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
+      children: replies
+          .map(
+            (reply) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  RichText(
-                    text: TextSpan(
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundImage: NetworkImage(
+                      reply.user.profilePhoto
+                          .replaceAll('localhost', '10.0.30.59')
+                          .replaceAll('127.0.0.1', '10.0.30.59'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TextSpan(
-                          text: "${reply.user.name}: ",
-                          style: const TextStyle(
-                            color: Colors.cyanAccent,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "${reply.user.name}: ",
+                                style: const TextStyle(
+                                  color: Colors.cyanAccent,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              TextSpan(
+                                text: reply.content,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        TextSpan(
-                          text: reply.content,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            _replyActionIcon(
+                              reply.userStatus.isLiked
+                                  ? Icons.thumb_up
+                                  : Icons.thumb_up_alt_outlined,
+                              reply.likeCount.toString(),
+                              reply.userStatus.isLiked
+                                  ? Colors.blue
+                                  : Colors.grey,
+                              () => controller.toggleCommentAction(
+                                reply.commentId,
+                                "LIKE",
+                                parentId: parentCommentId,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            _replyActionIcon(
+                              reply.userStatus.isDisliked
+                                  ? Icons.thumb_down
+                                  : Icons.thumb_down_alt_outlined,
+                              reply.dislikeCount.toString(),
+                              reply.userStatus.isDisliked
+                                  ? Colors.red
+                                  : Colors.grey,
+                              () => controller.toggleCommentAction(
+                                reply.commentId,
+                                "DISLIKE",
+                                parentId: parentCommentId,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      _replyActionIcon(
-                        reply.userStatus.isLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
-                        reply.likeCount.toString(),
-                        reply.userStatus.isLiked ? Colors.blue : Colors.grey,
-                        () => controller.toggleCommentAction(reply.commentId, "LIKE", parentId: parentCommentId),
-                      ),
-                      const SizedBox(width: 12),
-                      _replyActionIcon(
-                        reply.userStatus.isDisliked ? Icons.thumb_down : Icons.thumb_down_alt_outlined,
-                        reply.dislikeCount.toString(),
-                        reply.userStatus.isDisliked ? Colors.red : Colors.grey,
-                        () => controller.toggleCommentAction(reply.commentId, "DISLIKE", parentId: parentCommentId),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
-          ],
-        ),
-      )).toList(),
+          )
+          .toList(),
     );
   }
 
-  Widget _replyActionIcon(IconData icon, String count, Color color, VoidCallback onTap) {
+  Widget _replyActionIcon(
+    IconData icon,
+    String count,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Row(
         children: [
           Icon(icon, color: color, size: 14),
           const SizedBox(width: 4),
-          Text(
-            count,
-            style: TextStyle(color: color, fontSize: 10),
-          ),
+          Text(count, style: TextStyle(color: color, fontSize: 10)),
         ],
       ),
     );
@@ -302,7 +366,12 @@ class _CommentInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(16, 10, 16, MediaQuery.of(context).padding.bottom + 10),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        10,
+        16,
+        MediaQuery.of(context).padding.bottom + 10,
+      ),
       decoration: const BoxDecoration(
         color: Color(0xFF121418),
         border: Border(top: BorderSide(color: Colors.white10)),
@@ -311,7 +380,8 @@ class _CommentInput extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Obx(() {
-            if (controller.replyingToCommentId.value.isEmpty) return const SizedBox.shrink();
+            if (controller.replyingToCommentId.value.isEmpty)
+              return const SizedBox.shrink();
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               color: Colors.black26,
@@ -324,7 +394,11 @@ class _CommentInput extends StatelessWidget {
                   const Spacer(),
                   GestureDetector(
                     onTap: controller.cancelReply,
-                    child: const Icon(Icons.close, color: Colors.grey, size: 16),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.grey,
+                      size: 16,
+                    ),
                   ),
                 ],
               ),
@@ -347,20 +421,30 @@ class _CommentInput extends StatelessWidget {
                       hintText: "Add a comment...",
                       hintStyle: const TextStyle(color: Colors.grey),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      suffixIcon: Obx(() => controller.isPosting.value
-                          ? const Padding(
-                              padding: EdgeInsets.all(12.0),
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      suffixIcon: Obx(
+                        () => controller.isPosting.value
+                            ? const Padding(
+                                padding: EdgeInsets.all(12.0),
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              )
+                            : IconButton(
+                                icon: const Icon(
+                                  Icons.send,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: controller.submitComment,
                               ),
-                            )
-                          : IconButton(
-                              icon: const Icon(Icons.send, color: Colors.blue),
-                              onPressed: controller.submitComment,
-                            )),
+                      ),
                     ),
                   ),
                 ),

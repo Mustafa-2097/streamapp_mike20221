@@ -54,10 +54,7 @@ class AuthApiService {
   }) async {
     return await ApiService.post(
       ApiEndpoints.resetPassword,
-      body: {
-        "token": token,
-        "newPassword": newPassword,
-      },
+      body: {"token": token, "newPassword": newPassword},
     );
   }
 

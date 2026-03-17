@@ -62,10 +62,7 @@ class CustomerApiService {
       // No image — use simple JSON PATCH (more reliable for most backends)
       return await ApiService.patch(
         ApiEndpoints.updateProfile,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Authorization': 'Bearer $token'},
         body: bodyFields,
       );
     }

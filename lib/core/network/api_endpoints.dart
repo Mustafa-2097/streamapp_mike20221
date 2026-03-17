@@ -43,6 +43,13 @@ class ApiEndpoints {
   static const String news = '$baseUrl/news';
   static String comments(String newsId) => '$news/$newsId/comments';
   static String engagement(String newsId) => '$news/$newsId/engagement';
+  static String bookmark(String newsId) => '$news/$newsId/bookmark';
+  static const String myBookmarks = '$news/my-bookmarks';
+  static String deleteBookmark(String bookmarkId) => '$myBookmarks/$bookmarkId';
+  static String commentAction(String commentId) =>
+      '$news/comments/$commentId/action';
+  static String newsCommentReplies(String commentId) =>
+      '$news/comments/$commentId/replies';
 
   /// Clips
   static const String clips = '$baseUrl/clips';
@@ -54,5 +61,6 @@ class ApiEndpoints {
   static const String clipsComments = '$clips/comments';
   static const String clipsCommentsAction = '$clips/comments/action';
   static String singleClipComments(String clipId) => '$clips/comments/$clipId';
-  static String commentReplies(String commentId) => '$clips/comments/$commentId/replies';
+  static String commentReplies(String commentId) =>
+      '$clips/comments/$commentId/replies';
 }
