@@ -142,7 +142,7 @@ extension on _BookmarkScreenState {
 
   Widget _buildReplayList(BookmarkController controller) {
     return Obx(() {
-      if (controller.isLoading.value && controller.replayBookmarks.isEmpty) {
+      if (controller.isReplaysLoading.value && controller.replayBookmarks.isEmpty) {
         return const Center(child: CircularProgressIndicator(color: Colors.white));
       }
       if (controller.replayBookmarks.isEmpty) {
@@ -175,7 +175,7 @@ extension on _BookmarkScreenState {
 
   Widget _buildClipsGrid(BookmarkController controller) {
     return Obx(() {
-      if (controller.isLoading.value && controller.clipBookmarks.isEmpty) {
+      if (controller.isClipsLoading.value && controller.clipBookmarks.isEmpty) {
         return const Center(
           child: CircularProgressIndicator(color: Colors.white),
         );
@@ -382,7 +382,7 @@ extension on _BookmarkScreenState {
 
   Widget _buildNewsList(BookmarkController controller) {
     return Obx(() {
-      if (controller.isLoading.value) {
+      if (controller.isNewsLoading.value) {
         return const Center(
           child: CircularProgressIndicator(color: Colors.white),
         );
@@ -410,7 +410,10 @@ extension on _BookmarkScreenState {
             onDismissed: (_) => controller.removeNews(index),
             background: _buildDeleteBackground(),
             child: GestureDetector(
-              onTap: () => Get.to(() => NewsDetailsScreen(article: article)),
+              onTap: () => Get.to(() => NewsDetailsScreen(
+                    article: article,
+                    bookmarkId: item['id']?.toString(),
+                  )),
               child: _buildNewsItem(article),
             ),
           );
@@ -485,3 +488,5 @@ extension on _BookmarkScreenState {
     );
   }
 }
+
+///////////////////////////////////////////////////

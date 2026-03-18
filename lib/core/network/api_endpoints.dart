@@ -46,6 +46,7 @@ class ApiEndpoints {
   static String bookmark(String newsId) => '$news/$newsId/bookmark';
   static const String myBookmarks = '$news/my-bookmarks';
   static String deleteBookmark(String bookmarkId) => '$myBookmarks/$bookmarkId';
+  static String bookmarkDetails(String bookmarkId) => '$myBookmarks/$bookmarkId/details';
   static String commentAction(String commentId) =>
       '$news/comments/$commentId/action';
   static String newsCommentReplies(String commentId) =>
