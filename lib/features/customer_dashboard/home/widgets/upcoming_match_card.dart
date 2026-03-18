@@ -2,19 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class UpcomingMatchCard extends StatelessWidget {
-  final String imagePath;
+  final String? homeLogo;
+  final String? awayLogo;
+  final String? imagePath; // Kept for compatibility but optional now
   final String league;
   final String match;
   final String time;
   final bool isHighlighted;
+  final VoidCallback? onRemindTap;
 
   const UpcomingMatchCard({
     super.key,
-    required this.imagePath,
+    this.homeLogo,
+    this.awayLogo,
+    this.imagePath,
     required this.league,
     required this.match,
     required this.time,
     this.isHighlighted = false,
+    this.onRemindTap,
   });
 
   @override
@@ -30,15 +36,13 @@ class UpcomingMatchCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          /// Match image
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.r),
-            child: Image.asset(
-              imagePath,
-              height: 40.h,
-              width: 60.w,
-              fit: BoxFit.cover,
-            ),
+          /// Match logos (Row of two smaller logos)
+          Row(
+            children: [
+              _buildSmallLogo(homeLogo ?? imagePath ?? ''),
+              SizedBox(width: 4.w),
+              _buildSmallLogo(awayLogo ?? ''),
+            ],
           ),
 
           SizedBox(width: 12.w),
@@ -92,36 +96,81 @@ class UpcomingMatchCard extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 6.h),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
-                decoration: BoxDecoration(
-                  color: isHighlighted ? Colors.amber : Colors.white,
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      isHighlighted
-                          ? Icons.notifications
-                          : Icons.notifications_none,
-                      size: 14.sp,
-                      color: Colors.black,
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      'Remind',
-                      style: TextStyle(
+              GestureDetector(
+                onTap: onRemindTap,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+                  decoration: BoxDecoration(
+                    color: isHighlighted ? Colors.amber : Colors.white,
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isHighlighted
+                            ? Icons.notifications
+                            : Icons.notifications_none,
+                        size: 14.sp,
                         color: Colors.black,
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.w600,
                       ),
-                    ),
-                  ],
+                      SizedBox(width: 4.w),
+                      Text(
+                        'Remind',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 10.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSmallLogo(String url) {
+    if (url.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      width: 28.w,
+      height: 28.w,
+      padding: EdgeInsets.all(2.r),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: url.startsWith('http')
+            ? Image.network(
+                url.replaceAll('localhost', '10.0.30.59').replaceAll('127.0.0.1', '10.0.30.59'),
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.sports_soccer,
+                  size: 16,
+                  color: Colors.grey,
+                ),
+              )
+            : Image.asset(
+                url,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.sports_soccer,
+                  size: 16,
+                  color: Colors.grey,
+                ),
+              ),
       ),
     );
   }

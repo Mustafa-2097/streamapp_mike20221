@@ -15,6 +15,7 @@ import 'live_card.dart';
 import '../../news/controller/news_controller.dart';
 import '../../clips/controller/clips_controller.dart';
 import '../../replay/controller/replay_controller.dart';
+import '../../live/live_dashboard/controller/live_controller.dart';
 
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
@@ -59,6 +60,12 @@ class ContentSection extends StatelessWidget {
     final NewsController newsController = Get.put(NewsController());
     final ClipsController clipsController = Get.put(ClipsController());
     final ReplayController replayController = Get.put(ReplayController());
+    final LiveMatchesController liveController = Get.put(LiveMatchesController());
+
+    // Fetch upcoming if empty
+    if (liveController.upcomingMatches.isEmpty && !liveController.isUpcomingLoading) {
+      liveController.fetchUpcomingMatches();
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -130,26 +137,47 @@ class ContentSection extends StatelessWidget {
         SizedBox(height: 16.h),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
-          child: GestureDetector(
-            onTap: () {},
-            child: Column(
-              children: const [
-                UpcomingMatchCard(
-                  imagePath: 'assets/images/live01.png',
-                  league: 'EFL Championship',
-                  match: 'Brazil vs Spain',
-                  time: 'Today at 06:04 PM',
-                ),
-                SizedBox(height: 12),
-                UpcomingMatchCard(
-                  imagePath: 'assets/images/live02.png',
-                  league: 'Rugby Championship',
-                  match: 'Springboks vs Argentina',
-                  time: 'Today at 01:04 PM',
-                  isHighlighted: true,
-                ),
-              ],
-            ),
+          child: GetBuilder<LiveMatchesController>(
+            builder: (controller) {
+              if (controller.isUpcomingLoading && controller.upcomingMatches.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                );
+              }
+
+              if (controller.upcomingMatches.isEmpty) {
+                return const SizedBox();
+              }
+
+              final displayMatches = controller.upcomingMatches.length > 3 
+                ? controller.upcomingMatches.sublist(0, 3) 
+                : controller.upcomingMatches;
+
+              return Column(
+                children: displayMatches.map((match) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: GestureDetector(
+                      onTap: () {
+                         // Add navigation if needed, or leave as is
+                      },
+                      child: UpcomingMatchCard(
+                        homeLogo: match.homeLogo,
+                        awayLogo: match.awayLogo,
+                        league: match.dayHeader, // "Wednesday" or similar
+                        match: "${match.homeTeam} vs ${match.awayTeam}",
+                        time: match.date, // e.g. "20:00"
+                        isHighlighted: controller.remindedMatchIds.contains(match.id),
+                        onRemindTap: () => controller.toggleReminder(match.id),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              );
+            },
           ),
         ),
         SizedBox(height: 16.h),
