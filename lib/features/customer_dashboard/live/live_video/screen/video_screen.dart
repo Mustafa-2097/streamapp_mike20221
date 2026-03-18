@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controller/video_controller.dart';
+import '../../../replay/controller/replay_comment_controller.dart';
+import '../../../replay/model/replay_comment_model.dart';
 
 class VideoLiveScreen extends StatefulWidget {
   final String? replayId;
@@ -13,12 +15,16 @@ class VideoLiveScreen extends StatefulWidget {
 
 class _VideoLiveScreenState extends State<VideoLiveScreen> {
   final VideoLiveController controller = Get.put(VideoLiveController());
+  ReplayCommentController? commentController;
 
   @override
   void initState() {
     super.initState();
     if (widget.replayId != null) {
       controller.fetchReplay(widget.replayId!);
+      commentController = Get.put(
+        ReplayCommentController(replayId: widget.replayId!),
+      );
     }
   }
 
@@ -82,17 +88,32 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
                         const SizedBox(height: 12),
                         _hashtagsRow(replay),
                         const SizedBox(height: 16),
-                        const Text(
-                          "Comments",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Comments",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Obx(
+                              () => Text(
+                                commentController?.formattedTotalCount.value ??
+                                    "0",
+                                style: const TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 10),
-                        _commentsList(),
-                        const SizedBox(height: 90), // spacing for input bar
+                        _commentsList(replay.replayId),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
@@ -263,7 +284,7 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
         _actionItem(
           icon: Icons.share_outlined,
           label: _formatCount(replay.engagement.shares),
-          onTap: () {},
+          onTap: controller.shareReplay,
         ),
         const SizedBox(width: 16),
         _actionItem(
@@ -315,93 +336,130 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
   }
 
   // ------------------------------ COMMENTS LIST ------------------------------
-  Widget _commentsList() {
-    final comments = [
-      {"name": "alien.aa", "text": "shut down them please!!!"},
-      {"name": "trunghieu1794", "text": "nice play bro!!! keep playing"},
-      {"name": "alien.aa", "text": "shut down them please!!!"},
-      {"name": "trunghieu1794", "text": "nice play bro!!! keep playing"},
-      {"name": "alien.aa", "text": "shut down them please!!!"},
-    ];
+  Widget _commentsList(String replayId) {
+    if (commentController == null) return const SizedBox.shrink();
 
-    return Column(
-      children: comments.map((c) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 14,
-                backgroundColor: Colors.grey.shade800,
-                child: Text(
-                  c["name"]![0].toUpperCase(),
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: "${c["name"]} ",
-                        style: const TextStyle(
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                        ),
-                      ),
-                      TextSpan(
-                        text: c["text"],
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+    return Obx(() {
+      if (commentController!.isLoading.value &&
+          commentController!.commentsList.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (commentController!.commentsList.isEmpty) {
+        return const Text(
+          "No comments yet",
+          style: TextStyle(color: Colors.white60, fontSize: 13),
         );
-      }).toList(),
-    );
+      }
+
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: commentController!.commentsList.length,
+        itemBuilder: (context, index) {
+          final comment = commentController!.commentsList[index];
+          return _CommentTile(comment: comment, controller: commentController!);
+        },
+      );
+    });
   }
 
   // ------------------------------ COMMENT INPUT ------------------------------
   Widget _commentInputBar() {
+    if (commentController == null) return const SizedBox.shrink();
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      color: const Color(0xFF0E0E0E),
-      child: Row(
+      padding: EdgeInsets.fromLTRB(
+        12,
+        10,
+        12,
+        MediaQuery.of(context).padding.bottom + 10,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0E0E0E),
+        border: Border(top: BorderSide(color: Colors.white10)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const CircleAvatar(
-            radius: 16,
-            backgroundColor: Colors.redAccent,
-            child: Icon(Icons.person, color: Colors.white, size: 18),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+          Obx(() {
+            if (commentController!.replyingToCommentId.value.isEmpty)
+              return const SizedBox.shrink();
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
-                color: Colors.white10,
-                borderRadius: BorderRadius.circular(22),
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: const TextField(
-                style: TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: "Add a comment...",
-                  hintStyle: TextStyle(color: Colors.white54),
-                  border: InputBorder.none,
+              child: Row(
+                children: [
+                  Text(
+                    "Replying to @${commentController!.replyingToUserName.value}",
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: commentController!.cancelReply,
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.grey,
+                      size: 16,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          Row(
+            children: [
+              // const CircleAvatar(
+              //   radius: 16,
+              //   backgroundColor: Colors.redAccent,
+              //   child: Icon(Icons.person, color: Colors.white, size: 18),
+              // ),
+              // const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white10,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: TextField(
+                    controller: commentController!.commentController,
+                    focusNode: commentController!.commentFocusNode,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      hintText: "Add a comment...",
+                      hintStyle: TextStyle(color: Colors.white54),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(width: 10),
+              Obx(
+                () => commentController!.isPosting.value
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.redAccent,
+                        ),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.send, color: Colors.redAccent),
+                        onPressed: commentController!.submitComment,
+                      ),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          const Icon(Icons.send, color: Colors.white54),
         ],
       ),
     );
@@ -412,5 +470,274 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
     if (count >= 1000000) return "${(count / 1000000).toStringAsFixed(1)}M";
     if (count >= 1000) return "${(count / 1000).toStringAsFixed(1)}K";
     return "$count";
+  }
+}
+
+class _CommentTile extends StatelessWidget {
+  final ReplayComment comment;
+  final ReplayCommentController controller;
+
+  const _CommentTile({required this.comment, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundImage: NetworkImage(
+                  comment.user.profilePhoto
+                      .replaceAll('localhost', '10.0.30.59')
+                      .replaceAll('127.0.0.1', '10.0.30.59'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "${comment.user.name} ",
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          TextSpan(
+                            text: comment.content,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _actionIcon(
+                          comment.userStatus.isLiked
+                              ? Icons.thumb_up
+                              : Icons.thumb_up_alt_outlined,
+                          comment.likeCount.toString(),
+                          comment.userStatus.isLiked
+                              ? Colors.blue
+                              : Colors.grey,
+                          () => controller.toggleCommentAction(
+                            comment.commentId,
+                            "LIKE",
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        _actionIcon(
+                          comment.userStatus.isDisliked
+                              ? Icons.thumb_down
+                              : Icons.thumb_down_alt_outlined,
+                          comment.dislikeCount.toString(),
+                          comment.userStatus.isDisliked
+                              ? Colors.red
+                              : Colors.grey,
+                          () => controller.toggleCommentAction(
+                            comment.commentId,
+                            "DISLIKE",
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        GestureDetector(
+                          onTap: () => controller.startReply(comment),
+                          child: const Text(
+                            "Reply",
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Inner Replies
+                    if (comment.replies.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: _RepliesList(
+                          replies: comment.replies,
+                          controller: controller,
+                          parentCommentId: comment.commentId,
+                        ),
+                      ),
+
+                    if (comment.replyCount > 0 && comment.replies.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: GestureDetector(
+                          onTap: () => controller.fetchReplies(comment),
+                          child: Text(
+                            "View ${comment.replyCount} ${comment.replyCount == 1 ? 'reply' : 'replies'}",
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionIcon(
+    IconData icon,
+    String count,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 4),
+          Text(count, style: TextStyle(color: color, fontSize: 11)),
+        ],
+      ),
+    );
+  }
+}
+
+class _RepliesList extends StatelessWidget {
+  final List<ReplayComment> replies;
+  final ReplayCommentController controller;
+  final String parentCommentId;
+
+  const _RepliesList({
+    required this.replies,
+    required this.controller,
+    required this.parentCommentId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: replies
+          .map(
+            (reply) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundImage: NetworkImage(
+                      reply.user.profilePhoto
+                          .replaceAll('localhost', '10.0.30.59')
+                          .replaceAll('127.0.0.1', '10.0.30.59'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "${reply.user.name} ",
+                                style: const TextStyle(
+                                  color: Colors.cyanAccent,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              TextSpan(
+                                text: reply.content,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            _replyActionIcon(
+                              reply.userStatus.isLiked
+                                  ? Icons.thumb_up
+                                  : Icons.thumb_up_alt_outlined,
+                              reply.likeCount.toString(),
+                              reply.userStatus.isLiked
+                                  ? Colors.blue
+                                  : Colors.grey,
+                              () => controller.toggleCommentAction(
+                                reply.commentId,
+                                "LIKE",
+                                parentId: parentCommentId,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            _replyActionIcon(
+                              reply.userStatus.isDisliked
+                                  ? Icons.thumb_down
+                                  : Icons.thumb_down_alt_outlined,
+                              reply.dislikeCount.toString(),
+                              reply.userStatus.isDisliked
+                                  ? Colors.red
+                                  : Colors.grey,
+                              () => controller.toggleCommentAction(
+                                reply.commentId,
+                                "DISLIKE",
+                                parentId: parentCommentId,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  Widget _replyActionIcon(
+    IconData icon,
+    String count,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 14),
+          const SizedBox(width: 4),
+          Text(count, style: TextStyle(color: color, fontSize: 10)),
+        ],
+      ),
+    );
   }
 }

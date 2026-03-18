@@ -271,6 +271,10 @@ class LiveMatchesScreen extends StatelessWidget {
   }
 
   Widget _team(String name, String badgeUrl) {
+    final formattedBadgeUrl = badgeUrl
+        .replaceAll('localhost', '10.0.30.59')
+        .replaceAll('127.0.0.1', '10.0.30.59');
+
     return SizedBox(
       width: 90,
       child: Column(
@@ -279,9 +283,9 @@ class LiveMatchesScreen extends StatelessWidget {
             radius: 22,
             backgroundColor: Colors.white,
             child: ClipOval(
-              child: badgeUrl.isNotEmpty
+              child: formattedBadgeUrl.isNotEmpty
                   ? Image.network(
-                badgeUrl,
+                formattedBadgeUrl,
                 width: 36,
                 height: 36,
                 fit: BoxFit.contain,
