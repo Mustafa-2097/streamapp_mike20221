@@ -96,41 +96,47 @@ class NewsScreen extends StatelessWidget {
   }
 
   Widget _buildNewsList(NewsController controller) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification scrollInfo) {
-        if (!controller.isLoadingMore.value &&
-            controller.hasMore.value &&
-            scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-          controller.fetchNews(isLoadMore: true);
-        }
-        return true;
+    return RefreshIndicator(
+      onRefresh: () async {
+        await controller.fetchNews();
       },
-      child: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(color: Colors.white),
+      color: Colors.white,
+      backgroundColor: Colors.grey[900],
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (!controller.isLoadingMore.value &&
+              controller.hasMore.value &&
+              scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+            controller.fetchNews(isLoadMore: true);
+          }
+          return true;
+        },
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+          return ListView.separated(
+            itemCount: controller.newsList.length +
+                (controller.isLoadingMore.value ? 1 : 0),
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            separatorBuilder: (c, i) => SizedBox(height: 16.h),
+            itemBuilder: (context, index) {
+              if (index == controller.newsList.length) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                );
+              }
+              final item = controller.newsList[index];
+              return _buildSwipeableItem(item, index);
+            },
           );
-        }
-        return ListView.separated(
-          itemCount:
-              controller.newsList.length +
-              (controller.isLoadingMore.value ? 1 : 0),
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
-          separatorBuilder: (c, i) => SizedBox(height: 16.h),
-          itemBuilder: (context, index) {
-            if (index == controller.newsList.length) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: CircularProgressIndicator(color: Colors.white),
-                ),
-              );
-            }
-            final item = controller.newsList[index];
-            return _buildSwipeableItem(item, index);
-          },
-        );
-      }),
+        }),
+      ),
     );
   }
 

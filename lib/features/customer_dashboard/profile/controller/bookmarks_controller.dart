@@ -4,6 +4,7 @@ import '../../../../core/network/api_service.dart';
 import '../../../../core/offline_storage/shared_pref.dart';
 import '../../clips/model/clips_model.dart';
 import '../../news/controller/news_controller.dart';
+import '../../news/model/news_model.dart';
 import '../../replay/model/replay_model.dart';
 
 class BookmarkController extends GetxController {
@@ -18,6 +19,9 @@ class BookmarkController extends GetxController {
   final RxList<Map<String, dynamic>> newsBookmarks =
       <Map<String, dynamic>>[].obs;
   var isLoading = false.obs;
+  var isNewsLoading = false.obs;
+  var isClipsLoading = false.obs;
+  var isReplaysLoading = false.obs;
 
   @override
   void onInit() {
@@ -29,7 +33,7 @@ class BookmarkController extends GetxController {
 
   Future<void> fetchNewsBookmarks() async {
     try {
-      isLoading.value = true;
+      isNewsLoading.value = true;
       final String? token = await SharedPreferencesHelper.getToken();
       final headers = {
         'Content-Type': 'application/json',
@@ -40,16 +44,32 @@ class BookmarkController extends GetxController {
         headers: headers,
       );
       if (response['success'] == true && response['data'] != null) {
+        print("Raw News Bookmarks: ${response['data']}");
+        
+        dynamic dataNode = response['data'];
+        List<dynamic> rawList = [];
+        
+        if (dataNode is List) {
+          rawList = dataNode;
+        } else if (dataNode is Map) {
+          rawList = dataNode['bookmarks'] ?? dataNode['data'] ?? dataNode['news'] ?? [];
+        }
+
         List<Map<String, dynamic>> rawBookmarks =
-            List<Map<String, dynamic>>.from(response['data']);
+            List<Map<String, dynamic>>.from(rawList);
         List<Map<String, dynamic>> enrichedBookmarks = [];
 
-        // For each bookmark, fetch the full news details if not present
         for (var bookmark in rawBookmarks) {
-          final newsId = bookmark['newsId'];
+          // Case 1: Bookmark already has news object
+          if (bookmark['news'] != null) {
+            enrichedBookmarks.add(bookmark);
+            continue;
+          }
+
+          // Case 2: Only newsId present, need to enrich
+          final newsId = bookmark['newsId'] ?? bookmark['news_id'] ?? bookmark['id'];
           if (newsId != null) {
             try {
-              // We use NewsController to fetch the specific article
               final article = await Get.find<NewsController>().fetchNewsById(
                 newsId.toString(),
               );
@@ -62,13 +82,17 @@ class BookmarkController extends GetxController {
                     'imageUrl': article.urlToImage,
                     'createdAt': article.publishedAt,
                     'author': article.author,
-                    'isBookmarked': true, // It is in our bookmarks after all
+                    'isBookmarked': true,
                   },
                 });
+              } else {
+                 print("Could not fetch article details for newsId: $newsId");
               }
             } catch (e) {
-              print("Error enriched bookmark $newsId: $e");
+              print("Error enrichment on-fly for news $newsId: $e");
             }
+          } else {
+            print("Bookmark item missing news identifier: $bookmark");
           }
         }
         newsBookmarks.assignAll(enrichedBookmarks);
@@ -76,13 +100,13 @@ class BookmarkController extends GetxController {
     } catch (e) {
       print("Error fetching news bookmarks: $e");
     } finally {
-      isLoading.value = false;
+      isNewsLoading.value = false;
     }
   }
 
   Future<void> fetchClipBookmarks() async {
     try {
-      isLoading.value = true;
+      isClipsLoading.value = true;
       final String? token = await SharedPreferencesHelper.getToken();
       final headers = {
         'Content-Type': 'application/json',
@@ -94,18 +118,20 @@ class BookmarkController extends GetxController {
       );
       if (response['success'] == true && response['data'] != null) {
         List data = response['data'];
-        clipBookmarks.value = data.map((e) => ClipModel.fromJson(e as Map<String, dynamic>)).toList();
+        clipBookmarks.value = data
+            .map((e) => ClipModel.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
     } catch (e) {
       print("Error fetching clip bookmarks: $e");
     } finally {
-      isLoading.value = false;
+      isClipsLoading.value = false;
     }
   }
 
   Future<void> fetchReplayBookmarks() async {
     try {
-      isLoading.value = true;
+      isReplaysLoading.value = true;
       final String? token = await SharedPreferencesHelper.getToken();
       final headers = {
         'Content-Type': 'application/json',
@@ -117,12 +143,14 @@ class BookmarkController extends GetxController {
       );
       if (response['success'] == true && response['data'] != null) {
         List data = response['data'];
-        replayBookmarks.value = data.map((e) => ReplayModel.fromJson(e as Map<String, dynamic>)).toList();
+        replayBookmarks.value = data
+            .map((e) => ReplayModel.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
     } catch (e) {
       print("Error fetching replay bookmarks: $e");
     } finally {
-      isLoading.value = false;
+      isReplaysLoading.value = false;
     }
   }
 
@@ -164,14 +192,14 @@ class BookmarkController extends GetxController {
         'Content-Type': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
       };
-      
+
       final body = {"clipId": clip.clipId};
       final response = await ApiService.post(
         ApiEndpoints.clipBookmark,
         body: body,
         headers: headers,
       );
-      
+
       if (response['success'] != true) {
         // Revert optimistic update on failure
         if (wasBookmarked) {
@@ -216,11 +244,10 @@ class BookmarkController extends GetxController {
   // Mock Data for Replays (Removed)
   // var replayBookmarks = [...]
 
-
   void changeTab(int index) => selectedTabIndex.value = index;
 
   void removeLive(int index) => liveBookmarks.removeAt(index);
-  
+
   Future<void> removeReplay(int index) async {
     if (index < replayBookmarks.length) {
       final replay = replayBookmarks[index];
@@ -244,7 +271,7 @@ class BookmarkController extends GetxController {
       }
     }
   }
-  
+
   Future<void> removeClip(int index) async {
     if (index < clipBookmarks.length) {
       final clip = clipBookmarks[index];
@@ -276,5 +303,32 @@ class BookmarkController extends GetxController {
         newsBookmarks.removeAt(index);
       }
     }
+  }
+
+  Future<Article?> fetchBookmarkDetails(String bookmarkId) async {
+    try {
+      final String? token = await SharedPreferencesHelper.getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+      final response = await ApiService.get(
+        ApiEndpoints.bookmarkDetails(bookmarkId),
+        headers: headers,
+      );
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        if (data is Map<String, dynamic>) {
+          if (data.containsKey('news')) {
+            return Article.fromJson(data['news']);
+          } else {
+            return Article.fromJson(data);
+          }
+        }
+      }
+    } catch (e) {
+      print("Error fetching news bookmark details: $e");
+    }
+    return null;
   }
 }

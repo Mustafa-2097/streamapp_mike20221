@@ -6,7 +6,8 @@ import '../../profile/controller/bookmarks_controller.dart';
 
 class NewsDetailsScreen extends StatefulWidget {
   final Article article;
-  const NewsDetailsScreen({super.key, required this.article});
+  final String? bookmarkId;
+  const NewsDetailsScreen({super.key, required this.article, this.bookmarkId});
 
   @override
   State<NewsDetailsScreen> createState() => _NewsDetailsScreenState();
@@ -28,12 +29,27 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   }
 
   Future<void> _fetchFullArticle() async {
-    if (currentArticle.id == null) return;
     setState(() => isLoading = true);
-    final fullArticle = await controller.fetchNewsById(currentArticle.id!);
+    Article? fullArticle;
+    if (widget.bookmarkId != null) {
+      // If we have a bookmarkId, we use the bookmark details endpoint
+      try {
+        if (Get.isRegistered<BookmarkController>()) {
+          fullArticle = await Get.find<BookmarkController>().fetchBookmarkDetails(widget.bookmarkId!);
+        }
+      } catch (e) {
+        debugPrint("Error fetching bookmark details: $e");
+      }
+    }
+    
+    // Fallback to normal news fetch if bookmark fetch failed or was not needed
+    if (fullArticle == null && currentArticle.id != null) {
+      fullArticle = await controller.fetchNewsById(currentArticle.id!);
+    }
+
     if (fullArticle != null) {
       setState(() {
-        currentArticle = fullArticle;
+        currentArticle = fullArticle!;
         isLoading = false;
       });
     } else {
