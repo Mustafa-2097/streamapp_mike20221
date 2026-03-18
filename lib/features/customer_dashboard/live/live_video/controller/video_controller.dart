@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:testapp/core/network/api_endpoints.dart';
 import 'package:testapp/core/network/api_service.dart';
 import 'package:testapp/core/offline_storage/shared_pref.dart';
@@ -38,7 +39,7 @@ class VideoLiveController extends GetxController {
     final status = originalReplay.userStatus;
     final engagement = originalReplay.engagement;
 
-    // Optimistic Update
+    // Optimistic Update for LIKE/DISLIKE (optional, but keep for better feel)
     if (type == "LIKE") {
       if (status.isLiked) {
         status.isLiked = false;
@@ -64,6 +65,8 @@ class VideoLiveController extends GetxController {
         }
       }
     }
+    // Note: No optimistic update for SHARE to match user request
+
     replay.refresh();
 
     try {
@@ -81,9 +84,11 @@ class VideoLiveController extends GetxController {
       final response = await ApiService.post(ApiEndpoints.replaysAction, headers: headers, body: body);
 
       if (response['success'] == true) {
-        // Option A: Re-fetch or trust local state
-        // Option B: Update based on server returned data if provided
-        // For now, let's keep the optimistic state unless error occurs.
+        // Sync with server state
+        final syncResponse = await ApiService.get(ApiEndpoints.singleReplay(replayId), headers: headers);
+        if (syncResponse['success'] == true) {
+          replay.value = ReplayModel.fromJson(syncResponse['data']);
+        }
       }
     } catch (e) {
       // Revert optimistic update on error
@@ -92,6 +97,25 @@ class VideoLiveController extends GetxController {
       print("Error toggling replay action: $e");
     }
   }
+
+  Future<void> shareReplay() async {
+    if (replay.value == null) return;
+    
+    final r = replay.value!;
+    final String shareLink = "${ApiEndpoints.baseUrl.replaceAll('/api/v1', '')}/replays/${r.replayId}"
+        .replaceAll('localhost', '10.0.30.59')
+        .replaceAll('127.0.0.1', '10.0.30.59');
+
+    try {
+      await Share.share("${r.title}\n\n$shareLink");
+      // This will now sync with server and only increment if server says so
+      await toggleAction("SHARE");
+    } catch (e) {
+      print("Error sharing: $e");
+    }
+  }
+
+
   Future<void> toggleBookmark() async {
     if (replay.value == null) return;
 
@@ -130,3 +154,4 @@ class VideoLiveController extends GetxController {
     }
   }
 }
+

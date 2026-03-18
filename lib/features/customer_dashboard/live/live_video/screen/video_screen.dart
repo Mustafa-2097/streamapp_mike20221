@@ -284,7 +284,7 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
         _actionItem(
           icon: Icons.share_outlined,
           label: _formatCount(replay.engagement.shares),
-          onTap: () {},
+          onTap: controller.shareReplay,
         ),
         const SizedBox(width: 16),
         _actionItem(
