@@ -26,9 +26,7 @@ class UpcomingMatchCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF1C1F26),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.1),
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
       child: Row(
         children: [
@@ -89,10 +87,7 @@ class UpcomingMatchCard extends StatelessWidget {
                   SizedBox(width: 4.w),
                   Text(
                     time,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10.sp,
-                    ),
+                    style: TextStyle(color: Colors.white, fontSize: 10.sp),
                   ),
                 ],
               ),
@@ -106,7 +101,9 @@ class UpcomingMatchCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      isHighlighted ? Icons.notifications : Icons.notifications_none,
+                      isHighlighted
+                          ? Icons.notifications
+                          : Icons.notifications_none,
                       size: 14.sp,
                       color: Colors.black,
                     ),

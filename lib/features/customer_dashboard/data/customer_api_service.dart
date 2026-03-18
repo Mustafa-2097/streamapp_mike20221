@@ -97,14 +97,24 @@ class CustomerApiService {
 
   /// ================= LIVE SCORES =================
   static Future<Map<String, dynamic>> getLiveScores({required int page}) async {
-    return await ApiService.get("${ApiEndpoints.liveScores}?page=$page");
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get("${ApiEndpoints.liveScores}?page=$page", headers: headers);
   }
 
   /// New Live Matches API
   static Future<Map<String, dynamic>> getLiveMatches({
     required int page,
   }) async {
-    return await ApiService.get("${ApiEndpoints.liveMatches}?page=$page");
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get("${ApiEndpoints.liveMatches}?page=$page", headers: headers);
   }
 
   /// Upcoming Matches
@@ -118,8 +128,14 @@ class CustomerApiService {
   static Future<Map<String, dynamic>> getUpcomingMatchesAll({
     required int page,
   }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
     return await ApiService.get(
       "${ApiEndpoints.upcomingMatchesAll}?page=$page",
+      headers: headers,
     );
   }
 
@@ -127,21 +143,36 @@ class CustomerApiService {
   static Future<Map<String, dynamic>> getRecentMatches({
     required int page,
   }) async {
-    return await ApiService.get("${ApiEndpoints.recentMatches}?page=$page");
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get("${ApiEndpoints.recentMatches}?page=$page", headers: headers);
   }
 
   /// Football Matches API
   static Future<Map<String, dynamic>> getFootballMatches({
     required int page,
   }) async {
-    return await ApiService.get("${ApiEndpoints.footballMatches}?page=$page");
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get("${ApiEndpoints.footballMatches}?page=$page", headers: headers);
   }
 
   /// Rugby Matches API
   static Future<Map<String, dynamic>> getRugbyMatches({
     required int page,
   }) async {
-    return await ApiService.get("${ApiEndpoints.rugbyMatches}?page=$page");
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get("${ApiEndpoints.rugbyMatches}?page=$page", headers: headers);
   }
 
   /// ================= LEAGUE TABLE =================

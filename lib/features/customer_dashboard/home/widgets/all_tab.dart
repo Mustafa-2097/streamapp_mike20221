@@ -14,6 +14,7 @@ import '../view/open_tvs.dart';
 import 'live_card.dart';
 import '../../news/controller/news_controller.dart';
 import '../../clips/controller/clips_controller.dart';
+import '../../replay/controller/replay_controller.dart';
 
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
@@ -57,6 +58,7 @@ class ContentSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final NewsController newsController = Get.put(NewsController());
     final ClipsController clipsController = Get.put(ClipsController());
+    final ReplayController replayController = Get.put(ReplayController());
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -158,93 +160,112 @@ class ContentSection extends StatelessWidget {
         }),
         SizedBox(height: 16.h),
 
-        SizedBox(
-          height: 222.h,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            itemCount: 2, // Adjust based on your data
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.only(right: 12.w),
-                child: Container(
-                  height: 222.h,
-                  width: 211.w,
-                  padding: EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(width: 1, color: Colors.white54),
-                  ),
-                  child: GestureDetector(
-                    onTap: () {
-                      Get.to(VideoLiveScreen());
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Thumbnail
-                        Container(
-                          height: 122.h,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(12),
-                            ),
-                            image: DecorationImage(
-                              image: AssetImage(
-                                'assets/images/replay${index + 1}.png',
+        Obx(() {
+          if (replayController.isLoading.value &&
+              replayController.replaysList.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (replayController.replaysList.isEmpty) {
+            return const SizedBox();
+          }
+
+          return SizedBox(
+            height: 222.h,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              itemCount: replayController.replaysList.length > 5
+                  ? 5
+                  : replayController.replaysList.length,
+              itemBuilder: (context, index) {
+                final replay = replayController.replaysList[index];
+                final imageUrl = replay.thumbnailUrl
+                    .replaceAll('localhost', '10.0.30.59')
+                    .replaceAll('127.0.0.1', '10.0.30.59');
+
+                return Padding(
+                  padding: EdgeInsets.only(right: 12.w),
+                  child: Container(
+                    height: 222.h,
+                    width: 211.w,
+                    padding: EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(width: 1, color: Colors.white10),
+                    ),
+                    child: GestureDetector(
+                      onTap: () {
+                        Get.to(VideoLiveScreen(replayId: replay.replayId));
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Thumbnail
+                          Container(
+                            height: 122.h,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              image: DecorationImage(
+                                image: NetworkImage(imageUrl),
+                                fit: BoxFit.cover,
                               ),
-                              fit: BoxFit.cover,
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.play_circle_outline,
+                                color: Colors.white54,
+                                size: 40,
+                              ),
                             ),
                           ),
-                        ),
-                        SizedBox(height: 8.h),
+                          SizedBox(height: 8.h),
 
-                        // Replay Info
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              index == 0
-                                  ? 'Carlos Alcaraz VS Jannik Sinner || Battle For #01'
-                                  : 'Cricket World Cup Moments 2025',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.w600,
+                          // Replay Info
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                replay.title,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            SizedBox(height: 12.h),
-                            Row(
-                              children: [
-                                Text(
-                                  '2.1M views',
-                                  style: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 12.sp,
+                              SizedBox(height: 16.h),
+                              Row(
+                                children: [
+                                  Text(
+                                    replay.formattedViews,
+                                    style: TextStyle(
+                                      color: Colors.grey[400],
+                                      fontSize: 11.sp,
+                                    ),
                                   ),
-                                ),
-                                const Spacer(),
-                                Text(
-                                  '5 days ago',
-                                  style: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 12.sp,
+                                  const Spacer(),
+                                  Text(
+                                    replay.timeAgo,
+                                    style: TextStyle(
+                                      color: Colors.grey[400],
+                                      fontSize: 11.sp,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-        ),
+                );
+              },
+            ),
+          );
+        }),
         SizedBox(height: 24.h),
 
         // Clips Section
@@ -276,10 +297,12 @@ class ContentSection extends StatelessWidget {
                   padding: EdgeInsets.only(right: 12.w),
                   child: GestureDetector(
                     onTap: () {
-                      Get.to(OpenReelsVideo(
-                        clips: clipsController.clipsList,
-                        initialIndex: index,
-                      ));
+                      Get.to(
+                        OpenReelsVideo(
+                          clips: clipsController.clipsList,
+                          initialIndex: index,
+                        ),
+                      );
                     },
                     child: Container(
                       width: 180.w,
@@ -293,11 +316,16 @@ class ContentSection extends StatelessWidget {
                           fit: StackFit.expand,
                           children: [
                             Image.network(
-                              clip.videoUrl.replaceAll('localhost', '10.0.30.59').replaceAll('127.0.0.1', '10.0.30.59'),
+                              clip.videoUrl
+                                  .replaceAll('localhost', '10.0.30.59')
+                                  .replaceAll('127.0.0.1', '10.0.30.59'),
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.play_circle_outline,
-                                      color: Colors.white, size: 40),
+                                  const Icon(
+                                    Icons.play_circle_outline,
+                                    color: Colors.white,
+                                    size: 40,
+                                  ),
                             ),
                             Container(
                               decoration: BoxDecoration(
