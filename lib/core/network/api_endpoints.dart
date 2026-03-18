@@ -73,4 +73,12 @@ class ApiEndpoints {
   static const String replaysAction = '$replays/action';
   static const String replaysBookmark = '$replays/bookmark';
   static const String myReplayBookmarks = '$replays/my-bookmarks';
+  static String deleteReplayBookmark(String bookmarkId) => '$myReplayBookmarks/$bookmarkId';
+
+  /// Replays Comments
+  static const String replaysComments = '$replays/comments';
+  static const String replaysCommentsAction = '$replays/comments/action';
+  static String singleReplayComments(String replayId) => '$replays/comments/$replayId';
+  static String replayCommentReplies(String commentId) =>
+      '$replays/comments/$commentId/replies';
 }

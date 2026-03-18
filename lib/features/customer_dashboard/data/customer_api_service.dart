@@ -269,4 +269,73 @@ class CustomerApiService {
       },
     );
   }
+
+  /// ================= REPLAYS COMMENTS =================
+
+  static Future<Map<String, dynamic>> postReplayComment({
+    required String replayId,
+    required String content,
+    String? parentId,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) throw Exception("User token not found");
+
+    return await ApiService.post(
+      ApiEndpoints.replaysComments,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'replayId': replayId,
+        'content': content,
+        if (parentId != null) 'parentId': parentId,
+      },
+    );
+  }
+
+  static Future<Map<String, dynamic>> postReplayCommentAction({
+    required String commentId,
+    required String type, // "LIKE", "DISLIKE"
+    String? parentId,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) throw Exception("User token not found");
+
+    return await ApiService.post(
+      ApiEndpoints.replaysCommentsAction,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'commentId': commentId,
+        'type': type,
+        if (parentId != null) 'parentId': parentId,
+      },
+    );
+  }
+
+  static Future<Map<String, dynamic>> getReplayComments(String replayId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    return await ApiService.get(
+      ApiEndpoints.singleReplayComments(replayId),
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      },
+    );
+  }
+
+  static Future<Map<String, dynamic>> getReplayCommentReplies(
+      String commentId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    return await ApiService.get(
+      ApiEndpoints.replayCommentReplies(commentId),
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      },
+    );
+  }
 }
