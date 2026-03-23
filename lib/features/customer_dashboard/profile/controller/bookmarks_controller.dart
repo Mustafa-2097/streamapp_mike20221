@@ -18,6 +18,7 @@ class BookmarkController extends GetxController {
   final RxList<ReplayModel> replayBookmarks = <ReplayModel>[].obs;
   final RxList<Map<String, dynamic>> newsBookmarks =
       <Map<String, dynamic>>[].obs;
+  final RxSet<String> matchBookmarkIds = <String>{}.obs;
   var isLoading = false.obs;
   var isNewsLoading = false.obs;
   var isClipsLoading = false.obs;
@@ -29,6 +30,7 @@ class BookmarkController extends GetxController {
     fetchNewsBookmarks();
     fetchClipBookmarks();
     fetchReplayBookmarks();
+    fetchMatchBookmarks();
   }
 
   Future<void> fetchNewsBookmarks() async {
@@ -45,14 +47,18 @@ class BookmarkController extends GetxController {
       );
       if (response['success'] == true && response['data'] != null) {
         print("Raw News Bookmarks: ${response['data']}");
-        
+
         dynamic dataNode = response['data'];
         List<dynamic> rawList = [];
-        
+
         if (dataNode is List) {
           rawList = dataNode;
         } else if (dataNode is Map) {
-          rawList = dataNode['bookmarks'] ?? dataNode['data'] ?? dataNode['news'] ?? [];
+          rawList =
+              dataNode['bookmarks'] ??
+              dataNode['data'] ??
+              dataNode['news'] ??
+              [];
         }
 
         List<Map<String, dynamic>> rawBookmarks =
@@ -67,7 +73,8 @@ class BookmarkController extends GetxController {
           }
 
           // Case 2: Only newsId present, need to enrich
-          final newsId = bookmark['newsId'] ?? bookmark['news_id'] ?? bookmark['id'];
+          final newsId =
+              bookmark['newsId'] ?? bookmark['news_id'] ?? bookmark['id'];
           if (newsId != null) {
             try {
               final article = await Get.find<NewsController>().fetchNewsById(
@@ -86,7 +93,7 @@ class BookmarkController extends GetxController {
                   },
                 });
               } else {
-                 print("Could not fetch article details for newsId: $newsId");
+                print("Could not fetch article details for newsId: $newsId");
               }
             } catch (e) {
               print("Error enrichment on-fly for news $newsId: $e");
@@ -151,6 +158,89 @@ class BookmarkController extends GetxController {
       print("Error fetching replay bookmarks: $e");
     } finally {
       isReplaysLoading.value = false;
+    }
+  }
+
+  Future<void> fetchMatchBookmarks() async {
+    try {
+      isLoading.value = true;
+      final String? token = await SharedPreferencesHelper.getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+
+      final response = await ApiService.get(
+        ApiEndpoints.matchBookmarks,
+        headers: headers,
+      );
+
+      if (response['success'] == true && response['data'] != null) {
+        List data = response['data'];
+        print("Raw Match Bookmarks Response: $data");
+
+        // Extract IDs for tracking
+        final Set<String> ids = {};
+        for (var item in data) {
+          // We ONLY want the ID of the match, not the bookmark record itself
+          final matchId =
+              item['matchId']?.toString() ??
+              item['match_id']?.toString() ??
+              item['match']?['id']?.toString() ??
+              item['match']?['matchId']?.toString();
+
+          if (matchId != null) {
+            ids.add(matchId);
+          } else {
+            // Fallback to 'id' ONLY if we are sure it's the match object
+            // If 'id' exists but 'matchId' or 'match' object exists elsewhere,
+            // then this 'id' is likely the bookmark record ID.
+            // Usually, if the object has 'team1' or 'homeTeam', it's a match object.
+            if (item.containsKey('homeTeam') ||
+                item.containsKey('team1') ||
+                item.containsKey('home_team')) {
+              final id = item['id']?.toString();
+              if (id != null) ids.add(id);
+            }
+          }
+        }
+        matchBookmarkIds.assignAll(ids);
+
+        // Update liveBookmarks list for the UI
+        liveBookmarks.assignAll(
+          data
+              .map((item) {
+                final match = item['match'] ?? item;
+                // Try to find the most likely match ID
+                final String? mid =
+                    match['matchId']?.toString() ??
+                    match['match_id']?.toString() ??
+                    match['id']?.toString();
+
+                return {
+                  "id": mid ?? '',
+                  "team1":
+                      match['homeTeam'] ??
+                      match['team1'] ??
+                      match['home_team'] ??
+                      'Team A',
+                  "team2":
+                      match['awayTeam'] ??
+                      match['team2'] ??
+                      match['away_team'] ??
+                      'Team B',
+                  "date": match['date'] ?? 'TBA',
+                  "time": match['time'] ?? 'Soon',
+                };
+              })
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList(),
+        );
+      }
+    } catch (e) {
+      print("Error fetching match bookmarks: $e");
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -219,8 +309,57 @@ class BookmarkController extends GetxController {
     }
   }
 
+  Future<void> toggleMatchBookmark(String matchId) async {
+    // Optimistic Update
+    bool isCurrentlyBookmarked = isMatchBookmarked(matchId);
+    if (isCurrentlyBookmarked) {
+      matchBookmarkIds.remove(matchId);
+    } else {
+      matchBookmarkIds.add(matchId);
+    }
+
+    try {
+      final String? token = await SharedPreferencesHelper.getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+      final body = {"matchId": matchId};
+
+      final response = await ApiService.post(
+        ApiEndpoints.matchBookmarks,
+        body: body,
+        headers: headers,
+      );
+
+      if (response['success'] != true) {
+        // Revert on failure
+        if (isCurrentlyBookmarked) {
+          matchBookmarkIds.add(matchId);
+        } else {
+          matchBookmarkIds.remove(matchId);
+        }
+        print("Failed to toggle match bookmark");
+      } else {
+        print("Match bookmark toggled successfully");
+      }
+    } catch (e) {
+      // Revert on error
+      if (isCurrentlyBookmarked) {
+        matchBookmarkIds.add(matchId);
+      } else {
+        matchBookmarkIds.remove(matchId);
+      }
+      print("Error toggling match bookmark: $e");
+    }
+  }
+
+  bool isMatchBookmarked(String matchId) {
+    return matchBookmarkIds.contains(matchId);
+  }
+
   // Mock Data for Live Matches
-  var liveBookmarks = [
+  final RxList<Map<String, dynamic>> liveBookmarks = <Map<String, dynamic>>[
     {
       "team1": "Betis",
       "team2": "Barcelona",

@@ -12,6 +12,7 @@ import '../view/news_details_screen.dart';
 import '../view/open_reels_video.dart';
 import '../view/open_tvs.dart';
 import 'live_card.dart';
+import '../../profile/controller/bookmarks_controller.dart';
 import '../../news/controller/news_controller.dart';
 import '../../clips/controller/clips_controller.dart';
 import '../../replay/controller/replay_controller.dart';
@@ -60,10 +61,13 @@ class ContentSection extends StatelessWidget {
     final NewsController newsController = Get.put(NewsController());
     final ClipsController clipsController = Get.put(ClipsController());
     final ReplayController replayController = Get.put(ReplayController());
-    final LiveMatchesController liveController = Get.put(LiveMatchesController());
+    final LiveMatchesController liveController = Get.put(
+      LiveMatchesController(),
+    );
 
     // Fetch upcoming if empty
-    if (liveController.upcomingMatches.isEmpty && !liveController.isUpcomingLoading) {
+    if (liveController.upcomingMatches.isEmpty &&
+        !liveController.isUpcomingLoading) {
       liveController.fetchUpcomingMatches();
     }
     return Column(
@@ -139,7 +143,8 @@ class ContentSection extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           child: GetBuilder<LiveMatchesController>(
             builder: (controller) {
-              if (controller.isUpcomingLoading && controller.upcomingMatches.isEmpty) {
+              if (controller.isUpcomingLoading &&
+                  controller.upcomingMatches.isEmpty) {
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(16.0),
@@ -152,28 +157,80 @@ class ContentSection extends StatelessWidget {
                 return const SizedBox();
               }
 
-              final displayMatches = controller.upcomingMatches.length > 3 
-                ? controller.upcomingMatches.sublist(0, 3) 
-                : controller.upcomingMatches;
+              final displayMatches = controller.upcomingMatches.length > 3
+                  ? controller.upcomingMatches.sublist(0, 3)
+                  : controller.upcomingMatches;
 
               return Column(
                 children: displayMatches.map((match) {
+                  final bookmarkController =
+                      Get.isRegistered<BookmarkController>()
+                      ? Get.find<BookmarkController>()
+                      : Get.put(BookmarkController());
+
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: GestureDetector(
-                      onTap: () {
-                         // Add navigation if needed, or leave as is
-                      },
-                      child: UpcomingMatchCard(
-                        homeLogo: match.homeLogo,
-                        awayLogo: match.awayLogo,
-                        league: match.dayHeader, // "Wednesday" or similar
-                        match: "${match.homeTeam} vs ${match.awayTeam}",
-                        time: match.date, // e.g. "20:00"
-                        isHighlighted: controller.remindedMatchIds.contains(match.id),
-                        onRemindTap: () => controller.toggleReminder(match.id),
-                      ),
-                    ),
+                    child: Obx(() {
+                      final isBookmarked = bookmarkController.isMatchBookmarked(
+                        match.id,
+                      );
+                      return Dismissible(
+                        key: Key("home_upcoming_${match.id}"),
+                        direction: DismissDirection.startToEnd,
+                        confirmDismiss: (direction) async {
+                          if (direction == DismissDirection.startToEnd) {
+                            bookmarkController.toggleMatchBookmark(match.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  isBookmarked
+                                      ? "Match unbookmarked!"
+                                      : "Match bookmarked!",
+                                ),
+                                duration: const Duration(seconds: 1),
+                                backgroundColor: isBookmarked
+                                    ? Colors.redAccent
+                                    : Colors.green,
+                              ),
+                            );
+                          }
+                          return false;
+                        },
+                        background: Container(
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.only(left: 20),
+                          margin: const EdgeInsets.only(bottom: 12),
+                          // decoration: BoxDecoration(
+                          //   color: isBookmarked
+                          //       ? Colors.redAccent.withOpacity(0.8)
+                          //       : Colors.amber.withOpacity(0.8),
+                          //   borderRadius: BorderRadius.circular(12),
+                          // ),
+                          child: Icon(
+                            isBookmarked
+                                ? Icons.delete_outlined
+                                : Icons.bookmark_add_outlined,
+                            color: isBookmarked
+                                ? Colors.redAccent.withOpacity(0.8)
+                                : Colors.amber.withOpacity(0.8),
+                            size: 28,
+                          ),
+                        ),
+                        child: UpcomingMatchCard(
+                          homeLogo: match.homeLogo,
+                          awayLogo: match.awayLogo,
+                          league: match.dayHeader, // "Wednesday" or similar
+                          match: "${match.homeTeam} vs ${match.awayTeam}",
+                          time: match.date, // e.g. "20:00"
+                          isHighlighted: controller.remindedMatchIds.contains(
+                            match.id,
+                          ),
+                          isBookmarked: isBookmarked,
+                          onRemindTap: () =>
+                              controller.toggleReminder(match.id),
+                        ),
+                      );
+                    }),
                   );
                 }).toList(),
               );
