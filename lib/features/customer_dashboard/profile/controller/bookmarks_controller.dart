@@ -12,7 +12,7 @@ class BookmarkController extends GetxController {
   // Selected category index
   var selectedTabIndex = 0.obs;
 
-  final List<String> categories = ["Live", "Replay", "Clips", "News"];
+  final List<String> categories = ["Upcoming Live", "Replay", "Clips", "News"];
   final RxList<ClipModel> clipBookmarks = <ClipModel>[].obs;
   final RxList<ReplayModel> replayBookmarks = <ReplayModel>[].obs;
   final RxList<Map<String, dynamic>> newsBookmarks =
@@ -94,7 +94,9 @@ class BookmarkController extends GetxController {
       );
       if (response['success'] == true && response['data'] != null) {
         List data = response['data'];
-        clipBookmarks.value = data.map((e) => ClipModel.fromJson(e as Map<String, dynamic>)).toList();
+        clipBookmarks.value = data
+            .map((e) => ClipModel.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
     } catch (e) {
       print("Error fetching clip bookmarks: $e");
@@ -117,7 +119,9 @@ class BookmarkController extends GetxController {
       );
       if (response['success'] == true && response['data'] != null) {
         List data = response['data'];
-        replayBookmarks.value = data.map((e) => ReplayModel.fromJson(e as Map<String, dynamic>)).toList();
+        replayBookmarks.value = data
+            .map((e) => ReplayModel.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
     } catch (e) {
       print("Error fetching replay bookmarks: $e");
@@ -164,14 +168,14 @@ class BookmarkController extends GetxController {
         'Content-Type': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
       };
-      
+
       final body = {"clipId": clip.clipId};
       final response = await ApiService.post(
         ApiEndpoints.clipBookmark,
         body: body,
         headers: headers,
       );
-      
+
       if (response['success'] != true) {
         // Revert optimistic update on failure
         if (wasBookmarked) {
@@ -216,11 +220,10 @@ class BookmarkController extends GetxController {
   // Mock Data for Replays (Removed)
   // var replayBookmarks = [...]
 
-
   void changeTab(int index) => selectedTabIndex.value = index;
 
   void removeLive(int index) => liveBookmarks.removeAt(index);
-  
+
   Future<void> removeReplay(int index) async {
     if (index < replayBookmarks.length) {
       final replay = replayBookmarks[index];
@@ -244,7 +247,7 @@ class BookmarkController extends GetxController {
       }
     }
   }
-  
+
   Future<void> removeClip(int index) async {
     if (index < clipBookmarks.length) {
       final clip = clipBookmarks[index];
