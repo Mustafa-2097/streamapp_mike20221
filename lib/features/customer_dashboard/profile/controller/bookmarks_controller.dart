@@ -13,7 +13,7 @@ class BookmarkController extends GetxController {
   // Selected category index
   var selectedTabIndex = 0.obs;
 
-  final List<String> categories = ["Live", "Replay", "Clips", "News"];
+  final List<String> categories = ["Upcoming Live", "Replay", "Clips", "News"];
   final RxList<ClipModel> clipBookmarks = <ClipModel>[].obs;
   final RxList<ReplayModel> replayBookmarks = <ReplayModel>[].obs;
   final RxList<Map<String, dynamic>> newsBookmarks =
