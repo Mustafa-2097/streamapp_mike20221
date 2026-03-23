@@ -304,7 +304,10 @@ class ContentSection extends StatelessWidget {
         Obx(() {
           if (clipsController.isLoading.value &&
               clipsController.clipsList.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return SizedBox(
+              height: 280.h,
+              child: const Center(child: CircularProgressIndicator()),
+            );
           }
 
           if (clipsController.clipsList.isEmpty) {
@@ -415,8 +418,11 @@ class ContentSection extends StatelessWidget {
         // Latest News Section
         Obx(() {
           if (newsController.isLoading.value) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.white),
+            return SizedBox(
+              height: 120.h,
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
             );
           }
           if (newsController.newsList.isEmpty) {
