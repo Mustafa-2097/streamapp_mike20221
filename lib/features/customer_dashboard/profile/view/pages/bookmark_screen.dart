@@ -27,6 +27,7 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
     controller.fetchNewsBookmarks();
     controller.fetchClipBookmarks();
     controller.fetchReplayBookmarks();
+    controller.fetchMatchBookmarks();
   }
 
   @override
@@ -85,7 +86,6 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
 }
 
 extension on _BookmarkScreenState {
-
   // --- Widgets ---
 
   Widget _buildCategoryTabs(BookmarkController controller) {
@@ -142,8 +142,11 @@ extension on _BookmarkScreenState {
 
   Widget _buildReplayList(BookmarkController controller) {
     return Obx(() {
-      if (controller.isReplaysLoading.value && controller.replayBookmarks.isEmpty) {
-        return const Center(child: CircularProgressIndicator(color: Colors.white));
+      if (controller.isReplaysLoading.value &&
+          controller.replayBookmarks.isEmpty) {
+        return const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        );
       }
       if (controller.replayBookmarks.isEmpty) {
         return const Center(
@@ -164,7 +167,8 @@ extension on _BookmarkScreenState {
             onDismissed: (_) => controller.removeReplay(index),
             background: _buildDeleteBackground(),
             child: GestureDetector(
-              onTap: () => Get.to(() => VideoLiveScreen(replayId: item.replayId)),
+              onTap: () =>
+                  Get.to(() => VideoLiveScreen(replayId: item.replayId)),
               child: _buildReplayItem(item),
             ),
           );
@@ -212,10 +216,12 @@ extension on _BookmarkScreenState {
               onBookmark: () {},
               showBookmarkIcon: false,
               onTap: () {
-                Get.to(() => OpenReelsVideo(
-                  clips: controller.clipBookmarks,
-                  initialIndex: index,
-                ));
+                Get.to(
+                  () => OpenReelsVideo(
+                    clips: controller.clipBookmarks,
+                    initialIndex: index,
+                  ),
+                );
               },
             ),
           );
@@ -318,8 +324,11 @@ extension on _BookmarkScreenState {
                     width: 145,
                     height: 85,
                     color: Colors.grey[900],
-                    child: const Icon(Icons.play_circle_outline,
-                        color: Colors.white, size: 40),
+                    child: const Icon(
+                      Icons.play_circle_outline,
+                      color: Colors.white,
+                      size: 40,
+                    ),
                   ),
                 ),
               ),
@@ -410,10 +419,12 @@ extension on _BookmarkScreenState {
             onDismissed: (_) => controller.removeNews(index),
             background: _buildDeleteBackground(),
             child: GestureDetector(
-              onTap: () => Get.to(() => NewsDetailsScreen(
-                    article: article,
-                    bookmarkId: item['id']?.toString(),
-                  )),
+              onTap: () => Get.to(
+                () => NewsDetailsScreen(
+                  article: article,
+                  bookmarkId: item['id']?.toString(),
+                ),
+              ),
               child: _buildNewsItem(article),
             ),
           );
@@ -461,14 +472,15 @@ extension on _BookmarkScreenState {
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  article.publishedAt != null && article.publishedAt!.length >= 10
+                  article.publishedAt != null &&
+                          article.publishedAt!.length >= 10
                       ? article.publishedAt!.substring(0, 10)
                       : "Unknown Date",
                   style: TextStyle(color: Colors.grey, fontSize: 11.sp),
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

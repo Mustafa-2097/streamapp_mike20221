@@ -82,4 +82,7 @@ class ApiEndpoints {
   static String singleReplayComments(String replayId) => '$replays/comments/$replayId';
   static String replayCommentReplies(String commentId) =>
       '$replays/comments/$commentId/replies';
+
+  /// Match Bookmarks
+  static const String matchBookmarks = '$baseUrl/match-bookmarks';
 }

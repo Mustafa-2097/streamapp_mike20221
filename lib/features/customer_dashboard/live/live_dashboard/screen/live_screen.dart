@@ -10,12 +10,16 @@ import '../controller/live_controller.dart';
 import '../model/live_model.dart';
 import '../model/recent_match_model.dart';
 import '../model/upcoming_match_model.dart';
+import '../../../profile/controller/bookmarks_controller.dart';
 
 class LiveMatchesScreen extends StatelessWidget {
   LiveMatchesScreen({super.key, this.initialTab = 0});
 
   final int initialTab;
-  final LiveMatchesController controller = Get.put(LiveMatchesController(), permanent: true);
+  final LiveMatchesController controller = Get.put(
+    LiveMatchesController(),
+    permanent: true,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -109,23 +113,18 @@ class LiveMatchesScreen extends StatelessWidget {
                     if (controller.isStats) {
                       return controller.statsData == null
                           ? const Center(child: CircularProgressIndicator())
-                          : MatchStatsWidget(
-                        statsData: controller.statsData!,
-                      );
+                          : MatchStatsWidget(statsData: controller.statsData!);
                     }
 
                     /// LINEUP
                     if (controller.isLineup) {
                       return controller.lineupData == null
                           ? const Center(child: CircularProgressIndicator())
-                          : LineupWidget(
-                        lineupData: controller.lineupData!,
-                      );
+                          : LineupWidget(lineupData: controller.lineupData!);
                     }
 
                     /// TABLE
                     if (controller.isTable) {
-
                       if (controller.isTableLoading) {
                         return const Center(child: CircularProgressIndicator());
                       }
@@ -139,19 +138,14 @@ class LiveMatchesScreen extends StatelessWidget {
                         );
                       }
 
-                      return TableWidget(
-                        tableData: controller.tableData!,
-                      );
+                      return TableWidget(tableData: controller.tableData!);
                     }
-
 
                     /// H2H
                     if (controller.isH2H) {
                       return controller.h2hData == null
                           ? const Center(child: CircularProgressIndicator())
-                          : H2HWidget(
-                        h2hData: controller.h2hData!,
-                      );
+                          : H2HWidget(h2hData: controller.h2hData!);
                     }
 
                     /// DEFAULT → LIVE
@@ -175,9 +169,7 @@ class LiveMatchesScreen extends StatelessWidget {
   // MATCH LIST
   Widget _buildMatchList() {
     if (controller.isLoading && controller.matches.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     return RefreshIndicator(
@@ -185,7 +177,8 @@ class LiveMatchesScreen extends StatelessWidget {
       child: ListView.builder(
         controller: controller.scrollController,
         padding: const EdgeInsets.all(16),
-        itemCount: controller.matches.length +
+        itemCount:
+            controller.matches.length +
             (controller.isPaginationLoading ? 1 : 0),
         itemBuilder: (context, index) {
           /// bottom loader
@@ -201,7 +194,6 @@ class LiveMatchesScreen extends StatelessWidget {
       ),
     );
   }
-
 
   // MATCH CARD
   Widget _matchCard(MatchModel match) {
@@ -220,7 +212,10 @@ class LiveMatchesScreen extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.red,
                     borderRadius: BorderRadius.circular(30),
@@ -248,6 +243,7 @@ class LiveMatchesScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
+
             /// Teams + Score Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -285,14 +281,15 @@ class LiveMatchesScreen extends StatelessWidget {
             child: ClipOval(
               child: formattedBadgeUrl.isNotEmpty
                   ? Image.network(
-                formattedBadgeUrl,
-                width: 36,
-                height: 36,
-                fit: BoxFit.contain,
-                /// prevents crash if image fails
-                errorBuilder: (_, __, ___) =>
-                const Icon(Icons.sports_soccer),
-              )
+                      formattedBadgeUrl,
+                      width: 36,
+                      height: 36,
+                      fit: BoxFit.contain,
+
+                      /// prevents crash if image fails
+                      errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.sports_soccer),
+                    )
                   : const Icon(Icons.sports_soccer),
             ),
           ),
@@ -308,8 +305,6 @@ class LiveMatchesScreen extends StatelessWidget {
       ),
     );
   }
-
-
 
   Widget _buildUpcomingList() {
     if (controller.isUpcomingLoading) {
@@ -330,11 +325,57 @@ class LiveMatchesScreen extends StatelessWidget {
       itemCount: controller.upcomingMatches.length,
       itemBuilder: (context, index) {
         final match = controller.upcomingMatches[index];
-        return _upcomingMatchCard(match);
+        return _upcomingMatchCardSwipeWrapper(context, match);
       },
     );
   }
 
+  Widget _upcomingMatchCardSwipeWrapper(
+    BuildContext context,
+    UpcomingMatchModel match,
+  ) {
+    final bookmarkController = Get.isRegistered<BookmarkController>()
+        ? Get.find<BookmarkController>()
+        : Get.put(BookmarkController());
+
+    return Obx(() {
+      final isBookmarked = bookmarkController.isMatchBookmarked(match.id);
+      return Dismissible(
+        key: Key(match.id),
+        direction: DismissDirection.startToEnd,
+        confirmDismiss: (direction) async {
+          if (direction == DismissDirection.startToEnd) {
+            bookmarkController.toggleMatchBookmark(match.id);
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  isBookmarked ? "Match unbookmarked!" : "Match bookmarked!",
+                ),
+                duration: const Duration(seconds: 1),
+                backgroundColor: isBookmarked ? Colors.redAccent : Colors.green,
+              ),
+            );
+          }
+          return false;
+        },
+        background: Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 20),
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
+          child: Icon(
+            isBookmarked ? Icons.delete_outlined : Icons.bookmark_add_outlined,
+            color: isBookmarked
+                ? Colors.redAccent.withOpacity(0.8)
+                : Colors.amber.withOpacity(0.8),
+            size: 30,
+          ),
+        ),
+        child: _upcomingMatchCard(match),
+      );
+    });
+  }
 
   Widget _upcomingMatchCard(UpcomingMatchModel match) {
     return Container(
@@ -353,20 +394,33 @@ class LiveMatchesScreen extends StatelessWidget {
               else
                 _timeChip("SOON"),
               const Spacer(),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.visibility_outlined,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    match.viewCount,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                ],
-              ),
+              Obx(() {
+                final isBookmarked = Get.find<BookmarkController>()
+                    .isMatchBookmarked(match.id);
+                return Row(
+                  children: [
+                    if (isBookmarked)
+                      const Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: Icon(
+                          Icons.bookmark,
+                          color: Colors.amber,
+                          size: 20,
+                        ),
+                      ),
+                    const Icon(
+                      Icons.visibility_outlined,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      match.viewCount,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ],
+                );
+              }),
             ],
           ),
           const SizedBox(height: 16),
@@ -388,7 +442,9 @@ class LiveMatchesScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     _remindButton(
-                      isReminded: controller.remindedMatchIds.contains(match.id),
+                      isReminded: controller.remindedMatchIds.contains(
+                        match.id,
+                      ),
                       onTap: () => controller.toggleReminder(match.id),
                     ),
                   ],
@@ -405,9 +461,7 @@ class LiveMatchesScreen extends StatelessWidget {
   Widget _buildCountdownChips(String timeString) {
     // Expected format: "1H 8M 10S"
     final parts = timeString.split(' ');
-    return Row(
-      children: parts.map((part) => _timeChip(part)).toList(),
-    );
+    return Row(children: parts.map((part) => _timeChip(part)).toList());
   }
 
   Widget _timeChip(String text) {
@@ -432,10 +486,7 @@ class LiveMatchesScreen extends StatelessWidget {
   Widget _recentMatchList() {
     if (controller.recentMatches.isEmpty) {
       return const Center(
-        child: Text(
-          "No Recent Matches",
-          style: TextStyle(color: Colors.white),
-        ),
+        child: Text("No Recent Matches", style: TextStyle(color: Colors.white)),
       );
     }
 
@@ -463,7 +514,10 @@ class LiveMatchesScreen extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade800,
                     borderRadius: BorderRadius.circular(30),
@@ -526,7 +580,10 @@ class LiveMatchesScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       itemCount: controller.footballMatches.length,
       itemBuilder: (context, index) {
-        return _upcomingMatchCard(controller.footballMatches[index]);
+        return _upcomingMatchCardSwipeWrapper(
+          context,
+          controller.footballMatches[index],
+        );
       },
     );
   }
@@ -534,10 +591,7 @@ class LiveMatchesScreen extends StatelessWidget {
   Widget _rugbyMatchList() {
     if (controller.rugbyMatches.isEmpty) {
       return const Center(
-        child: Text(
-          "No Rugby Matches",
-          style: TextStyle(color: Colors.white),
-        ),
+        child: Text("No Rugby Matches", style: TextStyle(color: Colors.white)),
       );
     }
 
@@ -545,12 +599,18 @@ class LiveMatchesScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       itemCount: controller.rugbyMatches.length,
       itemBuilder: (context, index) {
-        return _upcomingMatchCard(controller.rugbyMatches[index]);
+        return _upcomingMatchCardSwipeWrapper(
+          context,
+          controller.rugbyMatches[index],
+        );
       },
     );
   }
 
-  Widget _remindButton({required bool isReminded, required VoidCallback onTap}) {
+  Widget _remindButton({
+    required bool isReminded,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -577,5 +637,4 @@ class LiveMatchesScreen extends StatelessWidget {
       ),
     );
   }
-
 }

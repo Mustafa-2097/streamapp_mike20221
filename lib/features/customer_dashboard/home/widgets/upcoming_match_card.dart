@@ -9,6 +9,7 @@ class UpcomingMatchCard extends StatelessWidget {
   final String match;
   final String time;
   final bool isHighlighted;
+  final bool isBookmarked;
   final VoidCallback? onRemindTap;
 
   const UpcomingMatchCard({
@@ -20,6 +21,7 @@ class UpcomingMatchCard extends StatelessWidget {
     required this.match,
     required this.time,
     this.isHighlighted = false,
+    this.isBookmarked = false,
     this.onRemindTap,
   });
 
@@ -30,7 +32,7 @@ class UpcomingMatchCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
-        color: const Color(0xFF1C1F26),
+        //color: const Color(0xFF1C1F26),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
@@ -52,13 +54,20 @@ class UpcomingMatchCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  league,
-                  style: TextStyle(
-                    color: Colors.amber,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      league,
+                      style: TextStyle(
+                        color: Colors.amber,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (isBookmarked)
+                      Icon(Icons.bookmark, color: Colors.amber, size: 16.sp),
+                  ],
                 ),
                 SizedBox(height: 4.h),
                 Text(
@@ -154,7 +163,9 @@ class UpcomingMatchCard extends StatelessWidget {
       child: ClipOval(
         child: url.startsWith('http')
             ? Image.network(
-                url.replaceAll('localhost', '10.0.30.59').replaceAll('127.0.0.1', '10.0.30.59'),
+                url
+                    .replaceAll('localhost', '10.0.30.59')
+                    .replaceAll('127.0.0.1', '10.0.30.59'),
                 fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => const Icon(
                   Icons.sports_soccer,
