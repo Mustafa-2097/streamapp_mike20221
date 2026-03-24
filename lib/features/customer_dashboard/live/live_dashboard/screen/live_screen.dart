@@ -10,6 +10,7 @@ import '../controller/live_controller.dart';
 import '../model/live_model.dart';
 import '../model/recent_match_model.dart';
 import '../model/upcoming_match_model.dart';
+import '../widget/live_upcoming_card.dart';
 import '../../../profile/controller/bookmarks_controller.dart';
 
 class LiveMatchesScreen extends StatelessWidget {
@@ -378,108 +379,10 @@ class LiveMatchesScreen extends StatelessWidget {
   }
 
   Widget _upcomingMatchCard(UpcomingMatchModel match) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(width: 2, color: Colors.white24),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              if (match.timeRemaining != null)
-                _buildCountdownChips(match.timeRemaining!)
-              else
-                _timeChip("SOON"),
-              const Spacer(),
-              Obx(() {
-                final isBookmarked = Get.find<BookmarkController>()
-                    .isMatchBookmarked(match.id);
-                return Row(
-                  children: [
-                    if (isBookmarked)
-                      const Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: Icon(
-                          Icons.bookmark,
-                          color: Colors.amber,
-                          size: 20,
-                        ),
-                      ),
-                    const Icon(
-                      Icons.visibility_outlined,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      match.viewCount,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                  ],
-                );
-              }),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _team(match.homeTeam, match.homeLogo),
-              Expanded(
-                child: Column(
-                  children: [
-                    Text(
-                      match.dayHeader,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _remindButton(
-                      isReminded: controller.remindedMatchIds.contains(
-                        match.id,
-                      ),
-                      onTap: () => controller.toggleReminder(match.id),
-                    ),
-                  ],
-                ),
-              ),
-              _team(match.awayTeam, match.awayLogo),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCountdownChips(String timeString) {
-    // Expected format: "1H 8M 10S"
-    final parts = timeString.split(' ');
-    return Row(children: parts.map((part) => _timeChip(part)).toList());
-  }
-
-  Widget _timeChip(String text) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+    return LiveUpcomingCard(
+      match: match,
+      isReminded: controller.remindedMatchIds.contains(match.id),
+      onRemindTap: () => controller.toggleReminder(match.id),
     );
   }
 
@@ -607,34 +510,4 @@ class LiveMatchesScreen extends StatelessWidget {
     );
   }
 
-  Widget _remindButton({
-    required bool isReminded,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isReminded ? Colors.amber : Colors.white,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.notifications_none, size: 16, color: Colors.black),
-            SizedBox(width: 4),
-            Text(
-              "Remind",
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

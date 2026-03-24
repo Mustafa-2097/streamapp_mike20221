@@ -6,6 +6,8 @@ import '../../../clips/widgets/clips_card.dart';
 import '../../../home/view/news_details_screen.dart';
 import '../../../home/view/open_reels_video.dart';
 import '../../../live/live_video/screen/video_screen.dart';
+import '../../../live/live_dashboard/widget/live_upcoming_card.dart';
+import '../../../live/live_dashboard/controller/live_controller.dart';
 import '../../../news/model/news_model.dart';
 import '../../controller/bookmarks_controller.dart';
 import '../../../replay/model/replay_model.dart';
@@ -124,20 +126,43 @@ extension on _BookmarkScreenState {
   }
 
   Widget _buildLiveList(BookmarkController controller) {
-    return ListView.builder(
-      itemCount: controller.liveBookmarks.length,
-      padding: EdgeInsets.symmetric(horizontal: 15.w),
-      itemBuilder: (context, index) {
-        final item = controller.liveBookmarks[index];
-        return Dismissible(
-          key: UniqueKey(),
-          direction: DismissDirection.startToEnd,
-          onDismissed: (_) => controller.removeLive(index),
-          background: _buildDeleteBackground(),
-          child: _buildLiveCard(item),
+    return Obx(() {
+      if (controller.isLoading.value && controller.liveBookmarks.isEmpty) {
+        return const Center(
+          child: CircularProgressIndicator(color: Colors.white),
         );
-      },
-    );
+      }
+      if (controller.liveBookmarks.isEmpty) {
+        return const Center(
+          child: Text(
+            "No upcoming live bookmarks",
+            style: TextStyle(color: Colors.white),
+          ),
+        );
+      }
+      return ListView.builder(
+        itemCount: controller.liveBookmarks.length,
+        padding: EdgeInsets.symmetric(horizontal: 15.w),
+        itemBuilder: (context, index) {
+          final item = controller.liveBookmarks[index];
+          return Dismissible(
+            key: Key("bookmark_live_${item.id}"),
+            direction: DismissDirection.startToEnd,
+            onDismissed: (_) => controller.removeLive(index),
+            background: _buildDeleteBackground(),
+            child: GetBuilder<LiveMatchesController>(
+              builder: (liveController) {
+                return LiveUpcomingCard(
+                  match: item,
+                  isReminded: liveController.remindedMatchIds.contains(item.id),
+                  onRemindTap: () => liveController.toggleReminder(item.id),
+                );
+              },
+            ),
+          );
+        },
+      );
+    });
   }
 
   Widget _buildReplayList(BookmarkController controller) {
@@ -241,62 +266,6 @@ extension on _BookmarkScreenState {
   // --- Specific Card Designs ---
 
   /// Live Section
-  Widget _buildLiveCard(Map item) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 15.h),
-      padding: EdgeInsets.all(15.r),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15.r),
-        border: Border.all(width: 2, color: Colors.grey),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: ["12H", "12M", "12S"]
-                .map(
-                  (t) => Container(
-                    margin: EdgeInsets.symmetric(horizontal: 4.w),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 8.w,
-                      vertical: 4.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade600,
-                      borderRadius: BorderRadius.circular(4.r),
-                    ),
-                    child: Text(
-                      t,
-                      style: TextStyle(color: Colors.white, fontSize: 14.sp),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-          SizedBox(height: 15.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildTeam(item['team1'], Icons.sports_soccer),
-              Column(
-                children: [
-                  Text(
-                    item['date'],
-                    style: TextStyle(color: Colors.white, fontSize: 14.sp),
-                  ),
-                  Text(
-                    item['time'],
-                    style: TextStyle(color: Colors.white, fontSize: 14.sp),
-                  ),
-                ],
-              ),
-              _buildTeam(item['team2'], Icons.sports_football),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
   String _fixUrl(String url) {
     return url
@@ -488,17 +457,6 @@ extension on _BookmarkScreenState {
 
   /// News Section will added in future
 
-  Widget _buildTeam(String name, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.orange, size: 40.r),
-        Text(
-          name,
-          style: TextStyle(color: Colors.white, fontSize: 14.sp),
-        ),
-      ],
-    );
-  }
 }
 
 ///////////////////////////////////////////////////

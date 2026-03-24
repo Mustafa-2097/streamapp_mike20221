@@ -19,7 +19,7 @@ class PersonalData extends StatelessWidget {
         elevation: 0,
         leading: const BackButton(color: Colors.white),
         title: Text(
-          "PROFILE",
+          "Personal Data",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
@@ -63,19 +63,48 @@ class PersonalData extends StatelessWidget {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: AppColors.primaryColor,
-                                border: Border.all(color: Colors.white24, width: 2),
+                                border: Border.all(
+                                  color: Colors.white24,
+                                  width: 2,
+                                ),
                               ),
                               clipBehavior: Clip.antiAlias,
                               child: imageProvider != null
-                                  ? (localFile != null 
-                                      ? Image.file(localFile, fit: BoxFit.cover)
-                                      : Image.network(
-                                          networkUrl!,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 50.r, color: Colors.white),
-                                          loadingBuilder: (context, child, progress) => progress == null ? child : const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
-                                        ))
-                                  : Icon(Icons.person, size: 50.r, color: Colors.white),
+                                  ? (localFile != null
+                                        ? Image.file(
+                                            localFile,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Image.network(
+                                            networkUrl!,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) =>
+                                                    Icon(
+                                                      Icons.person,
+                                                      size: 50.r,
+                                                      color: Colors.white,
+                                                    ),
+                                            loadingBuilder:
+                                                (
+                                                  context,
+                                                  child,
+                                                  progress,
+                                                ) => progress == null
+                                                ? child
+                                                : const Center(
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          color: Colors.white,
+                                                          strokeWidth: 2,
+                                                        ),
+                                                  ),
+                                          ))
+                                  : Icon(
+                                      Icons.person,
+                                      size: 50.r,
+                                      color: Colors.white,
+                                    ),
                             );
                           }),
                           GestureDetector(
@@ -127,12 +156,14 @@ class PersonalData extends StatelessWidget {
                     ),
                     SizedBox(height: 6),
                     // ✅ Obx so it updates reactively once profile loads
-                    Obx(() => Text(
-                      controller.email.value.isNotEmpty
-                          ? controller.email.value
-                          : "email@gmail.com",
-                      style: TextStyle(fontSize: 18.sp, color: Colors.white),
-                    )),
+                    Obx(
+                      () => Text(
+                        controller.email.value.isNotEmpty
+                            ? controller.email.value
+                            : "email@gmail.com",
+                        style: TextStyle(fontSize: 18.sp, color: Colors.grey),
+                      ),
+                    ),
                     Divider(),
                     SizedBox(height: 20),
 
@@ -145,7 +176,7 @@ class PersonalData extends StatelessWidget {
                     Row(
                       children: [
                         Obx(
-                              () => Text(
+                          () => Text(
                             controller.selectedDate.value,
                             style: TextStyle(
                               fontSize: 18.sp,
@@ -178,12 +209,11 @@ class PersonalData extends StatelessWidget {
                     ),
                     SizedBox(height: 6),
                     GestureDetector(
-                      onTap: () =>
-                          controller.showCountryPickerSheet(context),
+                      onTap: () => controller.showCountryPickerSheet(context),
                       child: Row(
                         children: [
                           Obx(
-                                () => Text(
+                            () => Text(
                               controller.selectedCountry.value,
                               style: TextStyle(
                                 fontSize: 18.sp,
@@ -205,14 +235,15 @@ class PersonalData extends StatelessWidget {
 
                     // ── Save Button ───────────────────────────────────────────
                     Obx(
-                          () => SizedBox(
+                      () => SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: controller.isLoading.value
                               ? null
                               : () => controller.saveProfile(),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: controller.buttonText.value == 'Saved!'
+                            backgroundColor:
+                                controller.buttonText.value == 'Saved!'
                                 ? Colors.green
                                 : Colors.white,
                             foregroundColor: Colors.black,
@@ -233,7 +264,9 @@ class PersonalData extends StatelessWidget {
                                     strokeWidth: 2,
                                   ),
                                 ),
-                                SizedBox(width: 10.w), // Add spacing between spinner and text
+                                SizedBox(
+                                  width: 10.w,
+                                ), // Add spacing between spinner and text
                               ],
                               Text(
                                 controller.buttonText.value,

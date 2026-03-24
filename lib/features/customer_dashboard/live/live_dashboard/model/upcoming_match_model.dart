@@ -31,19 +31,43 @@ class UpcomingMatchModel {
 
   factory UpcomingMatchModel.fromJson(Map<String, dynamic> json) {
     return UpcomingMatchModel(
-      id: json['id']?.toString() ?? '',
-      homeTeam: json['homeTeam'] ?? '',
-      awayTeam: json['awayTeam'] ?? '',
-      homeLogo: json['logo']?['home'] ?? '',
-      awayLogo: json['logo']?['away'] ?? '',
-      status: json['status'] ?? '',
+      id:
+          json['id']?.toString() ??
+          json['matchId']?.toString() ??
+          json['match_id']?.toString() ??
+          '',
+      homeTeam:
+          json['homeTeam'] ??
+          json['home_team'] ??
+          json['team1'] ??
+          json['home'] ??
+          '',
+      awayTeam:
+          json['awayTeam'] ??
+          json['away_team'] ??
+          json['team2'] ??
+          json['away'] ??
+          '',
+      homeLogo:
+          json['logo']?['home'] ??
+          json['homeLogo'] ??
+          json['home_logo'] ??
+          json['logo1'] ??
+          '',
+      awayLogo:
+          json['logo']?['away'] ??
+          json['awayLogo'] ??
+          json['away_logo'] ??
+          json['logo2'] ??
+          '',
+      status: json['status'] ?? 'Scheduled',
       homeScore: json['homeScore']?.toString() ?? '-',
       awayScore: json['awayScore']?.toString() ?? '-',
-      viewCount: json['viewCount'] ?? '',
-      timeRemaining: json['timeRemaining'],
-      dayHeader: json['dayHeader'] ?? '',
-      timestamp: json['timestamp'] ?? '',
-      date: json['date'] ?? '',
+      viewCount: json['viewCount']?.toString() ?? '0',
+      timeRemaining: json['timeRemaining'] ?? json['time_remaining'],
+      dayHeader: json['dayHeader'] ?? json['league'] ?? json['day_header'] ?? '',
+      timestamp: json['timestamp']?.toString() ?? '',
+      date: json['date'] ?? json['time'] ?? 'TBA',
     );
   }
 }

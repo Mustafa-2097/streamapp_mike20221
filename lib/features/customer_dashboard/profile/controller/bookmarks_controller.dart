@@ -7,6 +7,8 @@ import '../../news/controller/news_controller.dart';
 import '../../news/model/news_model.dart';
 import '../../replay/model/replay_model.dart';
 
+import '../../live/live_dashboard/model/upcoming_match_model.dart';
+
 class BookmarkController extends GetxController {
   static BookmarkController get to => Get.find();
 
@@ -14,6 +16,7 @@ class BookmarkController extends GetxController {
   var selectedTabIndex = 0.obs;
 
   final List<String> categories = ["Upcoming Live", "Replay", "Clips", "News"];
+  final RxList<UpcomingMatchModel> liveBookmarks = <UpcomingMatchModel>[].obs;
   final RxList<ClipModel> clipBookmarks = <ClipModel>[].obs;
   final RxList<ReplayModel> replayBookmarks = <ReplayModel>[].obs;
   final RxList<Map<String, dynamic>> newsBookmarks =
@@ -208,33 +211,10 @@ class BookmarkController extends GetxController {
 
         // Update liveBookmarks list for the UI
         liveBookmarks.assignAll(
-          data
-              .map((item) {
-                final match = item['match'] ?? item;
-                // Try to find the most likely match ID
-                final String? mid =
-                    match['matchId']?.toString() ??
-                    match['match_id']?.toString() ??
-                    match['id']?.toString();
-
-                return {
-                  "id": mid ?? '',
-                  "team1":
-                      match['homeTeam'] ??
-                      match['team1'] ??
-                      match['home_team'] ??
-                      'Team A',
-                  "team2":
-                      match['awayTeam'] ??
-                      match['team2'] ??
-                      match['away_team'] ??
-                      'Team B',
-                  "date": match['date'] ?? 'TBA',
-                  "time": match['time'] ?? 'Soon',
-                };
-              })
-              .map((e) => Map<String, dynamic>.from(e))
-              .toList(),
+          data.map((item) {
+            final match = item['match'] ?? item;
+            return UpcomingMatchModel.fromJson(match);
+          }).toList(),
         );
       }
     } catch (e) {
@@ -358,34 +338,14 @@ class BookmarkController extends GetxController {
     return matchBookmarkIds.contains(matchId);
   }
 
-  // Mock Data for Live Matches
-  final RxList<Map<String, dynamic>> liveBookmarks = <Map<String, dynamic>>[
-    {
-      "team1": "Betis",
-      "team2": "Barcelona",
-      "date": "Mon, Marc 23, 21",
-      "time": "Soon",
-    },
-    {
-      "team1": "Betis",
-      "team2": "Barcelona",
-      "date": "Mon, Marc 23, 21",
-      "time": "Soon",
-    },
-    {
-      "team1": "Betis",
-      "team2": "Barcelona",
-      "date": "Mon, Marc 23, 21",
-      "time": "Soon",
-    },
-  ].obs;
-
-  // Mock Data for Replays (Removed)
-  // var replayBookmarks = [...]
-
   void changeTab(int index) => selectedTabIndex.value = index;
 
-  void removeLive(int index) => liveBookmarks.removeAt(index);
+  void removeLive(int index) async {
+    if (index < liveBookmarks.length) {
+      final item = liveBookmarks[index];
+      await toggleMatchBookmark(item.id);
+    }
+  }
 
   Future<void> removeReplay(int index) async {
     if (index < replayBookmarks.length) {
