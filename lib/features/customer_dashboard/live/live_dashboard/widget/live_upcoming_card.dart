@@ -36,24 +36,11 @@ class LiveUpcomingCard extends StatelessWidget {
                 return Row(
                   children: [
                     if (isBookmarked)
-                      const Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: Icon(
-                          Icons.bookmark,
-                          color: Colors.amber,
-                          size: 20,
-                        ),
+                      const Icon(
+                        Icons.bookmark,
+                        color: Colors.amber,
+                        size: 20,
                       ),
-                    const Icon(
-                      Icons.visibility_outlined,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      match.viewCount,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                    ),
                   ],
                 );
               }),
@@ -78,7 +65,7 @@ class LiveUpcomingCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      match.date,
+                      match.league,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.7),

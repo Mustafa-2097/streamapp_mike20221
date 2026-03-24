@@ -12,6 +12,7 @@ class UpcomingMatchModel {
   final String dayHeader;
   final String timestamp;
   final String date;
+  final String league;
 
   UpcomingMatchModel({
     required this.id,
@@ -27,6 +28,7 @@ class UpcomingMatchModel {
     required this.dayHeader,
     required this.timestamp,
     required this.date,
+    required this.league,
   });
 
   factory UpcomingMatchModel.fromJson(Map<String, dynamic> json) {
@@ -65,9 +67,10 @@ class UpcomingMatchModel {
       awayScore: json['awayScore']?.toString() ?? '-',
       viewCount: json['viewCount']?.toString() ?? '0',
       timeRemaining: json['timeRemaining'] ?? json['time_remaining'],
-      dayHeader: json['dayHeader'] ?? json['league'] ?? json['day_header'] ?? '',
+      dayHeader: json['dayHeader'] ?? json['day_header'] ?? '',
       timestamp: json['timestamp']?.toString() ?? '',
       date: json['date'] ?? json['time'] ?? 'TBA',
+      league: json['league']?.toString() ?? json['league_name']?.toString() ?? 'Upcoming',
     );
   }
 }
