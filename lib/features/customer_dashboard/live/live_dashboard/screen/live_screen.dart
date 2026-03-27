@@ -12,6 +12,7 @@ import '../model/recent_match_model.dart';
 import '../model/upcoming_match_model.dart';
 import '../widget/live_upcoming_card.dart';
 import '../../../profile/controller/bookmarks_controller.dart';
+import 'match_details_screen.dart';
 
 class LiveMatchesScreen extends StatelessWidget {
   LiveMatchesScreen({super.key, this.initialTab = 0});
@@ -199,7 +200,19 @@ class LiveMatchesScreen extends StatelessWidget {
   // MATCH CARD
   Widget _matchCard(MatchModel match) {
     return GestureDetector(
-      // onTap: () => Get.to(VideoLiveScreen()),
+      onTap: () async {
+        await Get.to(
+          () => MatchDetailsScreen(
+            matchId: match.id,
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam,
+            homeScore: int.tryParse(match.homeScore) ?? 0,
+            awayScore: int.tryParse(match.awayScore) ?? 0,
+            matchTitle: "${match.homeTeam} vs ${match.awayTeam}",
+          ),
+        );
+        controller.refreshCurrentTab();
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
@@ -379,10 +392,25 @@ class LiveMatchesScreen extends StatelessWidget {
   }
 
   Widget _upcomingMatchCard(UpcomingMatchModel match) {
-    return LiveUpcomingCard(
-      match: match,
-      isReminded: controller.remindedMatchIds.contains(match.id),
-      onRemindTap: () => controller.toggleReminder(match.id),
+    return GestureDetector(
+      onTap: () async {
+        await Get.to(
+          () => MatchDetailsScreen(
+            matchId: match.id,
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam,
+            homeScore: int.tryParse(match.homeScore) ?? 0,
+            awayScore: int.tryParse(match.awayScore) ?? 0,
+            matchTitle: "${match.homeTeam} vs ${match.awayTeam}",
+          ),
+        );
+        controller.refreshCurrentTab();
+      },
+      child: LiveUpcomingCard(
+        match: match,
+        isReminded: controller.remindedMatchIds.contains(match.id),
+        onRemindTap: () => controller.toggleReminder(match.id),
+      ),
     );
   }
 
@@ -404,7 +432,19 @@ class LiveMatchesScreen extends StatelessWidget {
 
   Widget _recentMatchCard(RecentMatchModel match) {
     return GestureDetector(
-      // onTap: () => Get.to(VideoLiveScreen()),
+      onTap: () async {
+        await Get.to(
+          () => MatchDetailsScreen(
+            matchId: match.id,
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam,
+            homeScore: int.tryParse(match.homeScore) ?? 0,
+            awayScore: int.tryParse(match.awayScore) ?? 0,
+            matchTitle: "${match.homeTeam} vs ${match.awayTeam}",
+          ),
+        );
+        controller.refreshCurrentTab();
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),

@@ -262,6 +262,21 @@ class LiveMatchesController extends GetxController {
     }
   }
 
+  /// Refreshes the currently active tab's data (e.g. after view count changes)
+  Future<void> refreshCurrentTab() async {
+    if (isLive) {
+      await fetchLiveMatches(isRefresh: true);
+    } else if (isUpcoming) {
+      await fetchUpcomingMatches();
+    } else if (isRecentMatch) {
+      await fetchRecentMatches();
+    } else if (isFootball) {
+      await fetchFootballMatches();
+    } else if (isRugby) {
+      await fetchRugbyMatches();
+    }
+  }
+
   @override
   void onClose() {
     scrollController.dispose();
