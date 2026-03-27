@@ -42,6 +42,11 @@ class ApiEndpoints {
   /// Table
   static const String leagueTable = '$baseUrl/sports/league-table';
 
+  /// Subscription Plans
+  static const String plans = '$baseUrl/plans';
+  static const String createCheckoutSession = '$baseUrl/payments/create-checkout-session';
+  static const String paymentHistory = '$baseUrl/payments/history';
+
   /// Live TV
   static const String liveTv = '$baseUrl/contents/live-tv';
 

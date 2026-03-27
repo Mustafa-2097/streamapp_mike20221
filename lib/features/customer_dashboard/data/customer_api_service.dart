@@ -208,6 +208,56 @@ class CustomerApiService {
     return await ApiService.get(ApiEndpoints.matchH2H(matchId), headers: headers);
   }
 
+  /// Subscription Plans
+  static Future<Map<String, dynamic>> getPlans() async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.plans, headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> createCheckoutSession({
+    required String planId,
+    required String userId,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    final body = {
+      'planId': planId,
+      'userId': userId,
+    };
+    return await ApiService.post(
+      ApiEndpoints.createCheckoutSession,
+      headers: headers,
+      body: body,
+    );
+  }
+
+  static Future<Map<String, dynamic>> getPaymentHistory({
+    required String userId,
+    String? planId,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    final queryParams = {
+      'userId': userId,
+      if (planId != null) 'planId': planId,
+    };
+    return await ApiService.get(
+      ApiEndpoints.paymentHistory,
+      headers: headers,
+      queryParameters: queryParams,
+    );
+  }
+
   /// New Upcoming Matches API (All)
   static Future<Map<String, dynamic>> getUpcomingMatchesAll({
     required int page,
