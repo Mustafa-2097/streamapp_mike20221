@@ -83,10 +83,7 @@ class RoomChatScreen extends StatelessWidget {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
-          child: Container(
-            color: Colors.white12,
-            height: 1.0,
-          ),
+          child: Container(color: Colors.white12, height: 1.0),
         ),
       ),
       body: ScaffoldBg(
@@ -101,21 +98,31 @@ class RoomChatScreen extends StatelessWidget {
                   style: TextStyle(color: Colors.white54, fontSize: 14.sp),
                 ),
               ),
-              
+
               // Chat Messages
               Expanded(
                 child: Obx(() {
-                  final roomController = Get.find<RoomChatController>(tag: roomId);
-                  
-                  if (roomController.isMessagesLoading.value && roomController.messagesList.isEmpty) {
-                    return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor));
+                  final roomController = Get.find<RoomChatController>(
+                    tag: roomId,
+                  );
+
+                  if (roomController.isMessagesLoading.value &&
+                      roomController.messagesList.isEmpty) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primaryColor,
+                      ),
+                    );
                   }
 
                   if (roomController.messagesList.isEmpty) {
                     return Center(
                       child: Text(
                         "No messages yet. Say hi!",
-                        style: TextStyle(color: Colors.white54, fontSize: 14.sp),
+                        style: TextStyle(
+                          color: Colors.white54,
+                          fontSize: 14.sp,
+                        ),
                       ),
                     );
                   }
@@ -126,12 +133,15 @@ class RoomChatScreen extends StatelessWidget {
                     reverse: true, // Newest messages at bottom
                     itemBuilder: (context, index) {
                       final message = roomController.messagesList[index];
-                      final bool isMe = message.userId == roomController.currentUserId.value ||
+                      final bool isMe =
+                          message.userId ==
+                              roomController.currentUserId.value ||
                           (message.user?.id != null &&
-                              message.user!.id == roomController.currentUserId.value);
-                      
+                              message.user!.id ==
+                                  roomController.currentUserId.value);
+
                       String userImage = message.user?.profilePhoto ?? "";
-                      
+
                       return _buildMessage(
                         context: context,
                         isMe: isMe,
@@ -146,7 +156,19 @@ class RoomChatScreen extends StatelessWidget {
                   );
                 }),
               ),
-              
+
+              // Typing Indicator
+              Obx(() => controller.isTyping.value 
+                ? Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "${controller.typingUser.value} is typing...",
+                      style: TextStyle(color: Colors.white54, fontSize: 12.sp, fontStyle: FontStyle.italic),
+                    ),
+                  )
+                : const SizedBox.shrink()),
+
               // Input Bar
               _buildInputBar(controller),
             ],
@@ -172,7 +194,9 @@ class RoomChatScreen extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: 24.h),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
@@ -181,8 +205,12 @@ class RoomChatScreen extends StatelessWidget {
                 CircleAvatar(
                   radius: 20.r,
                   backgroundColor: Colors.white24,
-                  backgroundImage: image.isNotEmpty ? _buildImageProvider(image) : null,
-                  child: image.isEmpty ? const Icon(Icons.person, color: Colors.white, size: 20) : null,
+                  backgroundImage: image.isNotEmpty
+                      ? _buildImageProvider(image)
+                      : null,
+                  child: image.isEmpty
+                      ? const Icon(Icons.person, color: Colors.white, size: 20)
+                      : null,
                 ),
                 SizedBox(height: 4.h),
                 Text(
@@ -193,16 +221,23 @@ class RoomChatScreen extends StatelessWidget {
             ),
             SizedBox(width: 8.w),
           ],
-          
+
           Stack(
             clipBehavior: Clip.none,
             children: [
               GestureDetector(
-                onLongPressStart: (details) => 
-                    _showReactionMenu(context, messageId, details.globalPosition, reactions),
+                onLongPressStart: (details) => _showReactionMenu(
+                  context,
+                  messageId,
+                  details.globalPosition,
+                  reactions,
+                ),
                 child: Container(
                   constraints: BoxConstraints(maxWidth: 0.65.sw),
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
                   decoration: BoxDecoration(
                     color: isMe ? Colors.white10 : Colors.white24,
                     borderRadius: BorderRadius.only(
@@ -224,7 +259,10 @@ class RoomChatScreen extends StatelessWidget {
                   right: isMe ? null : 0,
                   left: isMe ? 0 : null,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.w,
+                      vertical: 2.h,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF2C2C2C),
                       borderRadius: BorderRadius.circular(12.r),
@@ -240,14 +278,23 @@ class RoomChatScreen extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        ...uniqueEmojis.map((emoji) => Padding(
-                          padding: EdgeInsets.only(right: 2.w),
-                          child: Text(emoji, style: TextStyle(fontSize: 11.sp)),
-                        )),
+                        ...uniqueEmojis.map(
+                          (emoji) => Padding(
+                            padding: EdgeInsets.only(right: 2.w),
+                            child: Text(
+                              emoji,
+                              style: TextStyle(fontSize: 11.sp),
+                            ),
+                          ),
+                        ),
                         if (totalReactions > 1)
                           Text(
                             totalReactions.toString(),
-                            style: TextStyle(color: Colors.white70, fontSize: 10.sp, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                       ],
                     ),
@@ -255,7 +302,7 @@ class RoomChatScreen extends StatelessWidget {
                 ),
             ],
           ),
-          
+
           if (isMe) ...[
             SizedBox(width: 8.w),
             Column(
@@ -263,8 +310,12 @@ class RoomChatScreen extends StatelessWidget {
                 CircleAvatar(
                   radius: 20.r,
                   backgroundColor: Colors.white24,
-                  backgroundImage: image.isNotEmpty ? _buildImageProvider(image) : null,
-                  child: image.isEmpty ? const Icon(Icons.person, color: Colors.white, size: 20) : null,
+                  backgroundImage: image.isNotEmpty
+                      ? _buildImageProvider(image)
+                      : null,
+                  child: image.isEmpty
+                      ? const Icon(Icons.person, color: Colors.white, size: 20)
+                      : null,
                 ),
                 SizedBox(height: 4.h),
                 Text(
@@ -279,11 +330,16 @@ class RoomChatScreen extends StatelessWidget {
     );
   }
 
-  void _showReactionMenu(BuildContext context, String messageId, Offset position, List<ChatMessageReactionModel> messageReactions) {
+  void _showReactionMenu(
+    BuildContext context,
+    String messageId,
+    Offset position,
+    List<ChatMessageReactionModel> messageReactions,
+  ) {
     final emojis = ["👍", "❤️", "😂", "😮", "😢", "😡"];
     final menuWidth = 300.w;
     final menuHeight = 54.h;
-    
+
     final controller = Get.find<RoomChatController>(tag: roomId);
     final String currentUserId = controller.currentUserId.value;
     final Set<String> activeEmojis = messageReactions
@@ -294,7 +350,7 @@ class RoomChatScreen extends StatelessWidget {
     double left = position.dx - (menuWidth / 2);
     if (left < 16.w) left = 16.w;
     if (left + menuWidth > 1.sw - 16.w) left = 1.sw - menuWidth - 16.w;
-    
+
     double top = position.dy - menuHeight - 20.h;
     if (top < 100.h) top = position.dy + 20.h;
 
@@ -337,14 +393,21 @@ class RoomChatScreen extends StatelessWidget {
                           Navigator.pop(context);
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
+                          ),
                           decoration: BoxDecoration(
-                            color: isActive ? Colors.black45 : Colors.transparent,
+                            color: isActive
+                                ? Colors.black45
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(15.r),
                           ),
                           child: Text(
                             emoji,
-                            style: TextStyle(fontSize: isActive ? 26.sp : 24.sp),
+                            style: TextStyle(
+                              fontSize: isActive ? 26.sp : 24.sp,
+                            ),
                           ),
                         ),
                       );
@@ -380,23 +443,42 @@ class RoomChatScreen extends StatelessWidget {
                   hintStyle: TextStyle(color: Colors.white54, fontSize: 14.sp),
                   border: InputBorder.none,
                 ),
-                onSubmitted: (_) => controller.sendMessage(),
+                onChanged: controller.onTyping,
+                onSubmitted: (_) {
+                  controller.sendMessage();
+                  controller.onTyping(""); // Clear typing status
+                },
               ),
             ),
             IconButton(
               onPressed: () {},
-              icon: Icon(Icons.emoji_emotions_outlined, color: Colors.white70, size: 24.sp),
+              icon: Icon(
+                Icons.emoji_emotions_outlined,
+                color: Colors.white70,
+                size: 24.sp,
+              ),
             ),
-            Obx(() => IconButton(
-              onPressed: controller.isSending.value ? null : () => controller.sendMessage(),
-              icon: controller.isSending.value 
-                ? SizedBox(
-                    width: 20.w,
-                    height: 20.w,
-                    child: const CircularProgressIndicator(color: Colors.blueAccent, strokeWidth: 2),
-                  )
-                : Icon(Icons.send_rounded, color: Colors.blueAccent, size: 24.sp),
-            )),
+            Obx(
+              () => IconButton(
+                onPressed: controller.isSending.value
+                    ? null
+                    : () => controller.sendMessage(),
+                icon: controller.isSending.value
+                    ? SizedBox(
+                        width: 20.w,
+                        height: 20.w,
+                        child: const CircularProgressIndicator(
+                          color: Colors.blueAccent,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Icon(
+                        Icons.send_rounded,
+                        color: Colors.blueAccent,
+                        size: 24.sp,
+                      ),
+              ),
+            ),
           ],
         ),
       ),
