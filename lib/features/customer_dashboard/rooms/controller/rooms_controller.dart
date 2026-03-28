@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/const/app_colors.dart';
 import '../../data/customer_api_service.dart';
 import '../model/chat_room_model.dart';
 
@@ -34,13 +36,23 @@ class RoomsController extends GetxController {
       if (response['success'] == true) {
         return true;
       } else {
-        Get.snackbar("Error", response['message'] ?? "Failed to join room",
-            snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar(
+          "Error",
+          response['message'] ?? "Failed to join room",
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.errorColor,
+          colorText: Colors.white,
+        );
         return false;
       }
     } catch (e) {
-      Get.snackbar("Error", "Something went wrong. Please try again.",
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Error",
+        "Something went wrong. Please try again.",
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.white,
+      );
       return false;
     }
   }

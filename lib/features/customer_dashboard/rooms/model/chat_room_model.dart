@@ -11,6 +11,7 @@ class ChatRoomModel {
   final String updatedAt;
   final int memberCount;
   final List<dynamic>? members;
+  final bool isJoined;
 
   ChatRoomModel({
     required this.id,
@@ -25,6 +26,7 @@ class ChatRoomModel {
     required this.updatedAt,
     required this.memberCount,
     this.members,
+    required this.isJoined,
   });
 
   factory ChatRoomModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class ChatRoomModel {
       updatedAt: json['updatedAt'] ?? '',
       memberCount: json['_count'] != null ? (json['_count']['members'] ?? 0) : 0,
       members: json['members'] != null ? List<dynamic>.from(json['members']) : null,
+      isJoined: json['isJoined'] ?? false,
     );
   }
 }

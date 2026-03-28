@@ -197,7 +197,7 @@ class RoomChatScreen extends StatelessWidget {
         mainAxisAlignment: isMe
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isMe) ...[
             Column(
@@ -458,25 +458,12 @@ class RoomChatScreen extends StatelessWidget {
                 size: 24.sp,
               ),
             ),
-            Obx(
-              () => IconButton(
-                onPressed: controller.isSending.value
-                    ? null
-                    : () => controller.sendMessage(),
-                icon: controller.isSending.value
-                    ? SizedBox(
-                        width: 20.w,
-                        height: 20.w,
-                        child: const CircularProgressIndicator(
-                          color: Colors.blueAccent,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Icon(
-                        Icons.send_rounded,
-                        color: Colors.blueAccent,
-                        size: 24.sp,
-                      ),
+            IconButton(
+              onPressed: () => controller.sendMessage(),
+              icon: Icon(
+                Icons.send_rounded,
+                color: Colors.blueAccent,
+                size: 24.sp,
               ),
             ),
           ],

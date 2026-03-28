@@ -5,6 +5,7 @@ import '../../profile/controller/profile_controller.dart';
 import '../model/chat_message_model.dart';
 import '../model/chat_room_model.dart';
 import '../../../../core/network/socket_service.dart';
+import '../../../../core/const/app_colors.dart';
 
 class RoomChatController extends GetxController {
   final String roomId;
@@ -43,8 +44,21 @@ class RoomChatController extends GetxController {
     _socketService.on("new_message", (data) {
       debugPrint("Socket: New message received: $data");
       final newMessage = ChatMessageModel.fromJson(data);
-      // Insert at index 0 because our list is newest-first (ListView reverse: true)
-      if (!messagesList.any((m) => m.id == newMessage.id)) {
+      
+      // Check if message already exists by ID
+      final existingIndex = messagesList.indexWhere((m) => m.id == newMessage.id);
+      if (existingIndex != -1) return;
+
+      // Check if it matches a temporary message (same user and content)
+      final tempIndex = messagesList.indexWhere((m) => 
+          m.id.startsWith('temp_') && 
+          m.userId == newMessage.userId && 
+          m.content == newMessage.content);
+
+      if (tempIndex != -1) {
+        messagesList[tempIndex] = newMessage;
+        messagesList.refresh();
+      } else {
         messagesList.insert(0, newMessage);
       }
     });
@@ -119,57 +133,143 @@ class RoomChatController extends GetxController {
     final content = messageController.text.trim();
     if (content.isEmpty) return;
 
+    final tempId = "temp_${DateTime.now().millisecondsSinceEpoch}";
+    final userProfile = Get.find<ProfileController>().profile.value;
+    
+    // Create optimistic message
+    final tempMsg = ChatMessageModel(
+      id: tempId,
+      roomId: roomId,
+      userId: currentUserId.value,
+      content: content,
+      isEdited: false,
+      isDeleted: false,
+      createdAt: DateTime.now().toIso8601String(),
+      updatedAt: DateTime.now().toIso8601String(),
+      user: userProfile != null ? ChatUserModel(
+        id: userProfile.id,
+        name: userProfile.name ?? "Me",
+        username: userProfile.email.split('@').first,
+        profilePhoto: userProfile.profilePhoto,
+      ) : null,
+      replyCount: 0,
+      reactionCount: 0,
+      reactions: [],
+    );
+
+    // Add immediately to UI
+    messagesList.insert(0, tempMsg);
+    messageController.clear();
+    onTyping(""); 
+
     try {
-      isSending.value = true;
+      // isSending.value = true; // No longer blocking the button with a flag
       final response = await CustomerApiService.sendMessage(
         roomId: roomId,
         content: content,
       );
 
       if (response['success'] == true) {
-        messageController.clear();
-        onTyping(""); // Clear typing status
-        // No need to call fetchMessagesHistory() here, socket will deliver the msg
+        // We'll let the socket "new_message" add the real one and then remove this temp one?
+        // Or we replace it now if we have the real ID
+        final realMsg = ChatMessageModel.fromJson(response['data']);
+        final index = messagesList.indexWhere((m) => m.id == tempId);
+        if (index != -1) {
+          messagesList[index] = realMsg;
+          messagesList.refresh();
+        }
       } else {
+        messagesList.removeWhere((m) => m.id == tempId);
         Get.snackbar(
           "Error",
           response['message'] ?? "Failed to send message",
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.errorColor,
+          colorText: Colors.white,
         );
       }
     } catch (e) {
+      messagesList.removeWhere((m) => m.id == tempId);
       Get.snackbar(
         "Error",
         "Something went wrong. Please try again.",
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.errorColor,
+        colorText: Colors.white,
       );
     } finally {
-      isSending.value = false;
     }
   }
 
   Future<void> toggleReaction(String messageId, String emoji) async {
+    final msgIndex = messagesList.indexWhere((m) => m.id == messageId);
+    if (msgIndex == -1) return;
+
+    final originalMsg = messagesList[msgIndex];
+    final currentUserIdValue = currentUserId.value;
+    if (currentUserIdValue.isEmpty) return;
+
+    List<ChatMessageReactionModel> updatedReactions = List.from(originalMsg.reactions);
+    int newReactionCount = originalMsg.reactionCount;
+
+    final existingReactionIndex =
+        updatedReactions.indexWhere((r) => r.userId == currentUserIdValue);
+
+    if (existingReactionIndex != -1) {
+      final existingEmoji = updatedReactions[existingReactionIndex].emoji;
+      if (existingEmoji == emoji) {
+        // Toggle off (remove)
+        updatedReactions.removeAt(existingReactionIndex);
+        if (newReactionCount > 0) newReactionCount--;
+      } else {
+        // Switch emoji (replace)
+        updatedReactions[existingReactionIndex] = ChatMessageReactionModel(
+          id: updatedReactions[existingReactionIndex].id,
+          messageId: messageId,
+          userId: currentUserIdValue,
+          emoji: emoji,
+          createdAt: DateTime.now().toIso8601String(),
+        );
+        // Count stays same
+      }
+    } else {
+      // Add new emoji
+      updatedReactions.add(ChatMessageReactionModel(
+        id: "temp_reac_${DateTime.now().millisecondsSinceEpoch}",
+        messageId: messageId,
+        userId: currentUserIdValue,
+        emoji: emoji,
+        createdAt: DateTime.now().toIso8601String(),
+      ));
+      newReactionCount++;
+    }
+
+    // Apply optimistic update
+    messagesList[msgIndex] = originalMsg.copyWith(
+      reactions: updatedReactions,
+      reactionCount: newReactionCount,
+    );
+    messagesList.refresh();
+
     try {
       final response = await CustomerApiService.toggleMessageReaction(
         messageId: messageId,
         emoji: emoji,
       );
 
-      if (response['success'] == true) {
+      if (response['success'] != true) {
+        // If API fails, revert by fetching history
         await fetchMessagesHistory();
-      } else {
         Get.snackbar(
           "Error",
           response['message'] ?? "Failed to update reaction",
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.errorColor,
+          colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Something went wrong. Please try again.",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      await fetchMessagesHistory();
     }
   }
 

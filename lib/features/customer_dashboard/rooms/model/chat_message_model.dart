@@ -29,6 +29,38 @@ class ChatMessageModel {
     required this.reactions,
   });
 
+  ChatMessageModel copyWith({
+    String? id,
+    String? roomId,
+    String? userId,
+    String? content,
+    String? parentMessageId,
+    bool? isEdited,
+    bool? isDeleted,
+    String? createdAt,
+    String? updatedAt,
+    ChatUserModel? user,
+    int? replyCount,
+    int? reactionCount,
+    List<ChatMessageReactionModel>? reactions,
+  }) {
+    return ChatMessageModel(
+      id: id ?? this.id,
+      roomId: roomId ?? this.roomId,
+      userId: userId ?? this.userId,
+      content: content ?? this.content,
+      parentMessageId: parentMessageId ?? this.parentMessageId,
+      isEdited: isEdited ?? this.isEdited,
+      isDeleted: isDeleted ?? this.isDeleted,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      user: user ?? this.user,
+      replyCount: replyCount ?? this.replyCount,
+      reactionCount: reactionCount ?? this.reactionCount,
+      reactions: reactions ?? this.reactions,
+    );
+  }
+
   factory ChatMessageModel.fromJson(Map<String, dynamic> json) {
     return ChatMessageModel(
       id: json['id'] ?? '',
