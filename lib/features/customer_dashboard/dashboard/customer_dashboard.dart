@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:testapp/features/customer_dashboard/dashboard/widgets/bottom_nav.dart';
 import '../clips/screen/clips_screen.dart';
 import '../home/view/home_screen.dart';
 import '../live/live_dashboard/screen/live_screen.dart';
+import '../profile/controller/profile_controller.dart';
 import '../profile/view/profile_screen.dart';
 import '../replay/view/replay_screen.dart';
+import '../rooms/controller/rooms_controller.dart';
 import '../rooms/view/rooms_screen.dart';
 
 class CustomerDashboard extends StatefulWidget {
@@ -37,6 +40,16 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
     setState(() {
       _selectedIndex = index;
     });
+
+    // Refresh Rooms data when user navigates to Rooms tab
+    if (index == 4 && Get.isRegistered<RoomsController>()) {
+      Get.find<RoomsController>().fetchRooms();
+    }
+    
+    // Also refresh profile when on profile tab
+    if (index == 5 && Get.isRegistered<ProfileController>()) {
+      Get.find<ProfileController>().fetchProfile();
+    }
   }
 
   @override

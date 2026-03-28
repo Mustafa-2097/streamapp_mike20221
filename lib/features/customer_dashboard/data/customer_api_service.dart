@@ -503,4 +503,84 @@ class CustomerApiService {
       },
     );
   }
+
+  /// ================= CHAT ROOMS =================
+  static Future<Map<String, dynamic>> getChatRooms() async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.chatRooms, headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> getSingleChatRoom(String roomId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.singleChatRoom(roomId),
+        headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> joinChatRoom(String roomId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.post(ApiEndpoints.joinChatRoom(roomId),
+        headers: headers, body: {});
+  }
+
+  static Future<Map<String, dynamic>> getRoomMessages(String roomId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.roomMessages(roomId),
+        headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> sendMessage({
+    required String roomId,
+    required String content,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    final body = {
+      'roomId': roomId,
+      'content': content,
+    };
+    return await ApiService.post(
+      ApiEndpoints.chatMessages,
+      headers: headers,
+      body: body,
+    );
+  }
+
+  static Future<Map<String, dynamic>> toggleMessageReaction({
+    required String messageId,
+    required String emoji,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    final body = {
+      'messageId': messageId,
+      'emoji': emoji,
+    };
+    return await ApiService.post(
+      ApiEndpoints.messageReaction,
+      headers: headers,
+      body: body,
+    );
+  }
 }

@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:testapp/features/splash/views/splash_screen.dart';
+import 'core/network/socket_service.dart';
 import 'features/customer_dashboard/news/controller/news_controller.dart';
 import 'features/customer_dashboard/profile/controller/bookmarks_controller.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Get.putAsync(() => SocketService().init());
   Get.put(NewsController(), permanent: true);
   Get.put(BookmarkController(), permanent: true);
   runApp(const MyApp());
@@ -21,10 +24,7 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return GetMaterialApp(
-          debugShowCheckedModeBanner: false,
-          home: child,
-        );
+        return GetMaterialApp(debugShowCheckedModeBanner: false, home: child);
       },
       child: SplashScreen(),
     );
