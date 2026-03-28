@@ -15,23 +15,28 @@ class HomeScreen extends StatelessWidget {
       drawer: const CustomAppDrawer(),
       body: ScaffoldBg(
         child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                pinned: true,
-                floating: false,
-                automaticallyImplyLeading: false,
-                backgroundColor: Colors.transparent,
-                flexibleSpace: const CustomHomeAppBar(),
+          child: Stack(
+            children: [
+              // Main Scrollable Content
+              Padding(
+                padding: const EdgeInsets.only(top: 64), // Height of CustomHomeAppBar
+                child: CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(child: const HomeCarouselSlider()),
+                    SliverToBoxAdapter(child: const SportsCategoryFilter()),
+                    SliverToBoxAdapter(child: const SizedBox(height: 10)),
+                    SliverToBoxAdapter(child: ContentSection()),
+                  ],
+                ),
               ),
 
-              SliverToBoxAdapter(child: const HomeCarouselSlider()),
-
-              SliverToBoxAdapter(child: const SportsCategoryFilter()),
-
-              SliverToBoxAdapter(child: SizedBox(height: 10)),
-
-              SliverToBoxAdapter(child: ContentSection()),
+              // Fixed Transparent AppBar on top
+              const Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: CustomHomeAppBar(),
+              ),
             ],
           ),
         ),

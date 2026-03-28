@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import '../../../../../core/common/widgets/scaffold_bg.dart';
 import '../../../../../core/const/app_colors.dart';
@@ -20,7 +19,7 @@ class ContactUsPage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: const BackButton(color: Colors.white),
-        title: Text(
+        title: const Text(
           "SUPPORT CENTER",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
@@ -35,12 +34,11 @@ class ContactUsPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     /// FULL NAME
                     InputField(
                       controller: controller.nameController,
                       suffixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
-                      hint: "UserName",
+                      hint: "Name",
                       enabled: false,
                     ),
                     SizedBox(height: 15.h),
@@ -49,7 +47,7 @@ class ContactUsPage extends StatelessWidget {
                     InputField(
                       controller: controller.emailController,
                       suffixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
-                      hint: "user@gmail.com",
+                      hint: "Email",
                       enabled: false,
                     ),
                     SizedBox(height: 15.h),
@@ -72,13 +70,9 @@ class ContactUsPage extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(24.r),
                         ),
-                        backgroundColor: AppColors.bgColor,
+                        backgroundColor: AppColors.primaryColor,
                       ),
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          // submit
-                        }
-                      },
+                      onPressed: () => controller.contactChange(_formKey),
                       child: Text(
                         "Send",
                         style: TextStyle(
@@ -90,13 +84,11 @@ class ContactUsPage extends StatelessWidget {
                     )
                   ],
                 ),
-
               ),
             ),
           ),
         ),
       ),
-
     );
   }
 }

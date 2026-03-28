@@ -5,6 +5,7 @@ import '../home/view/home_screen.dart';
 import '../live/live_dashboard/screen/live_screen.dart';
 import '../profile/view/profile_screen.dart';
 import '../replay/view/replay_screen.dart';
+import '../rooms/view/rooms_screen.dart';
 
 class CustomerDashboard extends StatefulWidget {
   final int initialIndex;
@@ -22,6 +23,7 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
     ClipsScreen(),
     LiveMatchesScreen(),
     ReplayScreen(),
+    RoomsScreen(),
     ProfileScreen(),
   ];
 

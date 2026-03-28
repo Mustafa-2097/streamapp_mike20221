@@ -34,7 +34,7 @@ class InputField extends StatelessWidget {
       validator: validator,
       enabled: enabled,
       maxLines: maxLines,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: enabled ? Colors.white : Colors.grey),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.grey),

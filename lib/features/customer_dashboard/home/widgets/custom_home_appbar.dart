@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../core/const/images_path.dart';
 import '../../profile/view/pages/personal_data.dart';
+import '../../profile/controller/profile_controller.dart';
 import '../view/notification_page.dart';
 
 class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -50,10 +51,27 @@ class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               onTap: () {
                 Get.to(PersonalData());
               },
-              child: CircleAvatar(
-                radius: 12.r,
-                child: Icon(Icons.person, size: 20.r, color: Colors.black),
-              ),
+              child: Obx(() {
+                final profileCtrl = Get.find<ProfileController>();
+                final photoUrl = profileCtrl.profile.value?.profilePhoto;
+
+                return CircleAvatar(
+                  radius: 12.r,
+                  backgroundColor: Colors.white,
+                  child: ClipOval(
+                    child: photoUrl != null && photoUrl.isNotEmpty
+                        ? Image.network(
+                            photoUrl,
+                            fit: BoxFit.cover,
+                            width: 24.r,
+                            height: 24.r,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(Icons.person, size: 20.r, color: Colors.black),
+                          )
+                        : Icon(Icons.person, size: 20.r, color: Colors.black),
+                  ),
+                );
+              }),
             ),
           ],
         ),

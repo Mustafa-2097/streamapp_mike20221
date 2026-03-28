@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import '../../../../core/const/app_colors.dart';
+import 'profile_controller.dart';
 
 class ContactUsController extends GetxController {
   static ContactUsController get instance => Get.find();
@@ -10,6 +10,16 @@ class ContactUsController extends GetxController {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final messageController = TextEditingController();
+
+  @override
+  void onInit() {
+    super.onInit();
+    final profileCtrl = Get.find<ProfileController>();
+    if (profileCtrl.profile.value != null) {
+      nameController.text = profileCtrl.profile.value?.name ?? "No Name Set";
+      emailController.text = profileCtrl.profile.value?.email ?? "";
+    }
+  }
 
   /// Message validation
   String? validateMessage(String value) {
@@ -24,26 +34,25 @@ class ContactUsController extends GetxController {
 
     try {
       EasyLoading.show(status: 'Sending...');
-      // await _repository.contactUs(
-      //   messageController.text.trim(),
-      // );
+      // Simulated API call point
+      await Future.delayed(const Duration(seconds: 1));
 
       EasyLoading.dismiss();
-      Get.snackbar("Success", "Your message has been sent!", backgroundColor: AppColors.primaryColor);
+      Get.snackbar("Success", "Your message has been sent!", 
+        backgroundColor: Colors.amber, 
+        colorText: Colors.black,
+        snackPosition: SnackPosition.BOTTOM
+      );
       messageController.clear();
-
     } catch (e) {
       EasyLoading.dismiss();
-      Get.snackbar("Error", e.toString(), backgroundColor: Colors.red);
+      Get.snackbar("Error", e.toString(), 
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM
+      );
     }
   }
-
-  // @override
-  // void onInit() {
-  //   super.onInit();
-  //   nameController.text = profile.userName.value;
-  //   emailController.text = profile.userEmail.value;
-  // }
 
   @override
   void onClose() {

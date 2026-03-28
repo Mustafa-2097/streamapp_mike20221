@@ -17,6 +17,9 @@ class ReplayScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: Navigator.canPop(context)
+            ? const BackButton(color: Colors.white)
+            : null,
         title: Text(
           "REPLAY",
           style: TextStyle(

@@ -31,9 +31,21 @@ class ApiEndpoints {
   static const String recentMatches = '$baseUrl/matches/recent';
   static const String footballMatches = '$baseUrl/matches/football';
   static const String rugbyMatches = '$baseUrl/matches/rugby';
+  static String matchInfo(String matchId) => '$baseUrl/matches/$matchId/info';
+  static String matchSummary(String matchId) => '$baseUrl/matches/$matchId/summary';
+  static String matchHeader(String matchId) => '$baseUrl/matches/$matchId/header';
+  static String matchStats(String matchId) => '$baseUrl/matches/$matchId/stats';
+  static String matchLineup(String matchId) => '$baseUrl/matches/$matchId/lineup';
+  static String matchTable(String matchId) => '$baseUrl/matches/$matchId/table';
+  static String matchH2H(String matchId) => '$baseUrl/matches/$matchId/h2h';
 
   /// Table
   static const String leagueTable = '$baseUrl/sports/league-table';
+
+  /// Subscription Plans
+  static const String plans = '$baseUrl/plans';
+  static const String createCheckoutSession = '$baseUrl/payments/create-checkout-session';
+  static const String paymentHistory = '$baseUrl/payments/history';
 
   /// Live TV
   static const String liveTv = '$baseUrl/contents/live-tv';
