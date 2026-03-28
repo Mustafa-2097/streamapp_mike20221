@@ -97,4 +97,12 @@ class ApiEndpoints {
 
   /// Match Bookmarks
   static const String matchBookmarks = '$baseUrl/match-bookmarks';
+
+  /// Chat Rooms
+  static const String chatRooms = '$baseUrl/chat/rooms';
+  static String singleChatRoom(String id) => '$baseUrl/chat/rooms/$id';
+  static String joinChatRoom(String id) => '$baseUrl/chat/rooms/$id/join';
+  static String roomMessages(String id) => '$baseUrl/chat/rooms/$id/messages';
+  static const String chatMessages = '$baseUrl/chat/messages';
+  static const String messageReaction = '$baseUrl/chat/messages/reaction';
 }
