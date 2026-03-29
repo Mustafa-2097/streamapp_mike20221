@@ -2,27 +2,80 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../controller/live_tv_controller.dart';
+import '../controller/live_tv_comment_controller.dart';
+import '../model/live_tv_comment_model.dart';
 
-class OpenTvs extends StatelessWidget {
+class OpenTvs extends StatefulWidget {
   OpenTvs({super.key});
 
+  @override
+  State<OpenTvs> createState() => _OpenTvsState();
+}
+
+class _OpenTvsState extends State<OpenTvs> {
   final LiveTvController controller = Get.put(LiveTvController());
+  LiveTvCommentController? commentController;
 
   final WebViewController webController = WebViewController()
     ..setJavaScriptMode(JavaScriptMode.unrestricted)
     ..setBackgroundColor(Colors.black);
 
   @override
+  void initState() {
+    super.initState();
+    _initSelection();
+  }
+
+  void _initSelection() {
+    // Auto-select first channel if none selected
+    if (controller.selectedLiveTv.value == null &&
+        controller.liveTvs.isNotEmpty) {
+      controller.selectedLiveTv.value = controller.liveTvs.first;
+    }
+
+    if (controller.selectedLiveTv.value != null) {
+      webController.loadRequest(
+          Uri.parse(controller.selectedLiveTv.value!.link));
+      commentController = Get.put(LiveTvCommentController(
+          liveTvId: controller.selectedLiveTv.value!.id));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     /// Load video ONLY when selectedLiveTv changes
     ever(controller.selectedLiveTv, (liveTv) {
-      if (liveTv != null) {
-        webController.loadRequest(Uri.parse(liveTv.url));
+      if (liveTv != null && mounted) {
+        webController.loadRequest(Uri.parse(liveTv.link));
+        // Reset comment controller for new TV
+        if (commentController != null) {
+          Get.delete<LiveTvCommentController>();
+        }
+        commentController =
+            Get.put(LiveTvCommentController(liveTvId: liveTv.id));
+        setState(() {});
       }
     });
 
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Get.back(),
+        ),
+        title: const Text(
+          "Live TV",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: Obx(() {
           if (controller.isLoading.value) {
@@ -97,20 +150,35 @@ class OpenTvs extends StatelessWidget {
 
                         const SizedBox(height: 16),
 
-                        const Text(
-                          "Comments",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        /* Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Comments",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Obx(
+                              () => Text(
+                                commentController?.formattedTotalCount.value ??
+                                    "0",
+                                style: const TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ), */
 
-                        const SizedBox(height: 10),
+                        // const SizedBox(height: 10),
 
                         _commentsList(),
 
-                        const SizedBox(height: 90),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
@@ -120,87 +188,398 @@ class OpenTvs extends StatelessWidget {
           );
         }),
       ),
-      bottomNavigationBar: _commentInputBar(),
+      /* bottomNavigationBar: _commentInputBar(), */
     );
   }
 
-  // ---------------- COMMENTS ----------------
+  // ---------------- COMMENTS LIST ----------------
   Widget _commentsList() {
-    final comments = [
-      {"name": "alien.aa", "text": "shut down them please!!!"},
-      {"name": "trunghieu1794", "text": "nice play bro!!! keep playing"},
-    ];
+    if (commentController == null) return const SizedBox.shrink();
 
-    return Column(
-      children: comments.map((c) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Row(
+    return Obx(() {
+      if (commentController!.isLoading.value &&
+          commentController!.commentsList.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      /* if (commentController!.commentsList.isEmpty) {
+        return const Text(
+          "No comments yet",
+          style: TextStyle(color: Colors.white60, fontSize: 13),
+        );
+      } */
+
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: commentController!.commentsList.length,
+        itemBuilder: (context, index) {
+          final comment = commentController!.commentsList[index];
+          return _CommentTile(comment: comment, controller: commentController!);
+        },
+      );
+    });
+  }
+
+  /* // ---------------- COMMENT INPUT ----------------
+  Widget _commentInputBar() {
+    if (commentController == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        12,
+        10,
+        12,
+        MediaQuery.of(context).padding.bottom + 10,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0E0E0E),
+        border: Border(top: BorderSide(color: Colors.white10)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Obx(() {
+            if (commentController!.replyingToCommentId.value.isEmpty)
+              return const SizedBox.shrink();
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    "Replying to @${commentController!.replyingToUserName.value}",
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: commentController!.cancelReply,
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.grey,
+                      size: 16,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          Row(
             children: [
-              CircleAvatar(
-                radius: 14,
-                backgroundColor: Colors.grey.shade800,
-                child: Text(
-                  c["name"]![0].toUpperCase(),
-                  style: const TextStyle(color: Colors.white),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white10,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: TextField(
+                    controller: commentController!.commentController,
+                    focusNode: commentController!.commentFocusNode,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      hintText: "Add a comment...",
+                      hintStyle: TextStyle(color: Colors.white54),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: "${c["name"]} ",
-                        style: const TextStyle(
+              Obx(
+                () => commentController!.isPosting.value
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
                           color: Colors.redAccent,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
+                        ),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.send, color: Colors.redAccent),
+                        onPressed: commentController!.submitComment,
+                      ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  } */
+}
+
+class _CommentTile extends StatelessWidget {
+  final LiveTvComment comment;
+  final LiveTvCommentController controller;
+
+  const _CommentTile({required this.comment, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundImage: NetworkImage(
+                  comment.user.profilePhoto
+                      .replaceAll('localhost', '10.0.30.59')
+                      .replaceAll('127.0.0.1', '10.0.30.59'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "${comment.user.name} ",
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          TextSpan(
+                            text: comment.content,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _actionIcon(
+                          comment.userStatus.isLiked
+                              ? Icons.thumb_up
+                              : Icons.thumb_up_alt_outlined,
+                          comment.likeCount.toString(),
+                          comment.userStatus.isLiked
+                              ? Colors.redAccent
+                              : Colors.grey,
+                          () => controller.toggleCommentAction(
+                            comment.commentId,
+                            "LIKE",
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        _actionIcon(
+                          comment.userStatus.isDisliked
+                              ? Icons.thumb_down
+                              : Icons.thumb_down_alt_outlined,
+                          comment.dislikeCount.toString(),
+                          comment.userStatus.isDisliked
+                              ? Colors.redAccent
+                              : Colors.grey,
+                          () => controller.toggleCommentAction(
+                            comment.commentId,
+                            "DISLIKE",
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        GestureDetector(
+                          onTap: () => controller.startReply(comment),
+                          child: const Text(
+                            "Reply",
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Inner Replies
+                    if (comment.replies.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: _RepliesList(
+                          replies: comment.replies,
+                          controller: controller,
+                          parentCommentId: comment.commentId,
                         ),
                       ),
-                      TextSpan(
-                        text: c["text"],
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
+
+                    if (comment.replyCount > 0 && comment.replies.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: GestureDetector(
+                          onTap: () => controller.fetchReplies(comment),
+                          child: Text(
+                            "View ${comment.replyCount} ${comment.replyCount == 1 ? 'reply' : 'replies'}",
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ],
           ),
-        );
-      }).toList(),
+        ],
+      ),
     );
   }
 
-  // ---------------- COMMENT INPUT ----------------
-  Widget _commentInputBar() {
-    return Container(
-      padding:
-      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      color: const Color(0xFF0E0E0E),
+  Widget _actionIcon(
+    IconData icon,
+    String count,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
       child: Row(
-        children: const [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: Colors.redAccent,
-            child: Icon(Icons.person, color: Colors.white, size: 18),
-          ),
-          SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              style: TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: "Add a comment...",
-                hintStyle: TextStyle(color: Colors.white54),
-                border: InputBorder.none,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 4),
+          Text(count, style: TextStyle(color: color, fontSize: 11)),
+        ],
+      ),
+    );
+  }
+}
+
+class _RepliesList extends StatelessWidget {
+  final List<LiveTvComment> replies;
+  final LiveTvCommentController controller;
+  final String parentCommentId;
+
+  const _RepliesList({
+    required this.replies,
+    required this.controller,
+    required this.parentCommentId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: replies
+          .map(
+            (reply) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundImage: NetworkImage(
+                      reply.user.profilePhoto
+                          .replaceAll('localhost', '10.0.30.59')
+                          .replaceAll('127.0.0.1', '10.0.30.59'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "${reply.user.name} ",
+                                style: const TextStyle(
+                                  color: Colors.cyanAccent,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              TextSpan(
+                                text: reply.content,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            _replyActionIcon(
+                              reply.userStatus.isLiked
+                                  ? Icons.thumb_up
+                                  : Icons.thumb_up_alt_outlined,
+                              reply.likeCount.toString(),
+                              reply.userStatus.isLiked
+                                  ? Colors.redAccent
+                                  : Colors.grey,
+                              () => controller.toggleCommentAction(
+                                reply.commentId,
+                                "LIKE",
+                                parentId: parentCommentId,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            _replyActionIcon(
+                              reply.userStatus.isDisliked
+                                  ? Icons.thumb_down
+                                  : Icons.thumb_down_alt_outlined,
+                              reply.dislikeCount.toString(),
+                              reply.userStatus.isDisliked
+                                  ? Colors.redAccent
+                                  : Colors.grey,
+                              () => controller.toggleCommentAction(
+                                reply.commentId,
+                                "DISLIKE",
+                                parentId: parentCommentId,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          Icon(Icons.send, color: Colors.white54),
+          )
+          .toList(),
+    );
+  }
+
+  Widget _replyActionIcon(
+    IconData icon,
+    String count,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 14),
+          const SizedBox(width: 4),
+          Text(count, style: TextStyle(color: color, fontSize: 10)),
         ],
       ),
     );

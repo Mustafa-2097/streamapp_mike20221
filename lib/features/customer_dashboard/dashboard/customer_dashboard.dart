@@ -10,6 +10,7 @@ import '../replay/view/replay_screen.dart';
 import '../rooms/controller/rooms_controller.dart';
 import '../rooms/view/rooms_screen.dart';
 import '../home/controller/notification_controller.dart';
+import '../home/controller/live_tv_controller.dart';
 
 class CustomerDashboard extends StatefulWidget {
   final int initialIndex;
@@ -42,9 +43,14 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
       _selectedIndex = index;
     });
 
-    // Refresh notifications when user navigates to Home tab
-    if (index == 0 && Get.isRegistered<NotificationController>()) {
-      Get.find<NotificationController>().fetchNotifications();
+    // Refresh notifications and Live TV when user navigates to Home tab
+    if (index == 0) {
+      if (Get.isRegistered<NotificationController>()) {
+        Get.find<NotificationController>().fetchNotifications();
+      }
+      if (Get.isRegistered<LiveTvController>()) {
+        Get.find<LiveTvController>().fetchLiveTvs();
+      }
     }
 
     // Refresh Rooms data when user navigates to Rooms tab

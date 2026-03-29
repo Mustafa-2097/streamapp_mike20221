@@ -17,6 +17,8 @@ import '../../news/controller/news_controller.dart';
 import '../../clips/controller/clips_controller.dart';
 import '../../replay/controller/replay_controller.dart';
 import '../../live/live_dashboard/controller/live_controller.dart';
+import '../controller/live_tv_controller.dart';
+import '../model/live_tv_model.dart';
 
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
@@ -64,6 +66,7 @@ class ContentSection extends StatelessWidget {
     final LiveMatchesController liveController = Get.put(
       LiveMatchesController(),
     );
+    final LiveTvController liveTvController = Get.put(LiveTvController());
 
     // Fetch upcoming if empty
     if (liveController.upcomingMatches.isEmpty &&
@@ -119,14 +122,31 @@ class ContentSection extends StatelessWidget {
         // Live TV Channels
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildTVChannel('assets/images/tv01.png', 0),
-              _buildTVChannel('assets/images/tv02.png', 1),
-              _buildTVChannel('assets/images/tv03.png', 2),
-            ],
-          ),
+          child: Obx(() {
+            if (liveTvController.isLoading.value &&
+                liveTvController.liveTvs.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (liveTvController.liveTvs.isEmpty) {
+              return const SizedBox();
+            }
+
+            return SizedBox(
+              height: 70.h,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: liveTvController.liveTvs.length,
+                itemBuilder: (context, index) {
+                  final tv = liveTvController.liveTvs[index];
+                  return Padding(
+                    padding: EdgeInsets.only(right: 12.w),
+                    child: _buildTVChannel(tv),
+                  );
+                },
+              ),
+            );
+          }),
         ),
 
         SizedBox(height: 26.h),
@@ -636,14 +656,32 @@ class ContentSection extends StatelessWidget {
     );
   }
 
-  Widget _buildTVChannel(String imagePath, int index) {
+  Widget _buildTVChannel(LiveTvModel tv) {
+    final imageUrl = tv.thumbnail
+        .replaceAll('localhost', '10.0.30.59')
+        .replaceAll('127.0.0.1', '10.0.30.59')
+        .replaceAll('undefined/', 'http://10.0.30.59:8000/');
+
     return GestureDetector(
       onTap: () {
+        final liveTvController = Get.find<LiveTvController>();
+        liveTvController.selectedLiveTv.value = tv;
         Get.to(() => OpenTvs());
       },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.asset(imagePath, width: 90, fit: BoxFit.cover),
+        child: Image.network(
+          imageUrl,
+          width: 90,
+          height: 60,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Container(
+            width: 90,
+            height: 60,
+            color: Colors.grey[800],
+            child: const Icon(Icons.tv, color: Colors.white54),
+          ),
+        ),
       ),
     );
   }
