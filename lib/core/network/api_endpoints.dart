@@ -105,4 +105,9 @@ class ApiEndpoints {
   static String roomMessages(String id) => '$baseUrl/chat/rooms/$id/messages';
   static const String chatMessages = '$baseUrl/chat/messages';
   static const String messageReaction = '$baseUrl/chat/messages/reaction';
+
+  /// Notifications
+  static const String notifications = '$baseUrl/notifications';
+  static const String markNotificationsAsSeen = '$baseUrl/notifications/mark-as-seen';
+  static const String notificationSettings = '$baseUrl/notifications/settings';
 }

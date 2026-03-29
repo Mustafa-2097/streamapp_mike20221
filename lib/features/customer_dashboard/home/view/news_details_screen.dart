@@ -35,13 +35,14 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
       // If we have a bookmarkId, we use the bookmark details endpoint
       try {
         if (Get.isRegistered<BookmarkController>()) {
-          fullArticle = await Get.find<BookmarkController>().fetchBookmarkDetails(widget.bookmarkId!);
+          fullArticle = await Get.find<BookmarkController>()
+              .fetchBookmarkDetails(widget.bookmarkId!);
         }
       } catch (e) {
         debugPrint("Error fetching bookmark details: $e");
       }
     }
-    
+
     // Fallback to normal news fetch if bookmark fetch failed or was not needed
     if (fullArticle == null && currentArticle.id != null) {
       fullArticle = await controller.fetchNewsById(currentArticle.id!);
@@ -71,7 +72,11 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
           currentArticle.comments ??= [];
           currentArticle.comments!.insert(0, newComment);
         } else {
-          _addCommentToParentLocally(currentArticle.comments, parentId, newComment);
+          _addCommentToParentLocally(
+            currentArticle.comments,
+            parentId,
+            newComment,
+          );
         }
         currentArticle.commentCount = (currentArticle.commentCount ?? 0) + 1;
         _commentController.clear();
@@ -80,7 +85,11 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
     }
   }
 
-  void _addCommentToParentLocally(List<Comment>? comments, String parentId, Comment newComment) {
+  void _addCommentToParentLocally(
+    List<Comment>? comments,
+    String parentId,
+    Comment newComment,
+  ) {
     if (comments == null) return;
     for (var comment in comments) {
       if (comment.id == parentId) {
@@ -115,7 +124,10 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
     }
   }
 
-  Future<void> _handleToggleCommentEngagement(Comment comment, String type) async {
+  Future<void> _handleToggleCommentEngagement(
+    Comment comment,
+    String type,
+  ) async {
     final data = await controller.toggleCommentEngagement(comment.id!, type);
     if (data != null) {
       setState(() {
@@ -342,14 +354,19 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                             Text(
                               "Replying to ${replyingToComment!.userName}",
                               style: const TextStyle(
-                                  color: Color(0xFFFFD700), fontSize: 12),
+                                color: Color(0xFFFFD700),
+                                fontSize: 12,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             GestureDetector(
                               onTap: () =>
                                   setState(() => replyingToComment = null),
-                              child: const Icon(Icons.close,
-                                  color: Colors.grey, size: 14),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.grey,
+                                size: 14,
+                              ),
                             ),
                           ],
                         ),
@@ -499,15 +516,21 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
               child: Row(
                 children: [
                   Icon(
-                    comment.isLiked == true ? Icons.thumb_up : Icons.thumb_up_outlined,
-                    color: comment.isLiked == true ? const Color(0xFFFFD700) : Colors.grey[400],
+                    comment.isLiked == true
+                        ? Icons.thumb_up
+                        : Icons.thumb_up_outlined,
+                    color: comment.isLiked == true
+                        ? const Color(0xFFFFD700)
+                        : Colors.grey[400],
                     size: 16,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     "${comment.likeCount ?? 0}",
                     style: TextStyle(
-                      color: comment.isLiked == true ? const Color(0xFFFFD700) : Colors.grey[400],
+                      color: comment.isLiked == true
+                          ? const Color(0xFFFFD700)
+                          : Colors.grey[400],
                       fontSize: 12,
                     ),
                   ),
@@ -520,15 +543,21 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
               child: Row(
                 children: [
                   Icon(
-                    comment.isDisliked == true ? Icons.thumb_down : Icons.thumb_down_outlined,
-                    color: comment.isDisliked == true ? Colors.redAccent : Colors.grey[400],
+                    comment.isDisliked == true
+                        ? Icons.thumb_down
+                        : Icons.thumb_down_outlined,
+                    color: comment.isDisliked == true
+                        ? Colors.redAccent
+                        : Colors.grey[400],
                     size: 16,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     "${comment.dislikeCount ?? 0}",
                     style: TextStyle(
-                      color: comment.isDisliked == true ? Colors.redAccent : Colors.grey[400],
+                      color: comment.isDisliked == true
+                          ? Colors.redAccent
+                          : Colors.grey[400],
                       fontSize: 12,
                     ),
                   ),
@@ -558,14 +587,21 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
               const SizedBox(
                 width: 12,
                 height: 12,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.grey,
+                ),
               )
             else
               GestureDetector(
                 onTap: () => _handleLoadReplies(comment),
                 child: Row(
                   children: [
-                    const Icon(Icons.comment_outlined, color: Colors.grey, size: 16),
+                    const Icon(
+                      Icons.comment_outlined,
+                      color: Colors.grey,
+                      size: 16,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       "Replies",

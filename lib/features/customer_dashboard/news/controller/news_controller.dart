@@ -154,7 +154,16 @@ class NewsController extends GetxController {
       if (newsModel.success == true &&
           newsModel.data != null &&
           newsModel.data!.isNotEmpty) {
-        return newsModel.data!.first;
+        final freshArticle = newsModel.data!.first;
+        
+        // Update local list to sync view counts/stats
+        int index = newsList.indexWhere((a) => a.id == id);
+        if (index != -1) {
+          newsList[index] = freshArticle;
+          newsList.refresh();
+        }
+        
+        return freshArticle;
       }
     } catch (e) {
       print("Error fetching news by ID: $e");

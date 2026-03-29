@@ -5,12 +5,14 @@ import 'package:testapp/features/splash/views/splash_screen.dart';
 import 'core/network/socket_service.dart';
 import 'features/customer_dashboard/news/controller/news_controller.dart';
 import 'features/customer_dashboard/profile/controller/bookmarks_controller.dart';
+import 'features/customer_dashboard/home/controller/notification_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Get.putAsync(() => SocketService().init());
   Get.put(NewsController(), permanent: true);
   Get.put(BookmarkController(), permanent: true);
+  Get.put(NotificationController(), permanent: true);
   runApp(const MyApp());
 }
 

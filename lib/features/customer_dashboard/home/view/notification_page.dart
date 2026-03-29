@@ -5,10 +5,24 @@ import '../../../../core/common/widgets/scaffold_bg.dart';
 import '../../../../core/const/app_colors.dart';
 import '../controller/notification_controller.dart';
 
-class NotificationPage extends StatelessWidget {
+class NotificationPage extends StatefulWidget {
   NotificationPage({super.key});
 
-  final NotificationController controller = Get.put(NotificationController());
+  @override
+  State<NotificationPage> createState() => _NotificationPageState();
+}
+
+class _NotificationPageState extends State<NotificationPage> {
+  final NotificationController controller = Get.find<NotificationController>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Mark as seen when entering the page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.markAllAsSeen();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +85,7 @@ class NotificationPage extends StatelessWidget {
 
                   return GestureDetector(
                     onTap: () {
-                      if (!item.isRead) {
+                      if (!item.seen) {
                         controller.markAsRead(item.id);
                       }
                       // You can add navigation to specific content here
@@ -80,11 +94,24 @@ class NotificationPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         // Notification Image
-                        Image.asset(
-                          "assets/images/notification_img.png",
-                          height: 70,
-                          width: 70,
-                        ),
+                        item.image != null && item.image!.trim().isNotEmpty
+                            ? Image.network(
+                                item.image!,
+                                height: 70,
+                                width: 70,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Image.asset(
+                                  "assets/images/notification_img.png",
+                                  height: 70,
+                                  width: 70,
+                                ),
+                              )
+                            : Image.asset(
+                                "assets/images/notification_img.png",
+                                height: 70,
+                                width: 70,
+                              ),
                         const SizedBox(width: 16),
 
                         // Notification content
@@ -97,13 +124,13 @@ class NotificationPage extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.white,
-                                  fontWeight: item.isRead
+                                  fontWeight: item.seen
                                       ? FontWeight.w500
                                       : FontWeight.bold,
                                 ),
                               ),
                               Text(
-                                item.message,
+                                item.body,
                                 style: const TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey,
@@ -122,6 +149,18 @@ class NotificationPage extends StatelessWidget {
                             ],
                           ),
                         ),
+                        
+                        // New Notification Dot (Blue)
+                        if (!item.seen)
+                          Container(
+                            height: 8,
+                            width: 8,
+                            margin: EdgeInsets.only(left: 8.w),
+                            decoration: const BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                       ],
                     ),
                   );

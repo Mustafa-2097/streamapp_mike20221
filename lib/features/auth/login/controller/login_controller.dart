@@ -4,6 +4,8 @@ import '../../../../core/offline_storage/shared_pref.dart';
 import '../../../../core/const/app_colors.dart';
 import '../../../customer_dashboard/dashboard/customer_dashboard.dart';
 import '../../data/auth_api_service.dart';
+import '../../../../core/network/socket_service.dart';
+import '../../../customer_dashboard/home/controller/notification_controller.dart';
 
 class SignInController extends GetxController {
   final emailController = TextEditingController();
@@ -79,13 +81,30 @@ class SignInController extends GetxController {
 
           // Verify token was saved
           final savedToken = await SharedPreferencesHelper.getToken();
-          debugPrint('Verified saved token: ${savedToken?.substring(0, 20)}...');
+          debugPrint(
+            'Verified saved token: ${savedToken?.substring(0, 20)}...',
+          );
         }
 
         // If user role exists in response, save it
         if (user != null && user['role'] != null) {
           await SharedPreferencesHelper.saveRole(user['role']);
           debugPrint('User role saved: ${user['role']}');
+        }
+
+        // Save User ID and Join User Room
+        if (user != null && user['_id'] != null) {
+          final userId = user['_id'];
+          await SharedPreferencesHelper.saveUserId(userId);
+          debugPrint('User ID saved: $userId');
+          if (Get.isRegistered<SocketService>()) {
+            Get.find<SocketService>().joinUserRoom(userId);
+          }
+        }
+
+        // Refresh notifications after login
+        if (Get.isRegistered<NotificationController>()) {
+          Get.find<NotificationController>().fetchNotifications();
         }
 
         Get.snackbar(
