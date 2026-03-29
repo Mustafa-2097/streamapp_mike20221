@@ -5,6 +5,8 @@ import '../../../../core/const/images_path.dart';
 import '../../profile/view/pages/personal_data.dart';
 import '../../profile/controller/profile_controller.dart';
 import '../view/notification_page.dart';
+import '../controller/notification_controller.dart';
+import '../../../../core/const/app_colors.dart';
 
 class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CustomHomeAppBar({super.key});
@@ -35,10 +37,33 @@ class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             const Spacer(),
 
             /// Notification icon
-            IconButton(
-              onPressed: () => Get.to(() => NotificationPage()),
-              icon: const Icon(Icons.notifications_none, color: Colors.white),
-            ),
+            Obx(() {
+              final notifCtrl = Get.find<NotificationController>();
+              final count = notifCtrl.unseenCount.value;
+
+              return Stack(
+                children: [
+                  IconButton(
+                    onPressed: () => Get.to(() => NotificationPage()),
+                    icon:
+                        const Icon(Icons.notifications_none, color: Colors.white),
+                  ),
+                  if (count > 0)
+                    Positioned(
+                      right: 12,
+                      top: 12,
+                      child: Container(
+                        height: 10,
+                        width: 10,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryColor, // Yellow
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            }),
 
             /// Search icon
             IconButton(
@@ -65,8 +90,11 @@ class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                             fit: BoxFit.cover,
                             width: 24.r,
                             height: 24.r,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Icon(Icons.person, size: 20.r, color: Colors.black),
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.person,
+                              size: 20.r,
+                              color: Colors.black,
+                            ),
                           )
                         : Icon(Icons.person, size: 20.r, color: Colors.black),
                   ),

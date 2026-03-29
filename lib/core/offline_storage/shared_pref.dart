@@ -6,10 +6,10 @@ class SharedPreferencesHelper {
   static const String _tokenKey = 'accessToken';
   static const String _onboardingKey = 'onboardingCompleted';
   static const String _roleKey = 'user_role';
+  static const String _userIdKey = 'user_id';
 
   static const _rememberMeKey = 'remember_me';
   static const _emailKey = 'remembered_email';
-
 
   /// Save Login Token
   static Future<void> saveToken(String token) async {
@@ -50,6 +50,18 @@ class SharedPreferencesHelper {
   static Future<String?> getRole() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_roleKey);
+  }
+
+  /// Save User ID
+  static Future<void> saveUserId(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userIdKey, id);
+  }
+
+  /// Get User ID
+  static Future<String?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userIdKey);
   }
 
   /// Remember me button

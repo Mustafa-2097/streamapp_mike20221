@@ -1,106 +1,112 @@
-// import 'package:get/get.dart';
-// import '../model/notification_model.dart';
-//
-// class NotificationController extends GetxController {
-//   var isLoading = false.obs;
-//   var notifications = <AppNotification>[].obs;
-//
-//   int page = 1;
-//   final int limit = 10;
-//
-//   @override
-//   void onInit() {
-//     super.onInit();
-//     fetchNotifications();
-//   }
-//
-//   Future<void> fetchNotifications() async {
-//     isLoading.value = true;
-//     final data = await NotificationService.fetchNotifications(
-//       page: page,
-//       limit: limit,
-//     );
-//     notifications.assignAll(data);
-//     isLoading.value = false;
-//   }
-//
-//   void refreshNotifications() {
-//     page = 1;
-//     fetchNotifications();
-//   }
-// }
-
-
 import 'package:get/get.dart';
+import 'package:flutter/material.dart';
+import 'dart:async';
+import '../../data/customer_api_service.dart';
 import '../model/notification_model.dart';
+import '../../../../core/network/api_endpoints.dart';
+import '../../../../core/const/app_colors.dart';
 
-class NotificationController extends GetxController {
+class NotificationController extends GetxController with WidgetsBindingObserver {
   var isLoading = false.obs;
   var notifications = <AppNotification>[].obs;
-
-  int page = 1;
-  final int limit = 10;
+  var unseenCount = 0.obs;
+  Timer? _pollingTimer;
 
   @override
   void onInit() {
     super.onInit();
-    loadDummyNotifications();
+    WidgetsBinding.instance.addObserver(this);
+    _loadInitialData();
+    _startPolling();
   }
 
-  Future<void> loadDummyNotifications() async {
-    isLoading.value = true;
-    await Future.delayed(const Duration(seconds: 2));
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      debugPrint("App resumed: Refreshing notifications");
+      fetchNotifications();
+    }
+  }
 
-
-    // Create 10 dummy notifications
-    final dummyNotifications = List.generate(10, (index) {
-      return AppNotification(
-        id: (index + 1).toString(),
-        title: _getNotificationTitle(index),
-        message: _getNotificationMessage(index),
-        isRead: index > 2, // First 3 notifications will be unread
-        createdAt: DateTime.now().subtract(Duration(days: index)),
-      );
+  void _startPolling() {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 60), (timer) {
+      if (!isLoading.value) {
+        fetchNotifications();
+      }
     });
-
-    notifications.assignAll(dummyNotifications);
-    isLoading.value = false;
   }
 
-  String _getNotificationTitle(int index) {
-    final titles = [
-      "Match Reminder",
-      "Score Update",
-      "Live Stream Starting",
-      "Team News",
-      "Match Highlights",
-      "New Video Available",
-      "Upcoming Fixture",
-      "Player Transfer News",
-      "League Update",
-      "Subscription Renewal",
-    ];
-    return titles[index % titles.length];
+  @override
+  void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _pollingTimer?.cancel();
+    super.onClose();
   }
 
-  String _getNotificationMessage(int index) {
-    final messages = [
-      "Brazil vs Spain match starts in 30 minutes. Don't miss the action!",
-      "Brazil just scored! Current score: Brazil 2 - 1 Spain",
-      "Live stream of Bangladesh vs Australia is starting now. Tune in!",
-      "Team lineup announced for today's Rugby Championship match",
-      "Watch highlights from yesterday's epic match between Springboks vs Argentina",
-      "New analysis video available: Tactical breakdown of last night's game",
-      "Next fixture: Argentina vs New Zealand scheduled for tomorrow",
-      "Breaking: Star player transfer confirmed to Manchester United",
-      "Important league update: Schedule changes for upcoming matches",
-      "Your subscription will renew in 7 days. Manage your subscription settings",
-    ];
-    return messages[index % messages.length];
+  Future<void> _loadInitialData() async {
+    await fetchNotifications();
+  }
+
+  Future<void> fetchNotifications() async {
+    try {
+      isLoading.value = true;
+      debugPrint("Fetching notifications from: ${ApiEndpoints.notifications}");
+      final response = await CustomerApiService.getNotifications();
+      debugPrint("Notification Response: $response");
+      
+      if (response['success'] == true) {
+        final List? data = response['data'];
+        if (data != null) {
+          final list = data.map((json) {
+            try {
+              return AppNotification.fromJson(json);
+            } catch (e) {
+              debugPrint("Error parsing single notification: $e, json: $json");
+              return null;
+            }
+          }).whereType<AppNotification>().toList();
+          
+          notifications.assignAll(list);
+          unseenCount.value = list.where((n) => !n.seen).length;
+          debugPrint("Notifications loaded: ${notifications.length}, unseen: ${unseenCount.value}");
+        } else {
+          notifications.clear();
+          debugPrint("No data field found in response");
+        }
+      } else {
+        debugPrint("API success was false: ${response['message']}");
+      }
+    } catch (e) {
+      debugPrint("Error fetching notifications: $e");
+      Get.snackbar(
+        "Notice", 
+        "Failed to load notifications: $e",
+        backgroundColor: AppColors.errorColor.withOpacity(0.7),
+        colorText: Colors.black,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> markAllAsSeen() async {
+    try {
+      final response = await CustomerApiService.markNotificationsAsSeen();
+      if (response['success'] == true) {
+        // Reset count locally so the yellow dot on home screen clears
+        unseenCount.value = 0;
+        
+        // We do DOES NOT update the local notifications[] seen status here
+        // This keeps the blue dots visible during this session as requested.
+        // On next app start or page entry, fetchNotifications will get seen: true from backend.
+      }
+    } catch (e) {
+      debugPrint("Error marking notifications as seen: $e");
+    }
   }
 
   void refreshNotifications() {
-    loadDummyNotifications();
+    _loadInitialData();
   }
 
   void markAsRead(String id) {
@@ -109,8 +115,9 @@ class NotificationController extends GetxController {
       notifications[index] = AppNotification(
         id: notifications[index].id,
         title: notifications[index].title,
-        message: notifications[index].message,
-        isRead: true,
+        body: notifications[index].body,
+        image: notifications[index].image,
+        seen: true,
         createdAt: notifications[index].createdAt,
       );
       notifications.refresh();

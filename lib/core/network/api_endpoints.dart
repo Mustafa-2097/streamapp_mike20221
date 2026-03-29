@@ -48,7 +48,12 @@ class ApiEndpoints {
   static const String paymentHistory = '$baseUrl/payments/history';
 
   /// Live TV
-  static const String liveTv = '$baseUrl/contents/live-tv';
+  static const String liveTv = '$baseUrl/live-tv';
+  static String singleLiveTv(String id) => '$liveTv/$id';
+  static const String liveTvComments = '$liveTv/comments';
+  static const String liveTvCommentsAction = '$liveTv/comments/action';
+  static String liveTvCommentReplies(String commentId) =>
+      '$liveTv/comments/$commentId/replies';
 
   /// News
   ///  static const String news = '$baseUrl/news?category=sports';
@@ -105,4 +110,9 @@ class ApiEndpoints {
   static String roomMessages(String id) => '$baseUrl/chat/rooms/$id/messages';
   static const String chatMessages = '$baseUrl/chat/messages';
   static const String messageReaction = '$baseUrl/chat/messages/reaction';
+
+  /// Notifications
+  static const String notifications = '$baseUrl/notifications';
+  static const String markNotificationsAsSeen = '$baseUrl/notifications/mark-as-seen';
+  static const String notificationSettings = '$baseUrl/notifications/settings';
 }

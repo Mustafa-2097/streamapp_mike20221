@@ -15,7 +15,7 @@ class SocketService extends GetxService {
 
   Future<void> _initializeSocket() async {
     final String? token = await SharedPreferencesHelper.getToken();
-    
+
     // The baseUrl is http://10.0.30.59:8000/api/v1
     // We want the root: http://10.0.30.59:8000
     final String socketUrl = ApiEndpoints.baseUrl.split('/api/').first;
@@ -23,14 +23,18 @@ class SocketService extends GetxService {
     socket = IO.io(socketUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
-      'extraHeaders': {
-        if (token != null) 'Authorization': 'Bearer $token',
-      }
+      'extraHeaders': {if (token != null) 'Authorization': 'Bearer $token'},
     });
 
-    socket.onConnect((_) {
+    socket.onConnect((_) async {
       debugPrint('Socket connected to $socketUrl');
       isConnected.value = true;
+      
+      // Auto-join user room after connection
+      final String? userId = await SharedPreferencesHelper.getUserId();
+      if (userId != null) {
+        joinUserRoom(userId);
+      }
     });
 
     socket.onDisconnect((_) {

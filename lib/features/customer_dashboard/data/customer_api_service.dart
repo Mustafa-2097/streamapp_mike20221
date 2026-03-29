@@ -321,7 +321,21 @@ class CustomerApiService {
 
   /// ================= LIVE TV =================
   static Future<Map<String, dynamic>> getLiveTvChannels() async {
-    return await ApiService.get(ApiEndpoints.liveTv);
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.liveTv, headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> getLiveTvById(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.singleLiveTv(id), headers: headers);
   }
 
   /// ================= CLIPS =================
@@ -582,5 +596,112 @@ class CustomerApiService {
       headers: headers,
       body: body,
     );
+  }
+
+  /// ================= NOTIFICATIONS =================
+  static Future<Map<String, dynamic>> getNotifications() async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.notifications, headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> markNotificationsAsSeen() async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(ApiEndpoints.markNotificationsAsSeen,
+        headers: headers, body: {});
+  }
+
+  static Future<Map<String, dynamic>> getNotificationSettings() async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.notificationSettings,
+        headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> updateNotificationSettings(
+      Map<String, dynamic> body) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(ApiEndpoints.notificationSettings,
+        headers: headers, body: body);
+  }
+
+  /// ================= LIVE TV COMMENTS =================
+  static Future<Map<String, dynamic>> getLiveTvComments(String tvId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.singleLiveTv(tvId),
+        headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> postLiveTvComment({
+    required String liveTvId,
+    required String content,
+    String? parentId,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) throw Exception("User token not found");
+
+    return await ApiService.post(
+      ApiEndpoints.liveTvComments,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'liveTvId': liveTvId,
+        'content': content,
+        if (parentId != null) 'parentId': parentId,
+      },
+    );
+  }
+
+  static Future<Map<String, dynamic>> postLiveTvCommentAction({
+    required String commentId,
+    required String type, // "LIKE", "DISLIKE"
+    String? parentId,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) throw Exception("User token not found");
+
+    return await ApiService.post(
+      ApiEndpoints.liveTvCommentsAction,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'commentId': commentId,
+        'type': type,
+        if (parentId != null) 'parentId': parentId,
+      },
+    );
+  }
+
+  static Future<Map<String, dynamic>> getLiveTvCommentReplies(
+      String commentId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.liveTvCommentReplies(commentId),
+        headers: headers);
   }
 }

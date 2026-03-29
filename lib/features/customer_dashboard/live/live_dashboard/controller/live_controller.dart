@@ -9,6 +9,7 @@ import '../model/table_model.dart';
 import '../model/h2h_model.dart';
 import '../model/recent_match_model.dart';
 import '../model/upcoming_match_model.dart';
+import 'package:testapp/core/network/socket_service.dart';
 
 class LiveMatchesController extends GetxController {
   final tabs = [
@@ -54,6 +55,7 @@ class LiveMatchesController extends GetxController {
   List<MatchModel> matches = [];
 
   final ScrollController scrollController = ScrollController();
+  final SocketService _socketService = Get.find<SocketService>();
 
   List<UpcomingMatchModel> upcomingMatches = [];
   bool isUpcomingLoading = false;
@@ -63,6 +65,7 @@ class LiveMatchesController extends GetxController {
   void onInit() {
     super.onInit();
     fetchLiveMatches(isRefresh: true);
+    _setupSocketListeners();
 
     scrollController.addListener(() {
       if (scrollController.position.pixels >=
@@ -71,6 +74,35 @@ class LiveMatchesController extends GetxController {
           hasMore &&
           isLive) {
         fetchLiveMatches();
+      }
+    });
+  }
+
+  void _setupSocketListeners() {
+    _socketService.on("matches:live", (data) {
+      debugPrint("Socket: Live matches (matches:live) received: $data");
+      try {
+        if (data is List) {
+          final newMatches = data.map((e) => MatchModel.fromJson(e)).toList();
+
+          // If we are on first page (currentPage is incremented after fetch, 
+          // so if currentPage is 2, we just fetched page 1)
+          if (currentPage <= 2) {
+            matches = newMatches;
+            update();
+          } else {
+            // Intelligent merging: update scores of existing matches, don't break pagination
+            for (var newMatch in newMatches) {
+              final index = matches.indexWhere((m) => m.id == newMatch.id);
+              if (index != -1) {
+                matches[index] = newMatch;
+              }
+            }
+            update();
+          }
+        }
+      } catch (e) {
+        debugPrint("Error parsing socket matches:live info: $e");
       }
     });
   }
@@ -279,6 +311,7 @@ class LiveMatchesController extends GetxController {
 
   @override
   void onClose() {
+    _socketService.off("matches:live");
     scrollController.dispose();
     super.onClose();
   }

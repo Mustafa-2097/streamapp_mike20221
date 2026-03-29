@@ -38,7 +38,8 @@ class LiveMatchesScreen extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        title: Text(
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
           "LIVE",
           style: TextStyle(
             color: Colors.white,
