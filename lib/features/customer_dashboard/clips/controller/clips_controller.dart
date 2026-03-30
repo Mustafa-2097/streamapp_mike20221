@@ -88,24 +88,64 @@ class ClipsController extends GetxController {
   }
 
   Future<void> toggleAction(String clipId, String type) async {
+    final index = clipsList.indexWhere((c) => c.clipId == clipId);
+    if (index == -1) return;
+
+    final clip = clipsList[index];
+    
+    // Optimistic Update: Update locally immediately
+    if (type == "LIKE") {
+      if (clip.userStatus.isLiked) {
+        clip.userStatus.isLiked = false;
+        clip.engagement.likes = (clip.engagement.likes - 1).clamp(0, 999999);
+      } else {
+        // If it was disliked, untoggle dislike first
+        if (clip.userStatus.isDisliked) {
+          clip.userStatus.isDisliked = false;
+          clip.engagement.dislikes = (clip.engagement.dislikes - 1).clamp(0, 999999);
+        }
+        clip.userStatus.isLiked = true;
+        clip.engagement.likes++;
+      }
+    } else if (type == "DISLIKE") {
+      if (clip.userStatus.isDisliked) {
+        clip.userStatus.isDisliked = false;
+        clip.engagement.dislikes = (clip.engagement.dislikes - 1).clamp(0, 999999);
+      } else {
+        // If it was liked, untoggle like first
+        if (clip.userStatus.isLiked) {
+          clip.userStatus.isLiked = false;
+          clip.engagement.likes = (clip.engagement.likes - 1).clamp(0, 999999);
+        }
+        clip.userStatus.isDisliked = true;
+        clip.engagement.dislikes++;
+      }
+    } else if (type == "SHARE") {
+      clip.engagement.shares++;
+    }
+    
+    // Refresh the list to trigger Obx
+    clipsList.refresh();
+
     try {
       final response = await CustomerApiService.performClipAction(
         clipId: clipId,
         type: type,
       );
 
+      // Even after successful action, we fetch again to ensure we are perfectly in sync with server state
       if (response['success'] == true) {
-        // Find the clip in the list and update its state
-        final index = clipsList.indexWhere((c) => c.clipId == clipId);
-        if (index != -1) {
-          final updatedClip = await fetchSingleClip(clipId);
-          if (updatedClip != null) {
-            clipsList[index] = updatedClip;
-          }
+        final updatedClip = await fetchSingleClip(clipId);
+        if (updatedClip != null) {
+          clipsList[index] = updatedClip;
         }
       }
     } catch (e) {
       print("Error toggling action $type: $e");
+      // Optional: re-fetch on error to revert optimistic state
+      fetchSingleClip(clipId).then((clip) {
+         if (clip != null) clipsList[index] = clip;
+      });
     }
   }
 }

@@ -25,20 +25,6 @@ import '../model/live_tv_model.dart';
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
 
-  // final List<String> _videoUrls = [
-  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
-  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv?autoplay=1',
-  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
-  // ];
-
-  // final List<String> _videoTitles = [
-  //   'Live TV Channel 1',
-  //   'Live TV Channel 2',
-  //   'Live TV Channel 3',
-  // ];
-
-
-
   @override
   Widget build(BuildContext context) {
     final NewsController newsController = Get.put(NewsController());
@@ -54,6 +40,11 @@ class ContentSection extends StatelessWidget {
     if (liveController.upcomingMatches.isEmpty &&
         !liveController.isUpcomingLoading) {
       liveController.fetchUpcomingMatches();
+    }
+
+    // NEW: Fetch live TVs if empty
+    if (liveTvController.liveTvs.isEmpty && !liveTvController.isLoading.value) {
+      liveTvController.fetchLiveTvs();
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,9 +65,9 @@ class ContentSection extends StatelessWidget {
             }
 
             if (liveGameController.liveGames.isEmpty) {
-              return const Center(
-                child: Text("No live games currently",
-                    style: TextStyle(color: Colors.white54)),
+              return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: _buildPromoCard(),
               );
             }
 
@@ -86,12 +77,21 @@ class ContentSection extends StatelessWidget {
               itemCount: liveGameController.liveGames.length,
               itemBuilder: (context, index) {
                 final game = liveGameController.liveGames[index];
-                
+
                 // Sanitize thumbnail URL
-                final imageUrl = game.thumbnail
+                String imageUrl = game.thumbnail
                     .replaceAll('localhost', '10.0.30.59')
-                    .replaceAll('127.0.0.1', '10.0.30.59')
-                    .replaceFirst('undefined/', 'http://10.0.30.59:8000/');
+                    .replaceAll('127.0.0.1', '10.0.30.59');
+                
+                if (imageUrl.startsWith('undefined/')) {
+                  imageUrl = imageUrl.replaceFirst('undefined/', 'http://10.0.30.59:8000/');
+                }
+                
+                if (!imageUrl.startsWith('http') && imageUrl.isNotEmpty) {
+                  imageUrl = imageUrl.startsWith('/') 
+                      ? 'http://10.0.30.59:8000$imageUrl' 
+                      : 'http://10.0.30.59:8000/$imageUrl';
+                }
 
                 return Padding(
                   padding: EdgeInsets.only(right: 12.w),
@@ -137,7 +137,12 @@ class ContentSection extends StatelessWidget {
             }
 
             if (liveTvController.liveTvs.isEmpty) {
-              return const SizedBox();
+              return const Center(
+                child: Text(
+                  "No channels available",
+                  style: TextStyle(color: Colors.white54),
+                ),
+              );
             }
 
             return SizedBox(
@@ -228,12 +233,6 @@ class ContentSection extends StatelessWidget {
                           alignment: Alignment.centerLeft,
                           padding: const EdgeInsets.only(left: 20),
                           margin: const EdgeInsets.only(bottom: 12),
-                          // decoration: BoxDecoration(
-                          //   color: isBookmarked
-                          //       ? Colors.redAccent.withOpacity(0.8)
-                          //       : Colors.amber.withOpacity(0.8),
-                          //   borderRadius: BorderRadius.circular(12),
-                          // ),
                           child: Icon(
                             isBookmarked
                                 ? Icons.delete_outlined
@@ -651,24 +650,35 @@ class ContentSection extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const Spacer(),
-          GestureDetector(
-            onTap: onTap,
-            child: Text(
-              'View All',
-              style: TextStyle(color: Colors.white, fontSize: 16.sp),
+          if (label != "Live Now") ...[
+            const Spacer(),
+            GestureDetector(
+              onTap: onTap,
+              child: Text(
+                'View All',
+                style: TextStyle(color: Colors.white, fontSize: 16.sp),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildTVChannel(LiveTvModel tv) {
-    final imageUrl = tv.thumbnail
+    String imageUrl = tv.thumbnail
         .replaceAll('localhost', '10.0.30.59')
-        .replaceAll('127.0.0.1', '10.0.30.59')
-        .replaceAll('undefined/', 'http://10.0.30.59:8000/');
+        .replaceAll('127.0.0.1', '10.0.30.59');
+    
+    if (imageUrl.startsWith('undefined/')) {
+       imageUrl = imageUrl.replaceFirst('undefined/', 'http://10.0.30.59:8000/');
+    }
+
+    if (!imageUrl.startsWith('http') && imageUrl.isNotEmpty) {
+      imageUrl = imageUrl.startsWith('/') 
+          ? 'http://10.0.30.59:8000$imageUrl' 
+          : 'http://10.0.30.59:8000/$imageUrl';
+    }
 
     return GestureDetector(
       onTap: () {
@@ -689,6 +699,91 @@ class ContentSection extends StatelessWidget {
             color: Colors.grey[800],
             child: const Icon(Icons.tv, color: Colors.white54),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPromoCard() {
+    return Container(
+      width: double.infinity,
+      height: 220,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        image: const DecorationImage(
+          image: AssetImage('assets/images/spain.png'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Gradient Overlay to make text pop
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.2),
+                  Colors.black.withOpacity(0.6),
+                ],
+              ),
+            ),
+          ),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'BRAZIL VS SPAIN',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildCountdownBox("12H"),
+                    _buildCountdownBox("12M"),
+                    _buildCountdownBox("12S"),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'BIG GAME || World Cup',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCountdownBox(String val) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        val,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );

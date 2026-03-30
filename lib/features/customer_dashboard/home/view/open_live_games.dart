@@ -71,13 +71,34 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
     }
   }
 
+  String _sanitizeUrl(String url) {
+    if (url.isEmpty) return "";
+    String sanitized = url
+        .replaceAll('localhost', '10.0.30.59')
+        .replaceAll('127.0.0.1', '10.0.30.59');
+    
+    if (sanitized.startsWith('undefined/')) {
+      sanitized = sanitized.replaceFirst('undefined/', 'http://10.0.30.59:8000/');
+    }
+    
+    if (!sanitized.startsWith('http')) {
+      if (sanitized.startsWith('/')) {
+        sanitized = 'http://10.0.30.59:8000$sanitized';
+      } else {
+        sanitized = 'http://10.0.30.59:8000/$sanitized';
+      }
+    }
+    return sanitized;
+  }
+
   void _initializeWebController() {
     final game = controller.selectedLiveGame.value;
     if (game != null) {
+      final sanitizedLink = _sanitizeUrl(game.link);
       webController = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setBackgroundColor(const Color(0x00000000))
-        ..loadRequest(Uri.parse(game.link));
+        ..loadRequest(Uri.parse(sanitizedLink));
       
       // Initialize comment controller for this game
       if (commentController == null) {
@@ -392,14 +413,15 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
           Row(
             children: [
               Obx(() {
-                final userPhoto = Get.find<ProfileController>().profile.value?.profilePhoto;
+                final rawPhoto = Get.find<ProfileController>().profile.value?.profilePhoto ?? "";
+                final userPhoto = _sanitizeUrl(rawPhoto);
                 return CircleAvatar(
                   radius: 18,
-                  backgroundImage: userPhoto != null && userPhoto.isNotEmpty
+                  backgroundImage: userPhoto.isNotEmpty
                       ? NetworkImage(userPhoto)
                       : null,
                   backgroundColor: Colors.grey[800],
-                  child: (userPhoto == null || userPhoto.isEmpty)
+                  child: userPhoto.isEmpty
                       ? const Icon(Icons.person, color: Colors.white54, size: 18)
                       : null,
                 );
@@ -540,11 +562,29 @@ class _CommentTile extends StatelessWidget {
     required this.controller,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    final photo = comment.user.profilePhoto
+  String _sanitizeUrl(String url) {
+    if (url.isEmpty) return "";
+    String sanitized = url
         .replaceAll('localhost', '10.0.30.59')
         .replaceAll('127.0.0.1', '10.0.30.59');
+    
+    if (sanitized.startsWith('undefined/')) {
+      sanitized = sanitized.replaceFirst('undefined/', 'http://10.0.30.59:8000/');
+    }
+    
+    if (!sanitized.startsWith('http')) {
+      if (sanitized.startsWith('/')) {
+        sanitized = 'http://10.0.30.59:8000$sanitized';
+      } else {
+        sanitized = 'http://10.0.30.59:8000/$sanitized';
+      }
+    }
+    return sanitized;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final photo = _sanitizeUrl(comment.user.profilePhoto);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),

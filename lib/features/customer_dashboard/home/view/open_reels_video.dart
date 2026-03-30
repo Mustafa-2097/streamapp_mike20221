@@ -165,6 +165,7 @@ class ClipPageView extends StatelessWidget {
                 icon: Icons.thumb_down,
                 label: clip.engagement.dislikes.toString(),
                 initialIsActive: clip.userStatus.isDisliked,
+                activeColor: Colors.redAccent,
                 onTap: () => Get.find<ClipsController>().toggleAction(
                   clip.clipId,
                   "DISLIKE",
@@ -327,14 +328,12 @@ class SideButton extends StatefulWidget {
 
 class _SideButtonState extends State<SideButton>
     with SingleTickerProviderStateMixin {
-  late bool isActive;
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    isActive = widget.initialIsActive;
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 200),
@@ -352,10 +351,7 @@ class _SideButtonState extends State<SideButton>
     super.dispose();
   }
 
-  void _toggleState() {
-    setState(() {
-      isActive = !isActive;
-    });
+  void _onTap() {
     _controller.forward().then((_) => _controller.reverse());
     if (widget.onTap != null) widget.onTap!();
   }
@@ -363,14 +359,14 @@ class _SideButtonState extends State<SideButton>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _toggleState,
+      onTap: _onTap,
       child: Column(
         children: [
           ScaleTransition(
             scale: _scaleAnimation,
             child: Icon(
               widget.icon,
-              color: isActive
+              color: widget.initialIsActive
                   ? widget.activeColor
                   : widget.inactiveColor,
               size: widget.size,

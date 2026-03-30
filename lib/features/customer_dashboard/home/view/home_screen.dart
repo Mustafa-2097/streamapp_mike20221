@@ -4,7 +4,6 @@ import '../widgets/all_tab.dart';
 import '../widgets/carousel_slider.dart';
 import '../widgets/custom_appdrawer.dart';
 import '../widgets/custom_home_appbar.dart';
-import '../widgets/sports_category_filter.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -19,12 +18,13 @@ class HomeScreen extends StatelessWidget {
             children: [
               // Main Scrollable Content
               Padding(
-                padding: const EdgeInsets.only(top: 64), // Height of CustomHomeAppBar
+                padding: const EdgeInsets.only(
+                  top: 64,
+                ), // Height of CustomHomeAppBar
                 child: CustomScrollView(
                   slivers: [
                     SliverToBoxAdapter(child: const HomeCarouselSlider()),
-                    SliverToBoxAdapter(child: const SportsCategoryFilter()),
-                    SliverToBoxAdapter(child: const SizedBox(height: 10)),
+                    SliverToBoxAdapter(child: const SizedBox(height: 20)),
                     SliverToBoxAdapter(child: ContentSection()),
                   ],
                 ),

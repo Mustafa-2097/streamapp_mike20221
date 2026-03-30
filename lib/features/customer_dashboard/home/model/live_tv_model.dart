@@ -4,13 +4,13 @@ class LiveTvModel {
   final String link;
   final String thumbnail;
   final bool commentsEnabled;
-  final List<dynamic> likes;
-  final List<dynamic> dislikes;
+  final dynamic likes;
+  final dynamic dislikes;
   final int shares;
   final DateTime createdAt;
   final DateTime updatedAt;
   final int commentCount;
-  final List<dynamic>? comments;
+  final dynamic comments;
 
   LiveTvModel({
     required this.id,
@@ -34,8 +34,8 @@ class LiveTvModel {
       link: json['link'] ?? '',
       thumbnail: json['thumbnail'] ?? '',
       commentsEnabled: json['commentsEnabled'] ?? true,
-      likes: json['likes'] ?? [],
-      dislikes: json['dislikes'] ?? [],
+      likes: json['likes'] ?? 0,
+      dislikes: json['dislikes'] ?? 0,
       shares: json['shares'] ?? 0,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
@@ -45,8 +45,8 @@ class LiveTvModel {
           : DateTime.now(),
       commentCount: json['_count'] != null 
           ? json['_count']['comments'] ?? 0 
-          : (json['comments'] is List ? (json['comments'] as List).length : 0),
-      comments: json['comments'],
+          : (json['comments'] is int ? json['comments'] : (json['comments'] is List ? (json['comments'] as List).length : 0)),
+      comments: json['comments'] ?? 0,
     );
   }
 

@@ -8,6 +8,10 @@ import '../const/app_colors.dart';
 
 class ApiService {
   static const Duration timeout = Duration(seconds: 30);
+  
+  // Track last shown error to prevent duplicate snackbar spam
+  static String? _lastErrorMessage;
+  static DateTime? _lastErrorTime;
 
   /// POST REQUEST
   static Future<Map<String, dynamic>> post(
@@ -32,12 +36,7 @@ class ApiService {
         throw decoded['message'] ?? 'Something went wrong';
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        _friendlyError(e),
-        backgroundColor: AppColors.errorColor,
-        colorText: Colors.black,
-      );
+      _showSnackbar(_friendlyError(e));
       rethrow;
     }
   }
@@ -60,12 +59,7 @@ class ApiService {
         throw decoded['message'] ?? 'Something went wrong';
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        _friendlyError(e),
-        backgroundColor: AppColors.errorColor,
-        colorText: Colors.black,
-      );
+      _showSnackbar(_friendlyError(e));
       rethrow;
     }
   }
@@ -93,12 +87,7 @@ class ApiService {
         throw decoded['message'] ?? 'Something went wrong';
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        _friendlyError(e),
-        backgroundColor: AppColors.errorColor,
-        colorText: Colors.black,
-      );
+      _showSnackbar(_friendlyError(e));
       rethrow;
     }
   }
@@ -126,12 +115,7 @@ class ApiService {
         throw decoded['message'] ?? 'Something went wrong';
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        _friendlyError(e),
-        backgroundColor: AppColors.errorColor,
-        colorText: Colors.black,
-      );
+      _showSnackbar(_friendlyError(e));
       rethrow;
     }
   }
@@ -179,12 +163,7 @@ class ApiService {
         throw decoded['message'] ?? 'Something went wrong';
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        _friendlyError(e),
-        backgroundColor: AppColors.errorColor,
-        colorText: Colors.black,
-      );
+      _showSnackbar(_friendlyError(e));
       rethrow;
     }
   }
@@ -226,12 +205,7 @@ class ApiService {
         throw decoded['message'] ?? 'Something went wrong';
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        _friendlyError(e),
-        backgroundColor: AppColors.errorColor,
-        colorText: Colors.black,
-      );
+      _showSnackbar(_friendlyError(e));
       rethrow;
     }
   }
@@ -247,5 +221,29 @@ class ApiService {
     // If it's already a clean API message string, return it directly
     if (!msg.contains('Exception:') && !msg.contains('Error:')) return msg;
     return 'Something went wrong. Please try again.';
+  }
+
+  /// Shows a snackbar but prevents duplicate spam
+  static void _showSnackbar(String message) {
+    final now = DateTime.now();
+    
+    // If it's the exact same message within 2 seconds, ignore it
+    if (_lastErrorMessage == message && 
+        _lastErrorTime != null && 
+        now.difference(_lastErrorTime!) < const Duration(seconds: 2)) {
+      return;
+    }
+
+    _lastErrorMessage = message;
+    _lastErrorTime = now;
+
+    Get.snackbar(
+      "Error",
+      message,
+      backgroundColor: AppColors.errorColor,
+      colorText: Colors.black,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 3),
+    );
   }
 }
