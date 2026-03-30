@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/common/widgets/scaffold_bg.dart';
 import '../../../../core/const/app_colors.dart';
 import '../controller/notification_controller.dart';
@@ -18,7 +19,10 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   void initState() {
     super.initState();
-    // Mark as seen when entering the page
+    // Refresh to get latest 'seen' status from backend (from previous visits)
+    controller.refreshNotifications();
+    
+    // Mark as seen when entering the page (for the backend)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.markAllAsSeen();
     });
@@ -140,7 +144,7 @@ class _NotificationPageState extends State<NotificationPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                _formatDate(item.createdAt),
+                                "${_formatDate(item.createdAt)} • ${_formatTime(item.createdAt)}",
                                 style: const TextStyle(
                                   fontSize: 11,
                                   color: Colors.grey,
@@ -175,16 +179,16 @@ class _NotificationPageState extends State<NotificationPage> {
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
-    final difference = now.difference(date);
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final notificationDate = DateTime(date.year, date.month, date.day);
 
-    if (difference.inDays == 0) {
+    if (notificationDate == today) {
       return "Today";
-    } else if (difference.inDays == 1) {
+    } else if (notificationDate == yesterday) {
       return "Yesterday";
-    } else if (difference.inDays < 7) {
-      return "${difference.inDays} days ago";
     } else {
-      return "${date.day}/${date.month}/${date.year}";
+      return DateFormat('d MMM yyyy').format(date);
     }
   }
 
@@ -192,5 +196,12 @@ class _NotificationPageState extends State<NotificationPage> {
     final hour = date.hour.toString().padLeft(2, '0');
     final minute = date.minute.toString().padLeft(2, '0');
     return "$hour:$minute";
+  }
+
+  @override
+  void dispose() {
+    // Locally mark all as seen when leaving the page
+    controller.markNotificationsAsSeenLocally();
+    super.dispose();
   }
 }

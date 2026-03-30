@@ -47,9 +47,9 @@ class NotificationController extends GetxController with WidgetsBindingObserver 
     await fetchNotifications();
   }
 
-  Future<void> fetchNotifications() async {
+  Future<void> fetchNotifications({bool showLoading = true}) async {
     try {
-      isLoading.value = true;
+      if (showLoading) isLoading.value = true;
       debugPrint("Fetching notifications from: ${ApiEndpoints.notifications}");
       final response = await CustomerApiService.getNotifications();
       debugPrint("Notification Response: $response");
@@ -106,7 +106,7 @@ class NotificationController extends GetxController with WidgetsBindingObserver 
   }
 
   void refreshNotifications() {
-    _loadInitialData();
+    fetchNotifications(showLoading: false);
   }
 
   void markAsRead(String id) {
@@ -122,5 +122,22 @@ class NotificationController extends GetxController with WidgetsBindingObserver 
       );
       notifications.refresh();
     }
+  }
+
+  void markNotificationsAsSeenLocally() {
+    for (int i = 0; i < notifications.length; i++) {
+      if (!notifications[i].seen) {
+        notifications[i] = AppNotification(
+          id: notifications[i].id,
+          title: notifications[i].title,
+          body: notifications[i].body,
+          image: notifications[i].image,
+          seen: true,
+          createdAt: notifications[i].createdAt,
+        );
+      }
+    }
+    unseenCount.value = 0;
+    notifications.refresh();
   }
 }
