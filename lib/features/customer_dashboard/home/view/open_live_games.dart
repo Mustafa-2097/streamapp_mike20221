@@ -28,7 +28,7 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
     super.initState();
     // Try initial load
     _initializeWebController();
-    
+
     // Listen for data arrival if it wasn't ready in initState
     _worker = ever(controller.selectedLiveGame, (_) {
       if (webController == null) {
@@ -43,11 +43,11 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
   void dispose() {
     _worker.dispose();
     // Restore orientations when leaving
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: SystemUiOverlay.values);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
     super.dispose();
   }
 
@@ -63,43 +63,22 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
       ]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     } else {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-      ]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-          overlays: SystemUiOverlay.values);
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: SystemUiOverlay.values,
+      );
     }
-  }
-
-  String _sanitizeUrl(String url) {
-    if (url.isEmpty) return "";
-    String sanitized = url
-        .replaceAll('localhost', '10.0.30.59')
-        .replaceAll('127.0.0.1', '10.0.30.59');
-    
-    if (sanitized.startsWith('undefined/')) {
-      sanitized = sanitized.replaceFirst('undefined/', 'http://10.0.30.59:8000/');
-    }
-    
-    if (!sanitized.startsWith('http')) {
-      if (sanitized.startsWith('/')) {
-        sanitized = 'http://10.0.30.59:8000$sanitized';
-      } else {
-        sanitized = 'http://10.0.30.59:8000/$sanitized';
-      }
-    }
-    return sanitized;
   }
 
   void _initializeWebController() {
     final game = controller.selectedLiveGame.value;
     if (game != null) {
-      final sanitizedLink = _sanitizeUrl(game.link);
       webController = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setBackgroundColor(const Color(0x00000000))
-        ..loadRequest(Uri.parse(sanitizedLink));
-      
+        ..loadRequest(Uri.parse(game.link));
+
       // Initialize comment controller for this game
       if (commentController == null) {
         commentController = Get.put(
@@ -142,8 +121,10 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
           final game = controller.selectedLiveGame.value;
           if (game == null) {
             return const Center(
-              child: Text("Game details not found",
-                  style: TextStyle(color: Colors.white)),
+              child: Text(
+                "Game details not found",
+                style: TextStyle(color: Colors.white),
+              ),
             );
           }
 
@@ -153,16 +134,19 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
               Stack(
                 children: [
                   SizedBox(
-                    height: isFullScreen ? MediaQuery.of(context).size.height : 240,
+                    height: isFullScreen
+                        ? MediaQuery.of(context).size.height
+                        : 240,
                     width: double.infinity,
                     child: webController != null
                         ? WebViewWidget(controller: webController!)
                         : const Center(
                             child: CircularProgressIndicator(
-                                color: Colors.redAccent),
+                              color: Colors.redAccent,
+                            ),
                           ),
                   ),
-                  
+
                   // Full-screen Overlays
                   if (isFullScreen) ...[
                     // Top Left: Logo & Live Badge
@@ -175,18 +159,28 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
                           Image.asset(ImagesPath.logo, height: 40),
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.redAccent,
                               borderRadius: BorderRadius.circular(15),
                             ),
                             child: const Row(
                               children: [
-                                CircleAvatar(radius: 3, backgroundColor: Colors.white),
+                                CircleAvatar(
+                                  radius: 3,
+                                  backgroundColor: Colors.white,
+                                ),
                                 SizedBox(width: 5),
                                 Text(
                                   "Live",
-                                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
@@ -194,7 +188,7 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
                         ],
                       ),
                     ),
-                    
+
                     // Top Right: Cast & Settings
                     Positioned(
                       top: 20,
@@ -226,7 +220,9 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Icon(
-                          isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
+                          isFullScreen
+                              ? Icons.fullscreen_exit
+                              : Icons.fullscreen,
                           color: Colors.white,
                           size: 20,
                         ),
@@ -240,93 +236,96 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
               if (!isFullScreen)
                 Expanded(
                   child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              "LIVE",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                "LIVE",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            game.status,
-                            style: const TextStyle(
-                              color: Colors.white54,
-                              fontSize: 12,
+                            const SizedBox(width: 8),
+                            Text(
+                              game.status,
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        game.title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          _opponentBadge(game.opponent01),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Text("VS",
+                        const SizedBox(height: 12),
+                        Text(
+                          game.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _opponentBadge(game.opponent01),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text(
+                                "VS",
                                 style: TextStyle(
-                                    color: Colors.redAccent,
-                                    fontWeight: FontWeight.bold)),
+                                  color: Colors.redAccent,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            _opponentBadge(game.opponent02),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "Commentary",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
-                          _opponentBadge(game.opponent02),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "Commentary",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        game.commentary,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                          height: 1.5,
+                        const SizedBox(height: 8),
+                        Text(
+                          game.commentary,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                            height: 1.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                      // Action Bar (Like/Dislike/Share)
-                      _gameActionBar(game),
+                        // Action Bar (Like/Dislike/Share)
+                        _gameActionBar(game),
 
-                      // Comments section
-                      const SizedBox(height: 20),
-                      _commentsList(),
-                    ],
+                        // Comments section
+                        const SizedBox(height: 20),
+                        _commentsList(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ],
           );
         }),
@@ -351,10 +350,7 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
         itemCount: commentController!.commentsList.length,
         itemBuilder: (context, index) {
           final comment = commentController!.commentsList[index];
-          return _CommentTile(
-            comment: comment,
-            controller: commentController!,
-          );
+          return _CommentTile(comment: comment, controller: commentController!);
         },
       );
     });
@@ -413,16 +409,20 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
           Row(
             children: [
               Obx(() {
-                final rawPhoto = Get.find<ProfileController>().profile.value?.profilePhoto ?? "";
-                final userPhoto = _sanitizeUrl(rawPhoto);
+                final userPhoto =
+                    Get.find<ProfileController>().profile.value?.profilePhoto;
                 return CircleAvatar(
                   radius: 18,
-                  backgroundImage: userPhoto.isNotEmpty
+                  backgroundImage: userPhoto != null && userPhoto.isNotEmpty
                       ? NetworkImage(userPhoto)
                       : null,
                   backgroundColor: Colors.grey[800],
-                  child: userPhoto.isEmpty
-                      ? const Icon(Icons.person, color: Colors.white54, size: 18)
+                  child: (userPhoto == null || userPhoto.isEmpty)
+                      ? const Icon(
+                          Icons.person,
+                          color: Colors.white54,
+                          size: 18,
+                        )
                       : null,
                 );
               }),
@@ -518,11 +518,7 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
       onTap: onTap,
       child: Column(
         children: [
-          Icon(
-            icon,
-            color: isActive ? activeColor : Colors.white70,
-            size: 24,
-          ),
+          Icon(icon, color: isActive ? activeColor : Colors.white70, size: 24),
           const SizedBox(height: 4),
           Text(
             label,
@@ -550,41 +546,19 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
       ),
     );
   }
-
 }
 
 class _CommentTile extends StatelessWidget {
   final LiveGameComment comment;
   final LiveGameCommentController controller;
 
-  const _CommentTile({
-    required this.comment,
-    required this.controller,
-  });
-
-  String _sanitizeUrl(String url) {
-    if (url.isEmpty) return "";
-    String sanitized = url
-        .replaceAll('localhost', '10.0.30.59')
-        .replaceAll('127.0.0.1', '10.0.30.59');
-    
-    if (sanitized.startsWith('undefined/')) {
-      sanitized = sanitized.replaceFirst('undefined/', 'http://10.0.30.59:8000/');
-    }
-    
-    if (!sanitized.startsWith('http')) {
-      if (sanitized.startsWith('/')) {
-        sanitized = 'http://10.0.30.59:8000$sanitized';
-      } else {
-        sanitized = 'http://10.0.30.59:8000/$sanitized';
-      }
-    }
-    return sanitized;
-  }
+  const _CommentTile({required this.comment, required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    final photo = _sanitizeUrl(comment.user.profilePhoto);
+    final photo = comment.user.profilePhoto
+        .replaceAll('localhost', '10.0.30.59')
+        .replaceAll('127.0.0.1', '10.0.30.59');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -630,7 +604,10 @@ class _CommentTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       comment.content,
-                      style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
@@ -641,7 +618,6 @@ class _CommentTile extends StatelessWidget {
       ),
     );
   }
-
 
   String _formatTimeAgo(DateTime dateTime) {
     final diff = DateTime.now().difference(dateTime);

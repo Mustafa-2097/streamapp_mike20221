@@ -25,6 +25,18 @@ import '../model/live_tv_model.dart';
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
 
+  // final List<String> _videoUrls = [
+  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
+  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv?autoplay=1',
+  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
+  // ];
+
+  // final List<String> _videoTitles = [
+  //   'Live TV Channel 1',
+  //   'Live TV Channel 2',
+  //   'Live TV Channel 3',
+  // ];
+
   @override
   Widget build(BuildContext context) {
     final NewsController newsController = Get.put(NewsController());
@@ -79,19 +91,10 @@ class ContentSection extends StatelessWidget {
                 final game = liveGameController.liveGames[index];
 
                 // Sanitize thumbnail URL
-                String imageUrl = game.thumbnail
+                final imageUrl = game.thumbnail
                     .replaceAll('localhost', '10.0.30.59')
-                    .replaceAll('127.0.0.1', '10.0.30.59');
-                
-                if (imageUrl.startsWith('undefined/')) {
-                  imageUrl = imageUrl.replaceFirst('undefined/', 'http://10.0.30.59:8000/');
-                }
-                
-                if (!imageUrl.startsWith('http') && imageUrl.isNotEmpty) {
-                  imageUrl = imageUrl.startsWith('/') 
-                      ? 'http://10.0.30.59:8000$imageUrl' 
-                      : 'http://10.0.30.59:8000/$imageUrl';
-                }
+                    .replaceAll('127.0.0.1', '10.0.30.59')
+                    .replaceFirst('undefined/', 'http://10.0.30.59:8000/');
 
                 return Padding(
                   padding: EdgeInsets.only(right: 12.w),
@@ -233,6 +236,12 @@ class ContentSection extends StatelessWidget {
                           alignment: Alignment.centerLeft,
                           padding: const EdgeInsets.only(left: 20),
                           margin: const EdgeInsets.only(bottom: 12),
+                          // decoration: BoxDecoration(
+                          //   color: isBookmarked
+                          //       ? Colors.redAccent.withOpacity(0.8)
+                          //       : Colors.amber.withOpacity(0.8),
+                          //   borderRadius: BorderRadius.circular(12),
+                          // ),
                           child: Icon(
                             isBookmarked
                                 ? Icons.delete_outlined
@@ -650,35 +659,24 @@ class ContentSection extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          if (label != "Live Now") ...[
-            const Spacer(),
-            GestureDetector(
-              onTap: onTap,
-              child: Text(
-                'View All',
-                style: TextStyle(color: Colors.white, fontSize: 16.sp),
-              ),
+          const Spacer(),
+          GestureDetector(
+            onTap: onTap,
+            child: Text(
+              'View All',
+              style: TextStyle(color: Colors.white, fontSize: 16.sp),
             ),
-          ],
+          ),
         ],
       ),
     );
   }
 
   Widget _buildTVChannel(LiveTvModel tv) {
-    String imageUrl = tv.thumbnail
+    final imageUrl = tv.thumbnail
         .replaceAll('localhost', '10.0.30.59')
-        .replaceAll('127.0.0.1', '10.0.30.59');
-    
-    if (imageUrl.startsWith('undefined/')) {
-       imageUrl = imageUrl.replaceFirst('undefined/', 'http://10.0.30.59:8000/');
-    }
-
-    if (!imageUrl.startsWith('http') && imageUrl.isNotEmpty) {
-      imageUrl = imageUrl.startsWith('/') 
-          ? 'http://10.0.30.59:8000$imageUrl' 
-          : 'http://10.0.30.59:8000/$imageUrl';
-    }
+        .replaceAll('127.0.0.1', '10.0.30.59')
+        .replaceAll('undefined/', 'http://10.0.30.59:8000/');
 
     return GestureDetector(
       onTap: () {

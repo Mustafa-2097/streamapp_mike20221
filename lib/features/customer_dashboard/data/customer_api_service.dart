@@ -685,6 +685,46 @@ class CustomerApiService {
     );
   }
 
+  /// ================= LIVE TV ACTIONS =================
+  static Future<Map<String, dynamic>> likeLiveTv(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(
+      ApiEndpoints.likeLiveTv(id),
+      headers: headers,
+      body: {}, // Empty body if not required
+    );
+  }
+
+  static Future<Map<String, dynamic>> dislikeLiveTv(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(
+      ApiEndpoints.dislikeLiveTv(id),
+      headers: headers,
+      body: {},
+    );
+  }
+
+  static Future<Map<String, dynamic>> shareLiveTv(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(
+      ApiEndpoints.shareLiveTv(id),
+      headers: headers,
+      body: {},
+    );
+  }
+
   /// ================= LIVE TV COMMENTS =================
   static Future<Map<String, dynamic>> getLiveTvComments(String tvId) async {
     final String? token = await SharedPreferencesHelper.getToken();
@@ -693,7 +733,7 @@ class CustomerApiService {
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
     return await ApiService.get(
-      ApiEndpoints.singleLiveTv(tvId),
+      ApiEndpoints.liveTvComments(tvId),
       headers: headers,
     );
   }
@@ -707,13 +747,12 @@ class CustomerApiService {
     if (token == null || token.isEmpty) throw Exception("User token not found");
 
     return await ApiService.post(
-      ApiEndpoints.liveTvComments,
+      ApiEndpoints.liveTvComments(liveTvId),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
       body: {
-        'liveTvId': liveTvId,
         'content': content,
         if (parentId != null) 'parentId': parentId,
       },

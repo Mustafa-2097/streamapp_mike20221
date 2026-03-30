@@ -35,9 +35,11 @@ class _OpenTvsState extends State<OpenTvs> {
 
     if (controller.selectedLiveTv.value != null) {
       webController.loadRequest(
-          Uri.parse(controller.selectedLiveTv.value!.link));
-      commentController = Get.put(LiveTvCommentController(
-          liveTvId: controller.selectedLiveTv.value!.id));
+        Uri.parse(controller.selectedLiveTv.value!.link),
+      );
+      commentController = Get.put(
+        LiveTvCommentController(liveTvId: controller.selectedLiveTv.value!.id),
+      );
     }
   }
 
@@ -51,8 +53,9 @@ class _OpenTvsState extends State<OpenTvs> {
         if (commentController != null) {
           Get.delete<LiveTvCommentController>();
         }
-        commentController =
-            Get.put(LiveTvCommentController(liveTvId: liveTv.id));
+        commentController = Get.put(
+          LiveTvCommentController(liveTvId: liveTv.id),
+        );
         setState(() {});
       }
     });
@@ -80,9 +83,7 @@ class _OpenTvsState extends State<OpenTvs> {
         child: Obx(() {
           if (controller.isLoading.value) {
             return const Center(
-              child: CircularProgressIndicator(
-                color: Colors.redAccent,
-              ),
+              child: CircularProgressIndicator(color: Colors.redAccent),
             );
           }
 
@@ -111,7 +112,9 @@ class _OpenTvsState extends State<OpenTvs> {
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 12),
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                   decoration: const BoxDecoration(
                     color: Color(0xFF0E0E0E),
                     borderRadius: BorderRadius.only(
@@ -135,8 +138,10 @@ class _OpenTvsState extends State<OpenTvs> {
                                 ),
                               ),
                             ),
-                            const Icon(Icons.keyboard_arrow_down,
-                                color: Colors.white70),
+                            const Icon(
+                              Icons.keyboard_arrow_down,
+                              color: Colors.white70,
+                            ),
                           ],
                         ),
 
@@ -144,8 +149,7 @@ class _OpenTvsState extends State<OpenTvs> {
 
                         const Text(
                           "Live • Streaming",
-                          style: TextStyle(
-                              color: Colors.white54, fontSize: 12),
+                          style: TextStyle(color: Colors.white54, fontSize: 12),
                         ),
 
                         const SizedBox(height: 16),
@@ -175,7 +179,6 @@ class _OpenTvsState extends State<OpenTvs> {
                         ), */
 
                         // const SizedBox(height: 10),
-
                         _commentsList(),
 
                         const SizedBox(height: 20),
@@ -585,10 +588,6 @@ class _RepliesList extends StatelessWidget {
     );
   }
 }
-
-
-
-
 
 // import 'package:flutter/material.dart';
 // import 'package:get/get.dart';

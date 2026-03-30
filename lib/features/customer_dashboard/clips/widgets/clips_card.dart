@@ -18,7 +18,9 @@ class ClipCard extends StatelessWidget {
   });
 
   String _fixUrl(String url) {
-    return url.replaceAll('localhost', '10.0.30.59').replaceAll('127.0.0.1', '10.0.30.59');
+    return url
+        .replaceAll('localhost', '10.0.30.59')
+        .replaceAll('127.0.0.1', '10.0.30.59');
   }
 
   @override
@@ -31,11 +33,17 @@ class ClipCard extends StatelessWidget {
           children: [
             Positioned.fill(
               child: Image.network(
-                _fixUrl(clip.videoUrl), // Since videoUrl is provided, we use it. If there was a thumbnail field, we'd use that.
+                _fixUrl(
+                  clip.videoUrl,
+                ), // Since videoUrl is provided, we use it. If there was a thumbnail field, we'd use that.
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
                   color: Colors.grey[900],
-                  child: const Icon(Icons.play_circle_outline, color: Colors.white, size: 40),
+                  child: const Icon(
+                    Icons.play_circle_outline,
+                    color: Colors.white,
+                    size: 40,
+                  ),
                 ),
               ),
             ),
@@ -89,4 +97,3 @@ class ClipCard extends StatelessWidget {
     );
   }
 }
-

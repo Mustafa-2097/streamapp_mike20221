@@ -4,13 +4,15 @@ class LiveTvModel {
   final String link;
   final String thumbnail;
   final bool commentsEnabled;
-  final dynamic likes;
-  final dynamic dislikes;
+  final int likes;
+  final int dislikes;
   final int shares;
   final DateTime createdAt;
   final DateTime updatedAt;
   final int commentCount;
   final dynamic comments;
+  final bool liked;
+  final bool disliked;
 
   LiveTvModel({
     required this.id,
@@ -25,6 +27,8 @@ class LiveTvModel {
     required this.updatedAt,
     required this.commentCount,
     this.comments,
+    this.liked = false,
+    this.disliked = false,
   });
 
   factory LiveTvModel.fromJson(Map<String, dynamic> json) {
@@ -34,8 +38,8 @@ class LiveTvModel {
       link: json['link'] ?? '',
       thumbnail: json['thumbnail'] ?? '',
       commentsEnabled: json['commentsEnabled'] ?? true,
-      likes: json['likes'] ?? 0,
-      dislikes: json['dislikes'] ?? 0,
+      likes: json['likes'] is int ? json['likes'] : (int.tryParse(json['likes']?.toString() ?? '0') ?? 0),
+      dislikes: json['dislikes'] is int ? json['dislikes'] : (int.tryParse(json['dislikes']?.toString() ?? '0') ?? 0),
       shares: json['shares'] ?? 0,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
@@ -46,7 +50,9 @@ class LiveTvModel {
       commentCount: json['_count'] != null 
           ? json['_count']['comments'] ?? 0 
           : (json['comments'] is int ? json['comments'] : (json['comments'] is List ? (json['comments'] as List).length : 0)),
-      comments: json['comments'] ?? 0,
+      comments: json['comments'],
+      liked: json['liked'] ?? false,
+      disliked: json['disliked'] ?? false,
     );
   }
 
@@ -62,6 +68,8 @@ class LiveTvModel {
       'shares': shares,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'liked': liked,
+      'disliked': disliked,
       '_count': {'comments': commentCount},
       'comments': comments,
     };

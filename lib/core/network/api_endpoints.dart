@@ -1,6 +1,6 @@
 class ApiEndpoints {
   /// Base URL
-  static const String baseUrl = 'http://10.0.30.59:8000/api/v1';
+  static const String baseUrl = 'https://mike20221.smtsigma.com/api/v1';
 
   /// Auth
   static const String register = '$baseUrl/auth/register';
@@ -54,7 +54,10 @@ class ApiEndpoints {
   /// Live TV
   static const String liveTv = '$baseUrl/live-tv';
   static String singleLiveTv(String id) => '$liveTv/$id';
-  static const String liveTvComments = '$liveTv/comments';
+  static String likeLiveTv(String id) => '$liveTv/$id/like';
+  static String dislikeLiveTv(String id) => '$liveTv/$id/dislike';
+  static String shareLiveTv(String id) => '$liveTv/$id/share';
+  static String liveTvComments(String id) => '$liveTv/$id/comments';
   static const String liveTvCommentsAction = '$liveTv/comments/action';
   static String liveTvCommentReplies(String commentId) =>
       '$liveTv/comments/$commentId/replies';
