@@ -11,6 +11,7 @@ import '../../replay/view/replay_screen.dart';
 import '../view/news_details_screen.dart';
 import '../view/open_reels_video.dart';
 import '../view/open_tvs.dart';
+import '../view/open_live_games.dart';
 import 'live_card.dart';
 import '../../profile/controller/bookmarks_controller.dart';
 import '../../news/controller/news_controller.dart';
@@ -18,6 +19,7 @@ import '../../clips/controller/clips_controller.dart';
 import '../../replay/controller/replay_controller.dart';
 import '../../live/live_dashboard/controller/live_controller.dart';
 import '../controller/live_tv_controller.dart';
+import '../controller/live_game_controller.dart';
 import '../model/live_tv_model.dart';
 
 class ContentSection extends StatelessWidget {
@@ -35,28 +37,7 @@ class ContentSection extends StatelessWidget {
   //   'Live TV Channel 3',
   // ];
 
-  final List<String> _liveImages = [
-    'assets/images/live01.png',
-    'assets/images/live02.png',
-    'assets/images/live01.png',
-  ];
 
-  // Viewer counts for each live stream
-  final List<String> _viewerCounts = ['205K', '189K', '156K'];
-
-  // Titles for accessibility/alt text
-  final List<String> _titles = [
-    'Bangladesh vs Australia - Cricket Championship',
-    'BIG GAME - Brazil vs Spain - World Cup',
-    'Bangladesh vs Australia - Cricket Championship',
-  ];
-
-  // Descriptions for each live stream
-  final List<String> _descriptions = [
-    'Commentary: Watch the Asekay Mustafa take on the Australia Wallabies...',
-    'Commentary: New Zealand All Blacks vs South Africa Springboks – Rugby Ch...',
-    'Commentary: Watch the Asekay Mustafa take on the Australia Wallabies...',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +48,7 @@ class ContentSection extends StatelessWidget {
       LiveMatchesController(),
     );
     final LiveTvController liveTvController = Get.put(LiveTvController());
+    final LiveGameController liveGameController = Get.put(LiveGameController());
 
     // Fetch upcoming if empty
     if (liveController.upcomingMatches.isEmpty &&
@@ -85,23 +67,49 @@ class ContentSection extends StatelessWidget {
         // Horizontal Scrollable Live Now List
         SizedBox(
           height: 200.h,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            itemCount: _liveImages.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.only(right: 12.w),
-                child: LiveCard(
-                  imagePath: _liveImages[index],
-                  viewerCount: _viewerCounts[index],
-                  title: _titles[index],
-                  description: _descriptions[index],
-                  isLocked: index == 0,
-                ),
+          child: Obx(() {
+            if (liveGameController.isLoading.value &&
+                liveGameController.liveGames.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (liveGameController.liveGames.isEmpty) {
+              return const Center(
+                child: Text("No live games currently",
+                    style: TextStyle(color: Colors.white54)),
               );
-            },
-          ),
+            }
+
+            return ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              itemCount: liveGameController.liveGames.length,
+              itemBuilder: (context, index) {
+                final game = liveGameController.liveGames[index];
+                
+                // Sanitize thumbnail URL
+                final imageUrl = game.thumbnail
+                    .replaceAll('localhost', '10.0.30.59')
+                    .replaceAll('127.0.0.1', '10.0.30.59')
+                    .replaceFirst('undefined/', 'http://10.0.30.59:8000/');
+
+                return Padding(
+                  padding: EdgeInsets.only(right: 12.w),
+                  child: LiveCard(
+                    imagePath: imageUrl,
+                    viewerCount: "${game.viewers}",
+                    title: game.title,
+                    description: game.commentary,
+                    isLocked: game.isPremium,
+                    onTap: () {
+                      liveGameController.fetchLiveGameById(game.id);
+                      Get.to(() => const OpenLiveGame());
+                    },
+                  ),
+                );
+              },
+            );
+          }),
         ),
         SizedBox(height: 24.h),
 

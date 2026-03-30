@@ -55,6 +55,17 @@ class ApiEndpoints {
   static String liveTvCommentReplies(String commentId) =>
       '$liveTv/comments/$commentId/replies';
 
+  /// Live Games
+  static const String liveGames = '$baseUrl/live-games';
+  static String singleLiveGame(String id) => '$liveGames/$id';
+  static String likeLiveGame(String id) => '$liveGames/$id/like';
+  static String dislikeLiveGame(String id) => '$liveGames/$id/dislike';
+  static String shareLiveGame(String id) => '$liveGames/$id/share';
+  static String liveGameComments(String gameId) => '$liveGames/$gameId/comments';
+  static String liveGameCommentsAction = '$liveGames/comments/action';
+  static String liveGameCommentReplies(String commentId) =>
+      '$liveGames/comments/$commentId/replies';
+
   /// News
   ///  static const String news = '$baseUrl/news?category=sports';
   static const String news = '$baseUrl/news';

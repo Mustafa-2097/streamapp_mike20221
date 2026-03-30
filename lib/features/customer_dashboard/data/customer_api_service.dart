@@ -704,4 +704,113 @@ class CustomerApiService {
     return await ApiService.get(ApiEndpoints.liveTvCommentReplies(commentId),
         headers: headers);
   }
+
+  static Future<Map<String, dynamic>> getLiveGames() async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.liveGames, headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> getLiveGameById(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.singleLiveGame(id),
+        headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> getLiveGameComments(String gameId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.liveGameComments(gameId),
+        headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> postLiveGameComment(
+    String gameId,
+    String content, {
+    String? parentId,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    final body = {
+      "content": content,
+      if (parentId != null) "parentCommentId": parentId,
+    };
+    return await ApiService.post(ApiEndpoints.liveGameComments(gameId),
+        headers: headers, body: body);
+  }
+
+  static Future<Map<String, dynamic>> postLiveGameCommentAction(
+    String commentId,
+    String type, {
+    String? parentId,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.post(
+      ApiEndpoints.liveGameCommentsAction,
+      headers: headers,
+      body: {
+        'commentId': commentId,
+        'type': type,
+        if (parentId != null) 'parentId': parentId,
+      },
+    );
+  }
+
+  static Future<Map<String, dynamic>> getLiveGameCommentReplies(
+      String commentId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.liveGameCommentReplies(commentId),
+        headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> likeLiveGame(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(ApiEndpoints.likeLiveGame(id),
+        headers: headers, body: {});
+  }
+
+  static Future<Map<String, dynamic>> dislikeLiveGame(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(ApiEndpoints.dislikeLiveGame(id),
+        headers: headers, body: {});
+  }
+
+  static Future<Map<String, dynamic>> shareLiveGame(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(ApiEndpoints.shareLiveGame(id),
+        headers: headers, body: {});
+  }
 }

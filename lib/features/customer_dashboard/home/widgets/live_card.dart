@@ -9,6 +9,7 @@ class LiveCard extends StatelessWidget {
     required this.title,
     required this.description,
     required this.isLocked,
+    this.onTap,
   });
 
   final String imagePath;
@@ -16,15 +17,12 @@ class LiveCard extends StatelessWidget {
   final String title;
   final String description;
   final bool isLocked;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // if (!isLocked) {
-        //   Get.to(VideoLiveScreen());
-        // }
-      },
+      onTap: onTap,
       child: Container(
         width: 210.w,
         child: Column(
@@ -48,12 +46,26 @@ class LiveCard extends StatelessWidget {
                 children: [
                   // Main Image with all design elements baked in
                   ClipRRect(
-                    child: Image.asset(
-                      imagePath,
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+                    borderRadius: BorderRadius.circular(16.r),
+                    child: imagePath.startsWith('http') ||
+                            imagePath.startsWith('https')
+                        ? Image.network(
+                            imagePath,
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                              color: Colors.grey[800],
+                              child: const Icon(Icons.image, color: Colors.white24),
+                            ),
+                          )
+                        : Image.asset(
+                            imagePath,
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
                   ),
 
                   // LIVE Badge
