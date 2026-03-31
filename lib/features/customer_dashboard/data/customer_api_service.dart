@@ -922,4 +922,30 @@ class CustomerApiService {
       body: {},
     );
   }
+
+  /// ================= REPLAYS =================
+  static Future<Map<String, dynamic>> getReplays({required int page}) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(
+      ApiEndpoints.replays,
+      queryParameters: {'page': page.toString()},
+      headers: headers,
+    );
+  }
+
+  static Future<Map<String, dynamic>> getReplayById(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(
+      ApiEndpoints.singleReplay(id),
+      headers: headers,
+    );
+  }
 }

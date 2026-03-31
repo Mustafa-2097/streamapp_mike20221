@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:video_player/video_player.dart';
 
 import '../controller/video_controller.dart';
 import '../../../replay/controller/replay_comment_controller.dart';
@@ -14,6 +15,7 @@ class VideoLiveScreen extends StatefulWidget {
 }
 
 class _VideoLiveScreenState extends State<VideoLiveScreen> {
+  // Use tag to distinguish between multiple video controllers if needed (not here)
   final VideoLiveController controller = Get.put(VideoLiveController());
   ReplayCommentController? commentController;
 
@@ -131,104 +133,126 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
 
   // ------------------------------ VIDEO PREVIEW ------------------------------
   Widget _videoPreviewSection(replay) {
-    return Stack(
-      children: [
-        // Preview Image Placeholder
-        Container(
-          height: 240,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: NetworkImage(_fixUrl(replay.thumbnailUrl)),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-
-        // Top Overlay (Live + viewers)
-        Positioned(
-          top: 12,
-          left: 12,
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Obx(() {
+            if (controller.isVideoInitialized.value && controller.videoPlayerController != null) {
+              return VideoPlayer(controller.videoPlayerController!);
+            } else {
+              // Return thumbnail until the video player is ready
+              return Container(
                 decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(6),
+                  image: DecorationImage(
+                    image: NetworkImage(_fixUrl(replay.thumbnailUrl)),
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.circle, size: 8, color: Colors.white),
-                    SizedBox(width: 6),
-                    Text(
-                      "Live",
-                      style: TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+              );
+            }
+          }),
 
-        Positioned(
-          top: 12,
-          right: 12,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.55),
-              borderRadius: BorderRadius.circular(16),
+          // Play/Pause Overlay Toggle
+          Obx(() => GestureDetector(
+            onTap: controller.togglePlayback,
+            child: Container(
+              color: Colors.transparent,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                child: !controller.isPlaying.value
+                    ? const Icon(Icons.play_circle_filled, color: Colors.white70, size: 64)
+                    : const SizedBox.shrink(),
+              ),
             ),
-            child: const Row(
+          )),
+
+          // Top Overlay (Live + viewers)
+          Positioned(
+            top: 12,
+            left: 12,
+            child: Row(
               children: [
-                Icon(Icons.remove_red_eye, size: 14, color: Colors.white),
-                SizedBox(width: 6),
-                Text(
-                  "205K",
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.circle, size: 8, color: Colors.white),
+                      SizedBox(width: 6),
+                      Text(
+                        "Replay",
+                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-        ),
 
-        // Bottom progress bar + time
-        Positioned(
-          bottom: 6,
-          left: 12,
-          right: 12,
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text(
-                    "02:55 / 04:26",
-                    style: TextStyle(color: Colors.white70, fontSize: 11),
+          // Bottom progress bar + time
+          Positioned(
+            bottom: 6,
+            left: 12,
+            right: 12,
+            child: Obx(() {
+              final isInit = controller.isVideoInitialized.value;
+              final player = controller.videoPlayerController;
+              
+              double progress = 0;
+              String timeText = "00:00 / 00:00";
+              
+              if (isInit && player != null) {
+                progress = player.value.position.inMilliseconds / 
+                           player.value.duration.inMilliseconds.clamp(1, 999999999);
+                
+                timeText = "${_formatDuration(player.value.position)} / ${_formatDuration(player.value.duration)}";
+              }
+
+              return Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        timeText,
+                        style: const TextStyle(color: Colors.white70, fontSize: 11),
+                      ),
+                      const Icon(Icons.fullscreen, color: Colors.white, size: 18),
+                    ],
                   ),
-                  Icon(Icons.fullscreen, color: Colors.white, size: 18),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 4,
+                      backgroundColor: Colors.white24,
+                      valueColor: const AlwaysStoppedAnimation(Colors.yellow), // Yellow to match premium theme
+                    ),
+                  ),
                 ],
-              ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: LinearProgressIndicator(
-                  value: 0.55,
-                  minHeight: 4,
-                  backgroundColor: Colors.white24,
-                  valueColor: const AlwaysStoppedAnimation(Colors.red),
-                ),
-              ),
-            ],
+              );
+            }),
           ),
-        ),
-      ],
+        ],
+      ),
     );
+  }
+
+  String _formatDuration(Duration d) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String minutes = twoDigits(d.inMinutes.remainder(60));
+    String seconds = twoDigits(d.inSeconds.remainder(60));
+    return d.inHours > 0 ? "${twoDigits(d.inHours)}:$minutes:$seconds" : "$minutes:$seconds";
   }
 
   // ------------------------------ TITLE + DROPDOWN ------------------------------
@@ -416,12 +440,6 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
           }),
           Row(
             children: [
-              // const CircleAvatar(
-              //   radius: 16,
-              //   backgroundColor: Colors.redAccent,
-              //   child: Icon(Icons.person, color: Colors.white, size: 18),
-              // ),
-              // const SizedBox(width: 10),
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -700,7 +718,7 @@ class _RepliesList extends StatelessWidget {
                               reply.userStatus.isDisliked
                                   ? Icons.thumb_down
                                   : Icons.thumb_down_alt_outlined,
-                              reply.dislikeCount.toString(),
+                              reply.likeCount.toString(),
                               reply.userStatus.isDisliked
                                   ? Colors.red
                                   : Colors.grey,

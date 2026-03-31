@@ -1,7 +1,5 @@
 import 'package:get/get.dart';
-import '../../../../core/network/api_endpoints.dart';
-import '../../../../core/network/api_service.dart';
-import '../../../../core/offline_storage/shared_pref.dart';
+import '../../data/customer_api_service.dart';
 import '../model/replay_model.dart';
 
 class ReplayController extends GetxController {
@@ -13,6 +11,7 @@ class ReplayController extends GetxController {
   final List<String> categories = ["All", "Replay", "Full Game"];
 
   var isLoading = false.obs;
+  var errorMessage = "".obs;
   var replaysList = <ReplayModel>[].obs;
 
   @override
@@ -21,23 +20,48 @@ class ReplayController extends GetxController {
     fetchReplays();
   }
 
-  Future<void> fetchReplays() async {
+  Future<void> fetchReplays({int page = 1}) async {
     try {
       isLoading.value = true;
-      final String? token = await SharedPreferencesHelper.getToken();
-      final headers = {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      };
-
-      final response = await ApiService.get(ApiEndpoints.replays, headers: headers);
+      errorMessage.value = "";
+      final response = await CustomerApiService.getReplays(page: page);
+      print("Replays API Raw Response: $response");
 
       if (response['success'] == true) {
-        final List data = response['data'] ?? [];
-        replaysList.value = data.map((json) => ReplayModel.fromJson(json)).toList();
+        dynamic dataNode = response['data'] ?? [];
+        List<dynamic> rawList = [];
+
+        if (dataNode is List) {
+          rawList = dataNode;
+        } else if (dataNode is Map) {
+          if (dataNode.containsKey('data') && dataNode['data'] is List) {
+            rawList = dataNode['data'];
+          } else if (dataNode.containsKey('replays') && dataNode['replays'] is List) {
+            rawList = dataNode['replays'];
+          } else {
+            rawList = [dataNode];
+          }
+        }
+
+        final List<ReplayModel> fetchedReplays = rawList.map((json) {
+          try {
+            if (json == null) return null;
+            return ReplayModel.fromJson(json as Map<String, dynamic>);
+          } catch (e) {
+            print("Error parsing single replay item: $e");
+            return null;
+          }
+        }).whereType<ReplayModel>().toList();
+
+        if (page == 1) {
+          replaysList.assignAll(fetchedReplays);
+        } else {
+          replaysList.addAll(fetchedReplays);
+        }
       }
     } catch (e) {
       print("Error fetching replays: $e");
+      errorMessage.value = e.toString();
     } finally {
       isLoading.value = false;
     }

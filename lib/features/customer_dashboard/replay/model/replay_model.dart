@@ -18,6 +18,7 @@ class ReplayModel {
   final SocialLinks socialLinks;
   final Engagement engagement;
   final UserStatus userStatus;
+  final bool isPremium;
 
   ReplayModel({
     required this.replayId,
@@ -39,6 +40,7 @@ class ReplayModel {
     required this.socialLinks,
     required this.engagement,
     required this.userStatus,
+    required this.isPremium,
   });
 
   factory ReplayModel.fromJson(Map<String, dynamic> json) {
@@ -50,18 +52,19 @@ class ReplayModel {
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       tags: List<String>.from(json['tags'] ?? []),
-      viewCount: json['viewCount'] ?? 0,
+      viewCount: int.tryParse(json['viewCount']?.toString() ?? '') ?? 0,
       category: json['category'] ?? '',
-      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
-      updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
-      user: ReplayUser.fromJson(json['user'] ?? {}),
-      count: ReplayCount.fromJson(json['_count'] ?? {}),
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updatedAt']?.toString() ?? '') ?? DateTime.now(),
+      user: ReplayUser.fromJson(json['user'] is Map ? json['user'] : {}),
+      count: ReplayCount.fromJson(json['_count'] is Map ? json['_count'] : {}),
       timeAgo: json['timeAgo'] ?? '',
       formattedViews: json['formattedViews'] ?? '',
       shareUrl: json['shareUrl'] ?? '',
       socialLinks: SocialLinks.fromJson(json['socialLinks'] ?? {}),
-      engagement: Engagement.fromJson(json['engagement'] ?? {}),
-      userStatus: UserStatus.fromJson(json['userStatus'] ?? {}),
+      engagement: Engagement.fromJson(json['engagement'] is Map ? json['engagement'] : {}),
+      userStatus: UserStatus.fromJson(json['userStatus'] is Map ? json['userStatus'] : {}),
+      isPremium: json['isPremium'] ?? false,
     );
   }
 }
@@ -99,9 +102,9 @@ class ReplayCount {
 
   factory ReplayCount.fromJson(Map<String, dynamic> json) {
     return ReplayCount(
-      comments: json['comments'] ?? 0,
-      actions: json['actions'] ?? 0,
-      bookmarks: json['bookmarks'] ?? 0,
+      comments: int.tryParse(json['comments']?.toString() ?? '') ?? 0,
+      actions: int.tryParse(json['actions']?.toString() ?? '') ?? 0,
+      bookmarks: int.tryParse(json['bookmarks']?.toString() ?? '') ?? 0,
     );
   }
 }
@@ -158,14 +161,14 @@ class Engagement {
     return Engagement(
       id: json['id'] ?? '',
       replayId: json['replayId'] ?? '',
-      likes: json['likes'] ?? 0,
-      dislikes: json['dislikes'] ?? 0,
-      shares: json['shares'] ?? 0,
-      comments: json['comments'] ?? 0,
-      bookmarks: json['bookmarks'] ?? 0,
-      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
-      updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
-      formattedComments: json['formattedComments'] ?? '0',
+      likes: int.tryParse(json['likes']?.toString() ?? '') ?? 0,
+      dislikes: int.tryParse(json['dislikes']?.toString() ?? '') ?? 0,
+      shares: int.tryParse(json['shares']?.toString() ?? '') ?? 0,
+      comments: int.tryParse(json['comments']?.toString() ?? '') ?? 0,
+      bookmarks: int.tryParse(json['bookmarks']?.toString() ?? '') ?? 0,
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updatedAt']?.toString() ?? '') ?? DateTime.now(),
+      formattedComments: (json['formattedComments'] ?? '0').toString(),
     );
   }
 }
