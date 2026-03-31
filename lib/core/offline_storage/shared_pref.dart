@@ -99,4 +99,23 @@ class SharedPreferencesHelper {
     await prefs.remove(_rememberMeKey);
     await prefs.remove(_emailKey);
   }
+  static const String _newsKey = 'cached_news';
+
+  static Future<void> saveString(String key, String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(key, value);
+  }
+
+  static Future<String?> getString(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(key);
+  }
+
+  static Future<void> saveNewsListJson(String json) async {
+    await saveString(_newsKey, json);
+  }
+
+  static Future<String?> getNewsListJson() async {
+    return await getString(_newsKey);
+  }
 }

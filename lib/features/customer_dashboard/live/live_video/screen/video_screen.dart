@@ -462,15 +462,11 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
               ),
               const SizedBox(width: 10),
               IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.send,
-                  color: commentController!.isPosting.value
-                      ? Colors.grey
-                      : Colors.redAccent,
+                  color: Colors.redAccent,
                 ),
-                onPressed: commentController!.isPosting.value
-                    ? null
-                    : commentController!.submitComment,
+                onPressed: commentController!.submitComment,
               ),
             ],
           ),
@@ -568,17 +564,18 @@ class _CommentTile extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 20),
-                        GestureDetector(
-                          onTap: () => controller.startReply(comment),
-                          child: const Text(
-                            "Reply",
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                        if (!comment.commentId.startsWith("TEMP"))
+                          GestureDetector(
+                            onTap: () => controller.startReply(comment),
+                            child: const Text(
+                              "Reply",
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
 

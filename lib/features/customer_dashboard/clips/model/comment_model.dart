@@ -9,11 +9,11 @@ class ClipComment {
   final DateTime createdAt;
   final DateTime updatedAt;
   final ClipUser user;
-  final int replyCount;
-  final List<ClipComment> replies;
-  final int likeCount;
-  final int dislikeCount;
-  final CommentUserStatus userStatus;
+  int replyCount;
+  List<ClipComment> replies;
+  int likeCount;
+  int dislikeCount;
+  CommentUserStatus userStatus;
 
   ClipComment({
     required this.commentId,
@@ -33,7 +33,7 @@ class ClipComment {
 
   factory ClipComment.fromJson(Map<String, dynamic> json) {
     return ClipComment(
-      commentId: json['commentId'] ?? '',
+      commentId: json['id'] ?? json['commentId'] ?? '',
       clipId: json['clipId'] ?? '',
       userId: json['userId'] ?? '',
       content: json['content'] ?? '',
@@ -54,8 +54,8 @@ class ClipComment {
 }
 
 class CommentUserStatus {
-  final bool isLiked;
-  final bool isDisliked;
+  bool isLiked;
+  bool isDisliked;
 
   CommentUserStatus({
     required this.isLiked,

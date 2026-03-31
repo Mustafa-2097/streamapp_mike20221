@@ -7,6 +7,7 @@ class PaymentHistoryModel {
   final String status;
   final String createdAt;
   final String provider;
+  final String? logo;
 
   PaymentHistoryModel({
     required this.id,
@@ -15,6 +16,7 @@ class PaymentHistoryModel {
     required this.status,
     required this.createdAt,
     required this.provider,
+    this.logo,
   });
 
   factory PaymentHistoryModel.fromJson(Map<String, dynamic> json) {
@@ -23,8 +25,9 @@ class PaymentHistoryModel {
       transactionId: json['transactionId']?.toString() ?? json['id']?.toString() ?? 'N/A',
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       status: json['status']?.toString() ?? 'Completed',
-      createdAt: json['createdAt']?.toString() ?? '',
+      createdAt: json['date']?.toString() ?? json['createdAt']?.toString() ?? '',
       provider: _parseProvider(json),
+      logo: json['logo']?.toString(),
     );
   }
 

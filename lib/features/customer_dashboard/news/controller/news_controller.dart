@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dart:convert';
 import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/network/api_service.dart';
 import '../model/news_model.dart';
@@ -40,7 +42,23 @@ class NewsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _loadCachedNews();
     fetchNews();
+  }
+
+  Future<void> _loadCachedNews() async {
+    try {
+      final String? json = await SharedPreferencesHelper.getNewsListJson();
+      if (json != null && json.isNotEmpty) {
+        final List<dynamic> list = jsonDecode(json);
+        final cachedArticles = list.take(10).map((e) => Article.fromJson(e)).toList();
+        if (newsList.isEmpty) {
+          newsList.assignAll(cachedArticles);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error loading cached news: $e");
+    }
   }
 
   void changeTab(int index) {
@@ -52,6 +70,12 @@ class NewsController extends GetxController {
   void removeNews(int index) => newsData.removeAt(index);
 
   Future<void> fetchNews({bool isLoadMore = false}) async {
+    final token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) {
+      debugPrint("NewsController: No token found. Skipping fetch.");
+      return;
+    }
+
     if (isLoading.value || isLoadingMore.value) return;
     if (isLoadMore && !hasMore.value) return;
 
@@ -94,6 +118,10 @@ class NewsController extends GetxController {
             newsList.addAll(newArticles);
           } else {
             newsList.assignAll(newArticles);
+            // Cache only the first page
+            SharedPreferencesHelper.saveNewsListJson(
+              jsonEncode(newArticles.map((e) => e.toJson()).toList()),
+            );
           }
           page++;
           // If we got fewer articles than requested, we've reached the end

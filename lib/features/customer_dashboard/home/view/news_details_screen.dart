@@ -61,29 +61,97 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   }
 
   Future<void> _handlePostComment() async {
-    if (_commentController.text.trim().isEmpty) return;
+    final text = _commentController.text.trim();
+    if (text.isEmpty) return;
+
+    // --- OPTIMISTIC UI: INSTANT ADD ---
+    final profile = Get.find<ProfileController>().profile.value;
+    if (profile == null) return;
+
+    final String tempId = "temp_${DateTime.now().millisecondsSinceEpoch}";
     final parentId = replyingToComment?.id;
+
+    final optimisticComment = Comment(
+      id: tempId,
+      newsId: currentArticle.id,
+      userId: profile.id,
+      userName: profile.name ?? "User",
+      userImage: profile.profilePhoto,
+      comment: text,
+      parentId: parentId,
+      createdAt: DateTime.now().toIso8601String(),
+      likeCount: 0,
+      dislikeCount: 0,
+      isLiked: false,
+      isDisliked: false,
+      replies: [],
+    );
+
+    // Save context for possible rollback
+    final originalText = text;
+    final originalParentId = parentId;
+
+    setState(() {
+      if (parentId == null) {
+        currentArticle.comments ??= [];
+        currentArticle.comments!.insert(0, optimisticComment);
+      } else {
+        _addCommentToParentLocally(
+          currentArticle.comments,
+          parentId,
+          optimisticComment,
+        );
+      }
+      currentArticle.commentCount = (currentArticle.commentCount ?? 0) + 1;
+      _commentController.clear();
+      replyingToComment = null;
+    });
+
     final newComment = await controller.postComment(
       currentArticle.id!,
-      _commentController.text.trim(),
-      parentId: parentId,
+      originalText,
+      parentId: originalParentId,
     );
+
     if (newComment != null) {
+      // Success: Replace temporary comment with real one from server
       setState(() {
-        if (parentId == null) {
-          currentArticle.comments ??= [];
-          currentArticle.comments!.insert(0, newComment);
+        if (originalParentId == null) {
+          int idx =
+              currentArticle.comments?.indexWhere((c) => c.id == tempId) ?? -1;
+          if (idx != -1) currentArticle.comments![idx] = newComment;
         } else {
-          _addCommentToParentLocally(
+          _replaceCommentInParentLocally(
             currentArticle.comments,
-            parentId,
+            originalParentId,
+            tempId,
             newComment,
           );
         }
-        currentArticle.commentCount = (currentArticle.commentCount ?? 0) + 1;
-        _commentController.clear();
-        replyingToComment = null;
       });
+    } else {
+      // Error: Rollback UI
+      setState(() {
+        if (originalParentId == null) {
+          currentArticle.comments?.removeWhere((c) => c.id == tempId);
+        } else {
+          _removeCommentFromParentLocally(
+            currentArticle.comments,
+            originalParentId,
+            tempId,
+          );
+        }
+        currentArticle.commentCount = (currentArticle.commentCount ?? 0) - 1;
+        _commentController.text = originalText; // Restore text for another try
+      });
+
+      Get.snackbar(
+        "Post Failed",
+        "Could not sync comment with server. Please try again.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -96,11 +164,52 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
     for (var comment in comments) {
       if (comment.id == parentId) {
         comment.replies ??= [];
-        comment.replies!.insert(0, newComment);
+        comment.replies!.add(newComment); // Add to end of replies or start?
         return;
       }
       if (comment.replies != null) {
         _addCommentToParentLocally(comment.replies, parentId, newComment);
+      }
+    }
+  }
+
+  void _removeCommentFromParentLocally(
+    List<Comment>? comments,
+    String parentId,
+    String tempId,
+  ) {
+    if (comments == null) return;
+    for (var comment in comments) {
+      if (comment.id == parentId) {
+        comment.replies?.removeWhere((r) => r.id == tempId);
+        return;
+      }
+      if (comment.replies != null) {
+        _removeCommentFromParentLocally(comment.replies, parentId, tempId);
+      }
+    }
+  }
+
+  void _replaceCommentInParentLocally(
+    List<Comment>? comments,
+    String parentId,
+    String tempId,
+    Comment realComment,
+  ) {
+    if (comments == null) return;
+    for (var comment in comments) {
+      if (comment.id == parentId) {
+        int idx = comment.replies?.indexWhere((r) => r.id == tempId) ?? -1;
+        if (idx != -1) comment.replies![idx] = realComment;
+        return;
+      }
+      if (comment.replies != null) {
+        _replaceCommentInParentLocally(
+          comment.replies,
+          parentId,
+          tempId,
+          realComment,
+        );
       }
     }
   }
@@ -130,56 +239,72 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
     Comment comment,
     String type,
   ) async {
+    // --- OPTIMISTIC UI: REACTIONS ---
+    final originalIsLiked = comment.isLiked;
+    final originalIsDisliked = comment.isDisliked;
+    final originalLikeCount = comment.likeCount;
+    final originalDislikeCount = comment.dislikeCount;
+
+    setState(() {
+      if (type == 'like') {
+        if (comment.isLiked == true) {
+          comment.isLiked = false;
+          comment.likeCount = (comment.likeCount ?? 1) - 1;
+        } else {
+          comment.isLiked = true;
+          comment.likeCount = (comment.likeCount ?? 0) + 1;
+          if (comment.isDisliked == true) {
+            comment.isDisliked = false;
+            comment.dislikeCount = (comment.dislikeCount ?? 1) - 1;
+          }
+        }
+      } else if (type == 'dislike') {
+        if (comment.isDisliked == true) {
+          comment.isDisliked = false;
+          comment.dislikeCount = (comment.dislikeCount ?? 1) - 1;
+        } else {
+          comment.isDisliked = true;
+          comment.dislikeCount = (comment.dislikeCount ?? 0) + 1;
+          if (comment.isLiked == true) {
+            comment.isLiked = false;
+            comment.likeCount = (comment.likeCount ?? 1) - 1;
+          }
+        }
+      }
+      if (comment.likeCount! < 0) comment.likeCount = 0;
+      if (comment.dislikeCount! < 0) comment.dislikeCount = 0;
+    });
+    // --- END OPTIMISTIC ---
+
     final data = await controller.toggleCommentEngagement(comment.id!, type);
     if (data != null) {
       setState(() {
-        // If backend provides updated counts, use them
         if (data.containsKey('likeCount')) {
           comment.likeCount = data['likeCount'];
         }
         if (data.containsKey('dislikeCount')) {
           comment.dislikeCount = data['dislikeCount'];
         }
-
-        // If backend provides 'status' (often used for toggle)
-        bool newStatus = data['status'] ?? false;
-
-        if (type == 'like') {
-          // If backend didn't give likeCount, update locally based on status change
-          if (!data.containsKey('likeCount')) {
-            if (newStatus && !(comment.isLiked ?? false)) {
-              comment.likeCount = (comment.likeCount ?? 0) + 1;
-            } else if (!newStatus && (comment.isLiked ?? false)) {
-              comment.likeCount = (comment.likeCount ?? 0) - 1;
-              if (comment.likeCount! < 0) comment.likeCount = 0;
-            }
-          }
-          comment.isLiked = newStatus;
-          if (comment.isLiked == true) {
-            comment.isDisliked = false;
-          }
-        } else if (type == 'dislike') {
-          // Dislike handling
-          if (!data.containsKey('dislikeCount')) {
-            if (newStatus && !(comment.isDisliked ?? false)) {
-              comment.dislikeCount = (comment.dislikeCount ?? 0) + 1;
-            } else if (!newStatus && (comment.isDisliked ?? false)) {
-              comment.dislikeCount = (comment.dislikeCount ?? 0) - 1;
-              if (comment.dislikeCount! < 0) comment.dislikeCount = 0;
-            }
-          }
-          comment.isDisliked = newStatus;
-          if (comment.isDisliked == true) {
-            comment.isLiked = false;
-          }
-        }
+        // Background update confirmed success. We keep our optimistic values if backend data matches.
       });
+    } else {
+      // Rollback
+      setState(() {
+        comment.isLiked = originalIsLiked;
+        comment.isDisliked = originalIsDisliked;
+        comment.likeCount = originalLikeCount;
+        comment.dislikeCount = originalDislikeCount;
+      });
+      Get.snackbar("Error", "Failed to sync reaction with server",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white);
     }
   }
 
   Future<void> _handleLoadReplies(Comment comment) async {
     if (comment.id == null) return;
-    
+
     // If already expanded, collapse it
     if (expandedReplies[comment.id!] == true) {
       setState(() => expandedReplies[comment.id!] = false);
@@ -391,12 +516,18 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                     Row(
                       children: [
                         Obx(() {
-                          final userPhoto = Get.find<ProfileController>().profile.value?.profilePhoto;
+                          final userPhoto = Get.find<ProfileController>()
+                              .profile
+                              .value
+                              ?.profilePhoto;
                           return CircleAvatar(
                             radius: 18,
-                            backgroundImage: userPhoto != null && userPhoto.isNotEmpty
+                            backgroundImage:
+                                userPhoto != null && userPhoto.isNotEmpty
                                 ? NetworkImage(userPhoto)
-                                : const NetworkImage('https://i.pravatar.cc/150?img=12'), // Fallback
+                                : const NetworkImage(
+                                    'https://i.pravatar.cc/150?img=12',
+                                  ), // Fallback
                             backgroundColor: Colors.grey[800],
                           );
                         }),
@@ -446,50 +577,50 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                     const SizedBox(height: 16),
                     SizedBox(
                       height: 180,
-                      child: Obx(
-                        () {
-                          final recommendations = controller.newsList
-                              .where((a) =>
+                      child: Obx(() {
+                        final recommendations = controller.newsList
+                            .where(
+                              (a) =>
                                   a.id != currentArticle.id &&
                                   (a.category == currentArticle.category ||
-                                      currentArticle.category == "All"))
-                              .toList();
+                                      currentArticle.category == "All"),
+                            )
+                            .toList();
 
-                          if (recommendations.isEmpty) {
-                            return const Center(
-                              child: Text(
-                                "No related news found",
-                                style: TextStyle(color: Colors.white54),
+                        if (recommendations.isEmpty) {
+                          return const Center(
+                            child: Text(
+                              "No related news found",
+                              style: TextStyle(color: Colors.white54),
+                            ),
+                          );
+                        }
+
+                        return ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: recommendations.length,
+                          separatorBuilder: (c, i) => const SizedBox(width: 12),
+                          itemBuilder: (context, index) {
+                            final item = recommendations[index];
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        NewsDetailsScreen(article: item),
+                                  ),
+                                );
+                              },
+                              child: _buildRecommendationCard(
+                                item.title ?? "No Title",
+                                item.urlToImage ?? "",
+                                item.publishedAt ?? "",
                               ),
                             );
-                          }
-
-                          return ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: recommendations.length,
-                            separatorBuilder: (c, i) => const SizedBox(width: 12),
-                            itemBuilder: (context, index) {
-                              final item = recommendations[index];
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          NewsDetailsScreen(article: item),
-                                    ),
-                                  );
-                                },
-                                child: _buildRecommendationCard(
-                                  item.title ?? "No Title",
-                                  item.urlToImage ?? "",
-                                  item.publishedAt ?? "",
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
+                          },
+                        );
+                      }),
                     ),
                     const SizedBox(height: 40),
                   ],
@@ -510,8 +641,8 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
             children: [
               const SizedBox(height: 12),
               _buildCommentItem(comment),
-              if (comment.replies != null && 
-                  comment.replies!.isNotEmpty && 
+              if (comment.replies != null &&
+                  comment.replies!.isNotEmpty &&
                   expandedReplies[comment.id!] == true)
                 _buildCommentList(comment.replies!, padding: 24),
             ],
@@ -522,8 +653,9 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   }
 
   Widget _buildCommentItem(Comment comment) {
-    final String avatarUrl = comment.userImage ?? 'https://i.pravatar.cc/150?u=${comment.userName}';
-    
+    final String avatarUrl =
+        comment.userImage ?? 'https://i.pravatar.cc/150?u=${comment.userName}';
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -559,7 +691,8 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
               Row(
                 children: [
                   GestureDetector(
-                    onTap: () => _handleToggleCommentEngagement(comment, 'like'),
+                    onTap: () =>
+                        _handleToggleCommentEngagement(comment, 'like'),
                     child: Row(
                       children: [
                         Icon(
@@ -586,7 +719,8 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                   ),
                   const SizedBox(width: 16),
                   GestureDetector(
-                    onTap: () => _handleToggleCommentEngagement(comment, 'dislike'),
+                    onTap: () =>
+                        _handleToggleCommentEngagement(comment, 'dislike'),
                     child: Row(
                       children: [
                         Icon(
@@ -625,12 +759,16 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                           const SizedBox(width: 4),
                           Text(
                             "Reply",
-                            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                            style: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    if (comment.replies != null && comment.replies!.isNotEmpty) ...[
+                    if (comment.replies != null &&
+                        comment.replies!.isNotEmpty) ...[
                       const SizedBox(width: 16),
                       if (loadingReplies[comment.id!] == true)
                         const SizedBox(
@@ -654,7 +792,10 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                               const SizedBox(width: 4),
                               Text(
                                 "Replies",
-                                style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),

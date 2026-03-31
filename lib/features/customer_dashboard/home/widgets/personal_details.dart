@@ -10,6 +10,7 @@ import '../../profile/view/pages/payment_history_page.dart';
 import '../../profile/view/pages/personal_data.dart';
 import '../../profile/view/pages/support_center_page.dart';
 import '../../profile/view/pages/terms_conditions_page.dart';
+import '../../../../core/offline_storage/shared_pref.dart';
 import '../../subscription/view/subscription_screen.dart';
 import '../view/notification_page.dart';
 import 'language_dropdown.dart';
@@ -248,7 +249,8 @@ void showLogoutBottomSheet(BuildContext context) {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
+                      await SharedPreferencesHelper.clear();
                       Get.offAll(() => SignInScreen());
                     },
                     child: const Text(

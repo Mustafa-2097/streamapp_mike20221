@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../../data/customer_api_service.dart';
 import '../model/customer_profile_model.dart';
 
+import '../../../../core/offline_storage/shared_pref.dart';
+
 class ProfileController extends GetxController {
   static ProfileController get instance => Get.find<ProfileController>();
 
@@ -16,6 +18,12 @@ class ProfileController extends GetxController {
   }
 
   Future<void> fetchProfile() async {
+    final token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) {
+      debugPrint("ProfileController: No token found. Skipping profile fetch.");
+      return;
+    }
+
     try {
       isLoading.value = true;
 

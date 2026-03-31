@@ -47,9 +47,8 @@ class ReplayCommentController extends GetxController {
         formattedTotalCount.value = data['formattedTotalCount'] ?? "0";
 
         final List commentsData = data['comments'] ?? [];
-        commentsList.value = commentsData
-            .map((e) => ReplayComment.fromJson(e))
-            .toList();
+        commentsList.value =
+            commentsData.map((e) => ReplayComment.fromJson(e)).toList();
       }
     } catch (e) {
       print("Error fetching comments: $e");
@@ -72,7 +71,9 @@ class ReplayCommentController extends GetxController {
       replayId: replayId,
       userId: profile.id,
       content: content,
-      parentCommentId: replyingToCommentId.value.isEmpty ? null : replyingToCommentId.value,
+      parentCommentId: replyingToCommentId.value.isEmpty
+          ? null
+          : replyingToCommentId.value,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       user: ReplayUser(
@@ -89,7 +90,9 @@ class ReplayCommentController extends GetxController {
 
     // Save context for possible rollback
     final originalContent = content;
-    final parentId = replyingToCommentId.value.isEmpty ? null : replyingToCommentId.value;
+    final parentId = replyingToCommentId.value.isEmpty
+        ? null
+        : replyingToCommentId.value;
 
     // Immediately update UI
     if (parentId == null) {
@@ -97,7 +100,9 @@ class ReplayCommentController extends GetxController {
       totalComments.value++;
     } else {
       // Find parent and add to its replies list optimistically
-      final parentIndex = commentsList.indexWhere((c) => c.commentId == parentId);
+      final parentIndex = commentsList.indexWhere(
+        (c) => c.commentId == parentId,
+      );
       if (parentIndex != -1) {
         final parent = commentsList[parentIndex];
         final updatedReplies = [...parent.replies, optimisticComment];
@@ -118,7 +123,7 @@ class ReplayCommentController extends GetxController {
         );
       }
     }
-    
+
     commentController.clear();
     cancelReply();
     commentFocusNode.unfocus();
@@ -136,7 +141,9 @@ class ReplayCommentController extends GetxController {
         await fetchComments();
         // If it was a reply, we might need to fetch replies for that parent to be sure
         if (parentId != null) {
-          final parent = commentsList.firstWhereOrNull((c) => c.commentId == parentId);
+          final parent = commentsList.firstWhereOrNull(
+            (c) => c.commentId == parentId,
+          );
           if (parent != null) await fetchReplies(parent);
         }
       } else {
@@ -157,15 +164,22 @@ class ReplayCommentController extends GetxController {
     }
   }
 
-  void _rollbackOptimistic(String tempId, String originalContent, String? parentId) {
+  void _rollbackOptimistic(
+    String tempId,
+    String originalContent,
+    String? parentId,
+  ) {
     if (parentId == null) {
       commentsList.removeWhere((c) => c.commentId == tempId);
       totalComments.value--;
     } else {
-      final parentIndex = commentsList.indexWhere((c) => c.commentId == parentId);
+      final parentIndex = commentsList.indexWhere(
+        (c) => c.commentId == parentId,
+      );
       if (parentIndex != -1) {
         final parent = commentsList[parentIndex];
-        final updatedReplies = parent.replies.where((r) => r.commentId != tempId).toList();
+        final updatedReplies =
+            parent.replies.where((r) => r.commentId != tempId).toList();
         commentsList[parentIndex] = ReplayComment(
           commentId: parent.commentId,
           replayId: parent.replayId,
@@ -202,6 +216,56 @@ class ReplayCommentController extends GetxController {
     String type, {
     String? parentId,
   }) async {
+    // --- OPTIMISTIC UI: REACTIONS ---
+    ReplayComment? target;
+    int targetIdx = -1;
+    ReplayComment? parent;
+    int parentIdx = -1;
+
+    if (parentId == null) {
+      targetIdx = commentsList.indexWhere((c) => c.commentId == commentId);
+      if (targetIdx != -1) target = commentsList[targetIdx];
+    } else {
+      parentIdx = commentsList.indexWhere((c) => c.commentId == parentId);
+      if (parentIdx != -1) {
+        parent = commentsList[parentIdx];
+        targetIdx = parent.replies.indexWhere((r) => r.commentId == commentId);
+        if (targetIdx != -1) target = parent.replies[targetIdx];
+      }
+    }
+
+    if (target == null) return;
+
+    // Save previous state for possible rollback
+    final originalTarget = target;
+    final originalParent = parent;
+
+    // Apply immediate local update
+    final updatedTarget = _applyReactionOptimistic(target, type);
+
+    if (parentId == null) {
+      commentsList[targetIdx] = updatedTarget;
+    } else if (parent != null) {
+      final updatedReplies = [...parent.replies];
+      updatedReplies[targetIdx] = updatedTarget;
+      commentsList[parentIdx] = ReplayComment(
+        commentId: parent.commentId,
+        replayId: parent.replayId,
+        userId: parent.userId,
+        content: parent.content,
+        parentCommentId: parent.parentCommentId,
+        createdAt: parent.createdAt,
+        updatedAt: parent.updatedAt,
+        user: parent.user,
+        replyCount: parent.replyCount,
+        replies: updatedReplies,
+        likeCount: parent.likeCount,
+        dislikeCount: parent.dislikeCount,
+        userStatus: parent.userStatus,
+      );
+    }
+    // --- END OPTIMISTIC ---
+
     try {
       final response = await CustomerApiService.postReplayCommentAction(
         commentId: commentId,
@@ -210,15 +274,91 @@ class ReplayCommentController extends GetxController {
       );
 
       if (response['success'] == true) {
-        // Refresh to update counts and status
-        await fetchComments();
-        if (parentId != null) {
-          final parent = commentsList.firstWhereOrNull((c) => c.commentId == parentId);
-          if (parent != null) await fetchReplies(parent);
-        }
+        // Optionally refresh counts from server to ensure 100% accuracy
+        // await fetchComments(); 
+      } else {
+        // Rollback
+        _rollbackReaction(originalTarget, originalParent, targetIdx, parentIdx);
       }
     } catch (e) {
       print("Error toggling comment action: $e");
+      _rollbackReaction(originalTarget, originalParent, targetIdx, parentIdx);
+    }
+  }
+
+  ReplayComment _applyReactionOptimistic(ReplayComment target, String type) {
+    bool isLiked = target.userStatus.isLiked;
+    bool isDisliked = target.userStatus.isDisliked;
+    int likeCount = target.likeCount;
+    int dislikeCount = target.dislikeCount;
+
+    if (type == "LIKE") {
+      if (isLiked) {
+        isLiked = false;
+        likeCount--;
+      } else {
+        isLiked = true;
+        likeCount++;
+        if (isDisliked) {
+          isDisliked = false;
+          dislikeCount--;
+        }
+      }
+    } else if (type == "DISLIKE") {
+      if (isDisliked) {
+        isDisliked = false;
+        dislikeCount--;
+      } else {
+        isDisliked = true;
+        dislikeCount++;
+        if (isLiked) {
+          isLiked = false;
+          likeCount--;
+        }
+      }
+    }
+
+    return ReplayComment(
+      commentId: target.commentId,
+      replayId: target.replayId,
+      userId: target.userId,
+      content: target.content,
+      parentCommentId: target.parentCommentId,
+      createdAt: target.createdAt,
+      updatedAt: target.updatedAt,
+      user: target.user,
+      replyCount: target.replyCount,
+      replies: target.replies,
+      likeCount: likeCount < 0 ? 0 : likeCount,
+      dislikeCount: dislikeCount < 0 ? 0 : dislikeCount,
+      userStatus: ReplayCommentUserStatus(isLiked: isLiked, isDisliked: isDisliked),
+    );
+  }
+
+  void _rollbackReaction(ReplayComment originalTarget, ReplayComment? originalParent, int targetIdx, int parentIdx) {
+    if (originalParent == null) {
+      if (targetIdx != -1) commentsList[targetIdx] = originalTarget;
+    } else {
+      if (parentIdx != -1 && targetIdx != -1) {
+        final currentParent = commentsList[parentIdx];
+        final updatedReplies = [...currentParent.replies];
+        updatedReplies[targetIdx] = originalTarget;
+        commentsList[parentIdx] = ReplayComment(
+          commentId: currentParent.commentId,
+          replayId: currentParent.replayId,
+          userId: currentParent.userId,
+          content: currentParent.content,
+          parentCommentId: currentParent.parentCommentId,
+          createdAt: currentParent.createdAt,
+          updatedAt: currentParent.updatedAt,
+          user: currentParent.user,
+          replyCount: currentParent.replyCount,
+          replies: updatedReplies,
+          likeCount: currentParent.likeCount,
+          dislikeCount: currentParent.dislikeCount,
+          userStatus: currentParent.userStatus,
+        );
+      }
     }
   }
 
@@ -229,9 +369,8 @@ class ReplayCommentController extends GetxController {
       );
       if (response['success'] == true) {
         final List repliesData = response['data'] ?? [];
-        final List<ReplayComment> fetchedReplies = repliesData
-            .map((e) => ReplayComment.fromJson(e))
-            .toList();
+        final List<ReplayComment> fetchedReplies =
+            repliesData.map((e) => ReplayComment.fromJson(e)).toList();
 
         // Find parent and update replies
         final index = commentsList.indexWhere(

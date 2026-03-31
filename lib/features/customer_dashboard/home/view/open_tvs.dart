@@ -107,7 +107,7 @@ class _OpenTvsState extends State<OpenTvs> {
                 child: WebViewWidget(controller: webController),
               ),
 
-              /// DETAILS (DESIGN UNCHANGED)
+              /// DETAILS
               Expanded(
                 child: Container(
                   width: double.infinity,
@@ -152,9 +152,45 @@ class _OpenTvsState extends State<OpenTvs> {
                           style: TextStyle(color: Colors.white54, fontSize: 12),
                         ),
 
+                        const SizedBox(height: 12),
+
+                        /// Action Row (Like, Dislike, Share)
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 60,
+                              child: _actionItem(
+                                icon: liveTv.liked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
+                                label: _formatCount(liveTv.likes),
+                                color: liveTv.liked ? Colors.redAccent : Colors.white70,
+                                onTap: () => controller.toggleLike(liveTv.id),
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            SizedBox(
+                              width: 60,
+                              child: _actionItem(
+                                icon: liveTv.disliked ? Icons.thumb_down : Icons.thumb_down_alt_outlined,
+                                label: _formatCount(liveTv.dislikes),
+                                color: liveTv.disliked ? Colors.redAccent : Colors.white70,
+                                onTap: () => controller.toggleDislike(liveTv.id),
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            SizedBox(
+                              width: 60,
+                              child: _actionItem(
+                                icon: Icons.share_outlined,
+                                label: "Share",
+                                onTap: () => controller.shareLiveTv(liveTv.id),
+                              ),
+                            ),
+                          ],
+                        ),
+
                         const SizedBox(height: 16),
 
-                        /* Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
@@ -167,8 +203,7 @@ class _OpenTvsState extends State<OpenTvs> {
                             ),
                             Obx(
                               () => Text(
-                                commentController?.formattedTotalCount.value ??
-                                    "0",
+                                commentController?.formattedTotalCount.value ?? "0",
                                 style: const TextStyle(
                                   color: Colors.white54,
                                   fontSize: 13,
@@ -176,9 +211,9 @@ class _OpenTvsState extends State<OpenTvs> {
                               ),
                             ),
                           ],
-                        ), */
+                        ),
 
-                        // const SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         _commentsList(),
 
                         const SizedBox(height: 20),
@@ -191,8 +226,130 @@ class _OpenTvsState extends State<OpenTvs> {
           );
         }),
       ),
-      /* bottomNavigationBar: _commentInputBar(), */
+      bottomNavigationBar: _commentInputBar(),
     );
+  }
+
+  Widget _actionItem({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color color = Colors.white70,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(color: color, fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatCount(int count) {
+    if (count >= 1000000) {
+      return "${(count / 1000000).toStringAsFixed(1)}M";
+    } else if (count >= 1000) {
+      return "${(count / 1000).toStringAsFixed(1)}K";
+    }
+    return count.toString();
+  }
+
+  // ---------------- COMMENT INPUT ----------------
+  Widget _commentInputBar() {
+    return Obx(() {
+      if (commentController == null) return const SizedBox.shrink();
+
+      return Container(
+        padding: EdgeInsets.fromLTRB(
+          12,
+          10,
+          12,
+          MediaQuery.of(context).padding.bottom + 10,
+        ),
+        decoration: const BoxDecoration(
+          color: Color(0xFF0E0E0E),
+          border: Border(top: BorderSide(color: Colors.white10)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (commentController!.replyingToCommentId.value.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      "Replying to @${commentController!.replyingToUserName.value}",
+                      style: const TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: commentController!.cancelReply,
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.grey,
+                        size: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white10,
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: TextField(
+                      controller: commentController!.commentController,
+                      focusNode: commentController!.commentFocusNode,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: const InputDecoration(
+                        hintText: "Add a comment...",
+                        hintStyle: TextStyle(color: Colors.white54),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                commentController!.isPosting.value
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.redAccent,
+                        ),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.send, color: Colors.redAccent),
+                        onPressed: commentController!.submitComment,
+                      ),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   // ---------------- COMMENTS LIST ----------------

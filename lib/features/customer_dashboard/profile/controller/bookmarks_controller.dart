@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/network/api_service.dart';
@@ -37,12 +38,17 @@ class BookmarkController extends GetxController {
   }
 
   Future<void> fetchNewsBookmarks() async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) {
+      debugPrint("BookmarkController: No token found. Skipping fetchNewsBookmarks.");
+      return;
+    }
+
     try {
       isNewsLoading.value = true;
-      final String? token = await SharedPreferencesHelper.getToken();
       final headers = {
         'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $token',
       };
       final response = await ApiService.get(
         ApiEndpoints.myBookmarks,
@@ -115,12 +121,14 @@ class BookmarkController extends GetxController {
   }
 
   Future<void> fetchClipBookmarks() async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) return;
+
     try {
       isClipsLoading.value = true;
-      final String? token = await SharedPreferencesHelper.getToken();
       final headers = {
         'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $token',
       };
       final response = await ApiService.get(
         ApiEndpoints.myClipBookmarks,
@@ -140,12 +148,14 @@ class BookmarkController extends GetxController {
   }
 
   Future<void> fetchReplayBookmarks() async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) return;
+
     try {
       isReplaysLoading.value = true;
-      final String? token = await SharedPreferencesHelper.getToken();
       final headers = {
         'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $token',
       };
       final response = await ApiService.get(
         ApiEndpoints.myReplayBookmarks,
@@ -165,12 +175,14 @@ class BookmarkController extends GetxController {
   }
 
   Future<void> fetchMatchBookmarks() async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) return;
+
     try {
       isLoading.value = true;
-      final String? token = await SharedPreferencesHelper.getToken();
       final headers = {
         'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $token',
       };
 
       final response = await ApiService.get(
@@ -229,7 +241,7 @@ class BookmarkController extends GetxController {
       final String? token = await SharedPreferencesHelper.getToken();
       final headers = {
         'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $token',
       };
       final response = await ApiService.delete(
         ApiEndpoints.deleteBookmark(bookmarkId),
@@ -260,7 +272,7 @@ class BookmarkController extends GetxController {
       final String? token = await SharedPreferencesHelper.getToken();
       final headers = {
         'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $token',
       };
 
       final body = {"clipId": clip.clipId};
@@ -302,7 +314,7 @@ class BookmarkController extends GetxController {
       final String? token = await SharedPreferencesHelper.getToken();
       final headers = {
         'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $token',
       };
       final body = {"matchId": matchId};
 
@@ -354,7 +366,7 @@ class BookmarkController extends GetxController {
         final String? token = await SharedPreferencesHelper.getToken();
         final headers = {
           'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token',
         };
         final body = {"replayId": replay.replayId};
         final response = await ApiService.post(
@@ -378,7 +390,7 @@ class BookmarkController extends GetxController {
         final String? token = await SharedPreferencesHelper.getToken();
         final headers = {
           'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token',
         };
         final response = await ApiService.delete(
           ApiEndpoints.deleteClipBookmark(clip.clipId),
@@ -409,7 +421,7 @@ class BookmarkController extends GetxController {
       final String? token = await SharedPreferencesHelper.getToken();
       final headers = {
         'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $token',
       };
       final response = await ApiService.get(
         ApiEndpoints.bookmarkDetails(bookmarkId),

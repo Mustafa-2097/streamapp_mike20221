@@ -4,6 +4,7 @@ import 'dart:async';
 import '../../data/customer_api_service.dart';
 import '../model/notification_model.dart';
 import '../../../../core/network/api_endpoints.dart';
+import '../../../../core/offline_storage/shared_pref.dart';
 import '../../../../core/const/app_colors.dart';
 
 class NotificationController extends GetxController with WidgetsBindingObserver {
@@ -48,6 +49,12 @@ class NotificationController extends GetxController with WidgetsBindingObserver 
   }
 
   Future<void> fetchNotifications({bool showLoading = true}) async {
+    final token = await SharedPreferencesHelper.getToken();
+    if (token == null || token.isEmpty) {
+      debugPrint("No token found. Skipping notification fetch.");
+      return;
+    }
+
     try {
       if (showLoading) isLoading.value = true;
       debugPrint("Fetching notifications from: ${ApiEndpoints.notifications}");
@@ -78,6 +85,10 @@ class NotificationController extends GetxController with WidgetsBindingObserver 
       }
     } catch (e) {
       debugPrint("Error fetching notifications: $e");
+      // Only show snackbar if it's not a standard logout/missing token issue
+      if (e.toString().toLowerCase().contains("login") || e.toString().toLowerCase().contains("unauthorized")) {
+         return;
+      }
       Get.snackbar(
         "Notice", 
         "Failed to load notifications: $e",
