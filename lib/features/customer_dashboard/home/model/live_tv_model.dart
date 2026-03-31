@@ -74,4 +74,38 @@ class LiveTvModel {
       'comments': comments,
     };
   }
+
+  LiveTvModel copyWith({
+    String? id,
+    String? title,
+    String? link,
+    String? thumbnail,
+    bool? commentsEnabled,
+    int? likes,
+    int? dislikes,
+    int? shares,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    int? commentCount,
+    dynamic comments,
+    bool? liked,
+    bool? disliked,
+  }) {
+    return LiveTvModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      link: link ?? this.link,
+      thumbnail: thumbnail ?? this.thumbnail,
+      commentsEnabled: commentsEnabled ?? this.commentsEnabled,
+      likes: likes ?? this.likes,
+      dislikes: dislikes ?? this.dislikes,
+      shares: shares ?? this.shares,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      commentCount: commentCount ?? this.commentCount,
+      comments: comments ?? this.comments,
+      liked: liked ?? this.liked,
+      disliked: disliked ?? this.disliked,
+    );
+  }
 }

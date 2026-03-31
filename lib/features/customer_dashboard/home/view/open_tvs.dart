@@ -20,6 +20,8 @@ class _OpenTvsState extends State<OpenTvs> {
     ..setJavaScriptMode(JavaScriptMode.unrestricted)
     ..setBackgroundColor(Colors.black);
 
+  String? _lastLoadedLink;
+
   @override
   void initState() {
     super.initState();
@@ -34,6 +36,7 @@ class _OpenTvsState extends State<OpenTvs> {
     }
 
     if (controller.selectedLiveTv.value != null) {
+      _lastLoadedLink = controller.selectedLiveTv.value!.link;
       webController.loadRequest(
         Uri.parse(controller.selectedLiveTv.value!.link),
       );
@@ -45,9 +48,10 @@ class _OpenTvsState extends State<OpenTvs> {
 
   @override
   Widget build(BuildContext context) {
-    /// Load video ONLY when selectedLiveTv changes
+    /// Load video ONLY when selectedLiveTv changes its link
     ever(controller.selectedLiveTv, (liveTv) {
-      if (liveTv != null && mounted) {
+      if (liveTv != null && mounted && liveTv.link != _lastLoadedLink) {
+        _lastLoadedLink = liveTv.link;
         webController.loadRequest(Uri.parse(liveTv.link));
         // Reset comment controller for new TV
         if (commentController != null) {
@@ -81,7 +85,9 @@ class _OpenTvsState extends State<OpenTvs> {
       ),
       body: SafeArea(
         child: Obx(() {
-          if (controller.isLoading.value) {
+          // If we already have a selected live TV, don't show the full-screen loader
+          // during background refreshes.
+          if (controller.isLoading.value && controller.selectedLiveTv.value == null) {
             return const Center(
               child: CircularProgressIndicator(color: Colors.redAccent),
             );
@@ -162,7 +168,7 @@ class _OpenTvsState extends State<OpenTvs> {
                               child: _actionItem(
                                 icon: liveTv.liked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
                                 label: _formatCount(liveTv.likes),
-                                color: liveTv.liked ? Colors.redAccent : Colors.white70,
+                                color: liveTv.liked ? const Color.fromARGB(255, 14, 126, 255) : Colors.white70,
                                 onTap: () => controller.toggleLike(liveTv.id),
                               ),
                             ),

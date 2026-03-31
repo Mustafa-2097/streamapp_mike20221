@@ -15,9 +15,9 @@ class LiveTvController extends GetxController {
     fetchLiveTvs();
   }
 
-  Future<void> fetchLiveTvs() async {
+  Future<void> fetchLiveTvs({bool showLoading = true}) async {
     try {
-      isLoading.value = true;
+      if (showLoading) isLoading.value = true;
       final response = await CustomerApiService.getLiveTvChannels();
       
       if (response['success'] == true && response['data'] != null) {
@@ -54,92 +54,104 @@ class LiveTvController extends GetxController {
   }
 
   Future<void> toggleLike(String id) async {
+    final original = selectedLiveTv.value;
+    if (original == null || original.id != id) return;
+
+    // --- OPTIMISTIC UPDATE ---
+    final wasLiked = original.liked;
+    final wasDisliked = original.disliked;
+
+    selectedLiveTv.value = original.copyWith(
+      liked: !wasLiked,
+      likes: wasLiked ? original.likes - 1 : original.likes + 1,
+      disliked: false,
+      dislikes: wasDisliked ? original.dislikes - 1 : original.dislikes,
+    );
+
     try {
       final response = await CustomerApiService.likeLiveTv(id);
       if (response['success'] == true) {
-        // Update local state if it's the selected one
-        if (selectedLiveTv.value?.id == id) {
-          final data = response['data'];
-          selectedLiveTv.value = LiveTvModel(
-            id: selectedLiveTv.value!.id,
-            title: selectedLiveTv.value!.title,
-            link: selectedLiveTv.value!.link,
-            thumbnail: selectedLiveTv.value!.thumbnail,
-            commentsEnabled: selectedLiveTv.value!.commentsEnabled,
-            likes: data['likes'] ?? selectedLiveTv.value!.likes,
-            dislikes: data['dislikes'] ?? selectedLiveTv.value!.dislikes,
-            shares: selectedLiveTv.value!.shares,
-            createdAt: selectedLiveTv.value!.createdAt,
-            updatedAt: selectedLiveTv.value!.updatedAt,
-            commentCount: selectedLiveTv.value!.commentCount,
-            comments: selectedLiveTv.value!.comments,
-            liked: data['liked'] ?? !selectedLiveTv.value!.liked,
-            disliked: data['disliked'] ?? false,
-          );
-        }
-        fetchLiveTvs(); // Refresh home list
+        final data = response['data'];
+        // Update with final server data
+        selectedLiveTv.value = original.copyWith(
+          likes: data['likes'] ?? selectedLiveTv.value!.likes,
+          dislikes: data['dislikes'] ?? selectedLiveTv.value!.dislikes,
+          liked: data['liked'] ?? !wasLiked,
+          disliked: data['disliked'] ?? false,
+        );
+        fetchLiveTvs(showLoading: false);
+      } else {
+        // Rollback
+        selectedLiveTv.value = original;
       }
     } catch (e) {
       debugPrint("Error toggling like: $e");
+      // Rollback
+      selectedLiveTv.value = original;
     }
   }
 
   Future<void> toggleDislike(String id) async {
+    final original = selectedLiveTv.value;
+    if (original == null || original.id != id) return;
+
+    // --- OPTIMISTIC UPDATE ---
+    final wasDisliked = original.disliked;
+    final wasLiked = original.liked;
+
+    selectedLiveTv.value = original.copyWith(
+      disliked: !wasDisliked,
+      dislikes: wasDisliked ? original.dislikes - 1 : original.dislikes + 1,
+      liked: false,
+      likes: wasLiked ? original.likes - 1 : original.likes,
+    );
+
     try {
       final response = await CustomerApiService.dislikeLiveTv(id);
       if (response['success'] == true) {
-        if (selectedLiveTv.value?.id == id) {
-           final data = response['data'];
-           selectedLiveTv.value = LiveTvModel(
-            id: selectedLiveTv.value!.id,
-            title: selectedLiveTv.value!.title,
-            link: selectedLiveTv.value!.link,
-            thumbnail: selectedLiveTv.value!.thumbnail,
-            commentsEnabled: selectedLiveTv.value!.commentsEnabled,
-            likes: data['likes'] ?? selectedLiveTv.value!.likes,
-            dislikes: data['dislikes'] ?? selectedLiveTv.value!.dislikes,
-            shares: selectedLiveTv.value!.shares,
-            createdAt: selectedLiveTv.value!.createdAt,
-            updatedAt: selectedLiveTv.value!.updatedAt,
-            commentCount: selectedLiveTv.value!.commentCount,
-            comments: selectedLiveTv.value!.comments,
-            liked: data['liked'] ?? false,
-            disliked: data['disliked'] ?? !selectedLiveTv.value!.disliked,
-          );
-        }
-        fetchLiveTvs();
+        final data = response['data'];
+        // Update with final server data
+        selectedLiveTv.value = original.copyWith(
+          likes: data['likes'] ?? selectedLiveTv.value!.likes,
+          dislikes: data['dislikes'] ?? selectedLiveTv.value!.dislikes,
+          liked: data['liked'] ?? false,
+          disliked: data['disliked'] ?? !wasDisliked,
+        );
+        fetchLiveTvs(showLoading: false);
+      } else {
+        // Rollback
+        selectedLiveTv.value = original;
       }
     } catch (e) {
       debugPrint("Error toggling dislike: $e");
+      // Rollback
+      selectedLiveTv.value = original;
     }
   }
 
   Future<void> shareLiveTv(String id) async {
+    final original = selectedLiveTv.value;
+    if (original == null || original.id != id) return;
+
+    // --- OPTIMISTIC UPDATE ---
+    selectedLiveTv.value = original.copyWith(
+      shares: original.shares + 1,
+    );
+
     try {
       final response = await CustomerApiService.shareLiveTv(id);
       if (response['success'] == true) {
-        if (selectedLiveTv.value?.id == id) {
-           selectedLiveTv.value = LiveTvModel(
-            id: selectedLiveTv.value!.id,
-            title: selectedLiveTv.value!.title,
-            link: selectedLiveTv.value!.link,
-            thumbnail: selectedLiveTv.value!.thumbnail,
-            commentsEnabled: selectedLiveTv.value!.commentsEnabled,
-            likes: selectedLiveTv.value!.likes,
-            dislikes: selectedLiveTv.value!.dislikes,
-            shares: selectedLiveTv.value!.shares + 1,
-            createdAt: selectedLiveTv.value!.createdAt,
-            updatedAt: selectedLiveTv.value!.updatedAt,
-            commentCount: selectedLiveTv.value!.commentCount,
-            comments: selectedLiveTv.value!.comments,
-            liked: selectedLiveTv.value!.liked,
-            disliked: selectedLiveTv.value!.disliked,
-          );
-        }
-        fetchLiveTvs();
+        // Success: the local state already has the incremented value, 
+        // but we can fetch to be safe or update from response if server returns count.
+        fetchLiveTvs(showLoading: false);
+      } else {
+        // Rollback
+        selectedLiveTv.value = original;
       }
     } catch (e) {
       debugPrint("Error sharing: $e");
+      // Rollback
+      selectedLiveTv.value = original;
     }
   }
 }
