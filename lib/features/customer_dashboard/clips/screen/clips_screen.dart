@@ -23,6 +23,15 @@ class ClipsScreen extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Get.back(),
+              )
+            : null,
+        actions: Navigator.canPop(context)
+            ? [const SizedBox(width: 48)] // Balanced for centering
+            : null,
         title: const Text(
           'CLIPS',
           style: TextStyle(

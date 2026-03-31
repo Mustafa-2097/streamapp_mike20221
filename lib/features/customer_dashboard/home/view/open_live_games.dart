@@ -448,20 +448,16 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
                 ),
               ),
               const SizedBox(width: 10),
-              Obx(
-                () => commentController!.isPosting.value
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.redAccent,
-                        ),
-                      )
-                    : IconButton(
-                        icon: const Icon(Icons.send, color: Colors.redAccent),
-                        onPressed: commentController!.submitComment,
-                      ),
+              IconButton(
+                icon: Icon(
+                  Icons.send,
+                  color: commentController!.isPosting.value
+                      ? Colors.grey
+                      : Colors.redAccent,
+                ),
+                onPressed: commentController!.isPosting.value
+                    ? null
+                    : commentController!.submitComment,
               ),
             ],
           ),

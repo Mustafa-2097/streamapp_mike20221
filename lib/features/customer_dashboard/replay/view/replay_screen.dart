@@ -27,7 +27,7 @@ class ReplayScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(),
+              _buildAppBar(context),
               SizedBox(height: 20.h),
               _buildCategoryTabs(controller),
               SizedBox(height: 24.h),
@@ -134,16 +134,20 @@ class ReplayScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(BuildContext context) {
+    bool canPop = Navigator.canPop(context);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(
-            onPressed: () => Get.back(),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-          ),
+          if (canPop)
+            IconButton(
+              onPressed: () => Get.back(),
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+            )
+          else
+            const SizedBox(width: 48), // Placeholder to maintain centered title
           Text(
             "REPLAY",
             style: TextStyle(

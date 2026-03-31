@@ -49,10 +49,10 @@ class ContentSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Live Now section
+        // Live Now section - View All removed as requested
         _sectionName("Live Now", () {
           Get.to(LiveMatchesScreen());
-        }),
+        }, showViewAll: false),
         SizedBox(height: 16.h),
 
         // Horizontal Scrollable Live Now List
@@ -623,7 +623,7 @@ class ContentSection extends StatelessWidget {
     );
   }
 
-  Padding _sectionName(String label, VoidCallback? onTap) {
+  Padding _sectionName(String label, VoidCallback? onTap, {bool showViewAll = true}) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Row(
@@ -637,13 +637,14 @@ class ContentSection extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          GestureDetector(
-            onTap: onTap,
-            child: Text(
-              'View All',
-              style: TextStyle(color: Colors.white, fontSize: 16.sp),
+          if (showViewAll)
+            GestureDetector(
+              onTap: onTap,
+              child: Text(
+                'View All',
+                style: TextStyle(color: Colors.white, fontSize: 16.sp),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -735,7 +736,7 @@ class ContentSection extends StatelessWidget {
                     color: Colors.white.withOpacity(0.9),
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                  ),
+                    ),
                 ),
               ],
             ),
