@@ -38,13 +38,11 @@ class CustomerApiService {
     final String? token = await SharedPreferencesHelper.getToken();
     if (token == null || token.isEmpty) throw Exception("User token not found");
 
-    // Build only the fields that were provided
+    // Build fields
     final Map<String, dynamic> bodyFields = {};
-    if (name != null && name.isNotEmpty) bodyFields['name'] = name;
-    if (dateOfBirth != null && dateOfBirth.isNotEmpty) {
-      bodyFields['dateOfBirth'] = dateOfBirth;
-    }
-    if (country != null && country.isNotEmpty) bodyFields['country'] = country;
+    if (name != null) bodyFields['name'] = name;
+    if (dateOfBirth != null) bodyFields['dateOfBirth'] = dateOfBirth;
+    if (country != null) bodyFields['country'] = country;
 
     // If there's an image, use multipart; otherwise use regular JSON PATCH
     if (imageFile != null) {

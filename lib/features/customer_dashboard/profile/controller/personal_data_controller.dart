@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:testapp/features/customer_dashboard/profile/controller/profile_controller.dart';
+import '../controller/profile_controller.dart';
 import 'package:flutter/foundation.dart';
 import '../../data/customer_api_service.dart';
-import '../model/customer_profile_model.dart';
 
 class PersonalDataController extends GetxController {
   // ── Observables ─────────────────────────────────────────────
@@ -19,6 +18,9 @@ class PersonalDataController extends GetxController {
   var email = ''.obs;
   var buttonText = 'Save'.obs;
 
+  // Reactivity for Name field
+  var currentNameText = ''.obs;
+
   // Raw country name (without emoji)
   String _rawCountryName = '';
 
@@ -29,11 +31,25 @@ class PersonalDataController extends GetxController {
 
   final TextEditingController nameController = TextEditingController();
 
+  // Getter to check if any data has changed
+  bool get hasChanges {
+    final nameChanged = currentNameText.value.trim() != _originalName;
+    final dateChanged = selectedDate.value != _originalDate;
+    final countryChanged = _rawCountryName != _originalCountry;
+    final imageChanged = profileImageFile.value != null;
+
+    return nameChanged || dateChanged || countryChanged || imageChanged;
+  }
+
   // ────────────────────────────────────────────────────────────
 
   @override
   void onInit() {
     super.onInit();
+    // Sync nameController with currentNameText observable
+    nameController.addListener(() {
+      currentNameText.value = nameController.text;
+    });
     _loadExistingProfile();
   }
 
@@ -55,6 +71,7 @@ class PersonalDataController extends GetxController {
         // Name
         nameController.text = data['name']?.toString() ?? '';
         _originalName = nameController.text;
+        currentNameText.value = _originalName;
 
         // Email
         email.value = data['email']?.toString() ?? '';
@@ -83,8 +100,8 @@ class PersonalDataController extends GetxController {
           networkImageUrl.value = imageUrl;
         }
       }
-    } catch (_) {
-      // Fail silently – allow manual editing
+    } catch (e) {
+      debugPrint("Error loading profile: $e");
     } finally {
       isInitializing.value = false;
     }
@@ -96,14 +113,14 @@ class PersonalDataController extends GetxController {
     if (iso.contains('/')) return iso;
     try {
       final dt = DateTime.parse(iso);
-      return "${dt.day}/${dt.month}/${dt.year}";
+      return "${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}";
     } catch (_) {
       return "dd/mm/yyyy";
     }
   }
 
   String? _displayToIso(String display) {
-    if (display == "dd/mm/yyyy") return null;
+    if (display == "dd/mm/yyyy" || display.isEmpty) return null;
     return display;
   }
 
@@ -218,49 +235,26 @@ class PersonalDataController extends GetxController {
 
   // ── Save Profile ─────────────────────────────────────────────
   Future<void> saveProfile() async {
-    final currentName = nameController.text.trim();
-    final currentIsoDate = _displayToIso(selectedDate.value);
-    final originalIsoDate = _displayToIso(_originalDate);
-
-    final nameChanged = currentName != _originalName;
-    final dateChanged = currentIsoDate != originalIsoDate;
-    final countryChanged = _rawCountryName != _originalCountry;
-    final imageChanged = profileImageFile.value != null;
-
-    final hasChanges =
-        nameChanged || dateChanged || countryChanged || imageChanged;
-
-    if (!hasChanges) {
-      Get.snackbar(
-        "No Changes",
-        "Please make some changes before saving",
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-      return;
-    }
+    if (!hasChanges) return;
 
     try {
       buttonText.value = 'Saving...';
       isLoading.value = true;
 
       final response = await CustomerApiService.updateProfile(
-        name: nameChanged ? currentName : null,
-        dateOfBirth: dateChanged ? currentIsoDate : null,
-        country: countryChanged ? _rawCountryName : null,
+        name: currentNameText.value.trim(),
+        dateOfBirth: selectedDate.value,
+        country: _rawCountryName.isNotEmpty ? _rawCountryName : _originalCountry,
         imageFile: profileImageFile.value,
       );
 
       if (response['success'] == true && response['data'] != null) {
         final updatedUser = response['data'] as Map<String, dynamic>;
 
-        // Update main ProfileController (for ProfileScreen) using global method
         if (Get.isRegistered<ProfileController>()) {
-          ProfileController.instance.updateProfileData(updatedUser);
+          Get.find<ProfileController>().updateProfileData(updatedUser);
         }
 
-        // Update image locally for this page - robust localhost fix
         String? updatedPhoto = updatedUser['profilePhoto']?.toString();
         if (updatedPhoto != null) {
           updatedPhoto = updatedPhoto
@@ -268,14 +262,12 @@ class PersonalDataController extends GetxController {
               .replaceAll('127.0.0.1', '10.0.30.59');
         }
         networkImageUrl.value = updatedPhoto;
-
-        // Clear selected file (since now we use network image)
         profileImageFile.value = null;
 
-        // Update original values
         _originalName = updatedUser['name']?.toString() ?? '';
-        _originalCountry = updatedUser['country']?.toString() ?? '';
+        _originalCountry = _stripEmoji(updatedUser['country']?.toString() ?? '');
         _originalDate = selectedDate.value;
+        currentNameText.value = _originalName;
 
         buttonText.value = 'Saved!';
 
@@ -291,24 +283,23 @@ class PersonalDataController extends GetxController {
         buttonText.value = 'Save';
       } else {
         buttonText.value = 'Save';
-
         Get.snackbar(
           "Error",
           response['message'] ?? "Failed to update profile",
           backgroundColor: Colors.red,
           colorText: Colors.white,
-          duration: const Duration(seconds: 3),
+          duration: const Duration(seconds: 5),
         );
       }
-    } catch (_) {
+    } catch (e) {
       buttonText.value = 'Save';
-
+      debugPrint("Profile save crash: $e");
       Get.snackbar(
         "Error",
         "Failed to update profile. Please try again.",
         backgroundColor: Colors.red,
         colorText: Colors.white,
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 5),
       );
     } finally {
       isLoading.value = false;

@@ -7,7 +7,6 @@ import '../../../home/view/news_details_screen.dart';
 import '../../../home/view/open_reels_video.dart';
 import '../../../live/live_video/screen/video_screen.dart';
 import '../../../live/live_dashboard/widget/live_upcoming_card.dart';
-import '../../../live/live_dashboard/controller/live_controller.dart';
 import '../../../news/model/news_model.dart';
 import '../../controller/bookmarks_controller.dart';
 import '../../../replay/model/replay_model.dart';
@@ -150,14 +149,8 @@ extension on _BookmarkScreenState {
             direction: DismissDirection.startToEnd,
             onDismissed: (_) => controller.removeLive(index),
             background: _buildDeleteBackground(),
-            child: GetBuilder<LiveMatchesController>(
-              builder: (liveController) {
-                return LiveUpcomingCard(
-                  match: item,
-                  isReminded: liveController.remindedMatchIds.contains(item.id),
-                  onRemindTap: () => liveController.toggleReminder(item.id),
-                );
-              },
+            child: LiveUpcomingCard(
+              match: item,
             ),
           );
         },
@@ -265,15 +258,12 @@ extension on _BookmarkScreenState {
 
   // --- Specific Card Designs ---
 
-  /// Live Section
-
   String _fixUrl(String url) {
     return url
         .replaceAll('localhost', '10.0.30.59')
         .replaceAll('127.0.0.1', '10.0.30.59');
   }
 
-  /// Replay Section
   Widget _buildReplayItem(ReplayModel item) {
     return Padding(
       padding: EdgeInsets.only(bottom: 16.h),
@@ -307,7 +297,7 @@ extension on _BookmarkScreenState {
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 6.w),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.6),
+                    color: Colors.black.withOpacity(0.6),
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Text(
@@ -454,9 +444,4 @@ extension on _BookmarkScreenState {
       ),
     );
   }
-
-  /// News Section will added in future
-
 }
-
-///////////////////////////////////////////////////

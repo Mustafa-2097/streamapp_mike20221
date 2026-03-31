@@ -13,6 +13,15 @@ class ApiService {
   static String? _lastErrorMessage;
   static DateTime? _lastErrorTime;
 
+  /// Helper to merge default headers with provided headers
+  static Map<String, String> _mergedHeaders(Map<String, String>? headers) {
+    final Map<String, String> merged = {'Content-Type': 'application/json'};
+    if (headers != null) {
+      merged.addAll(headers);
+    }
+    return merged;
+  }
+
   /// POST REQUEST
   static Future<Map<String, dynamic>> post(
     String url, {
@@ -23,7 +32,7 @@ class ApiService {
       final response = await http
           .post(
             Uri.parse(url),
-            headers: headers ?? {'Content-Type': 'application/json'},
+            headers: _mergedHeaders(headers),
             body: jsonEncode(body),
           )
           .timeout(timeout);
@@ -74,7 +83,7 @@ class ApiService {
       final response = await http
           .put(
             Uri.parse(url),
-            headers: headers ?? {'Content-Type': 'application/json'},
+            headers: _mergedHeaders(headers),
             body: jsonEncode(body),
           )
           .timeout(timeout);
@@ -102,7 +111,7 @@ class ApiService {
       final response = await http
           .patch(
             Uri.parse(url),
-            headers: headers ?? {'Content-Type': 'application/json'},
+            headers: _mergedHeaders(headers),
             body: jsonEncode(body),
           )
           .timeout(timeout);
@@ -131,7 +140,7 @@ class ApiService {
     try {
       final request = http.MultipartRequest('PATCH', Uri.parse(url));
 
-      // Do NOT set Content-Type manually — http sets it with the correct boundary
+      // Do NOT set Content-Type manually for multipart — http sets it with boundary
       headers.forEach((key, value) {
         if (key.toLowerCase() != 'content-type') {
           request.headers[key] = value;
@@ -193,7 +202,7 @@ class ApiService {
       final response = await http
           .delete(
             Uri.parse(url),
-            headers: headers ?? {'Content-Type': 'application/json'},
+            headers: _mergedHeaders(headers),
           )
           .timeout(timeout);
 

@@ -25,18 +25,6 @@ import '../model/live_tv_model.dart';
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
 
-  // final List<String> _videoUrls = [
-  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
-  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv?autoplay=1',
-  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
-  // ];
-
-  // final List<String> _videoTitles = [
-  //   'Live TV Channel 1',
-  //   'Live TV Channel 2',
-  //   'Live TV Channel 3',
-  // ];
-
   @override
   Widget build(BuildContext context) {
     final NewsController newsController = Get.put(NewsController());
@@ -236,12 +224,6 @@ class ContentSection extends StatelessWidget {
                           alignment: Alignment.centerLeft,
                           padding: const EdgeInsets.only(left: 20),
                           margin: const EdgeInsets.only(bottom: 12),
-                          // decoration: BoxDecoration(
-                          //   color: isBookmarked
-                          //       ? Colors.redAccent.withOpacity(0.8)
-                          //       : Colors.amber.withOpacity(0.8),
-                          //   borderRadius: BorderRadius.circular(12),
-                          // ),
                           child: Icon(
                             isBookmarked
                                 ? Icons.delete_outlined
@@ -258,12 +240,7 @@ class ContentSection extends StatelessWidget {
                           league: match.dayHeader, // "Wednesday" or similar
                           match: "${match.homeTeam} vs ${match.awayTeam}",
                           time: match.date, // e.g. "20:00"
-                          isHighlighted: controller.remindedMatchIds.contains(
-                            match.id,
-                          ),
                           isBookmarked: isBookmarked,
-                          onRemindTap: () =>
-                              controller.toggleReminder(match.id),
                         ),
                       );
                     }),

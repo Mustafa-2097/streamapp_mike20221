@@ -11,6 +11,15 @@ class SharedPreferencesHelper {
   static const _rememberMeKey = 'remember_me';
   static const _emailKey = 'remembered_email';
 
+  /// Clear all stored data (for logout)
+  static Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    // We might want to keep onboarding status
+    final onboarding = prefs.getBool(_onboardingKey) ?? false;
+    await prefs.clear();
+    await prefs.setBool(_onboardingKey, onboarding);
+  }
+
   /// Save Login Token
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
