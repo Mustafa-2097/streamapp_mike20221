@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class CustomerProfile {
   final String id;
   final String email;
@@ -38,7 +40,7 @@ class CustomerProfile {
   });
 
   factory CustomerProfile.fromJson(Map<String, dynamic> json) {
-    String? photoUrl = json['profilePhoto']?.toString();
+    String? photoUrl = json['profilePhoto']?.toString() ?? json['profileImage']?.toString();
     if (photoUrl != null) {
       // Robust replacement for localhost/127.0.0.1 with the server IP
       photoUrl = photoUrl
@@ -92,10 +94,20 @@ class Subscription {
       id: json['id']?.toString() ?? '',
       planId: json['planId']?.toString() ?? '',
       status: json['status']?.toString() ?? '',
-      startDate: json['startDate']?.toString(),
-      endDate: json['endDate']?.toString(),
+      startDate: json['startDate']?.toString() ?? json['startedAt']?.toString(),
+      endDate: json['endDate']?.toString() ?? json['expiresAt']?.toString() ?? json['endsAt']?.toString(),
       plan: json['plan'] != null ? Plan.fromJson(json['plan']) : null,
     );
+  }
+
+  String get formattedEndDate {
+    if (endDate == null || endDate!.isEmpty) return "N/A";
+    try {
+      final date = DateTime.parse(endDate!).toLocal();
+      return DateFormat('dd/MM/yyyy').format(date);
+    } catch (e) {
+      return endDate!;
+    }
   }
 }
 

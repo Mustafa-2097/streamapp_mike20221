@@ -108,6 +108,31 @@ class Article {
     }
     commentCount ??= comments?.length ?? 0;
   }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['author'] = author;
+    data['title'] = title;
+    data['description'] = description;
+    data['url'] = url;
+    data['urlToImage'] = urlToImage;
+    data['publishedAt'] = publishedAt;
+    data['content'] = content;
+    data['viewCount'] = viewCount;
+    data['category'] = category;
+    data['likes'] = likes;
+    data['dislikes'] = dislikes;
+    data['commentCount'] = commentCount;
+    data['isLiked'] = isLiked;
+    data['isDisliked'] = isDisliked;
+    data['isBookmarked'] = isBookmarked;
+    data['bookmarks'] = bookmarks;
+    if (comments != null) {
+      data['comments'] = comments!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
 }
 
 class Comment {
@@ -177,6 +202,27 @@ class Comment {
         replies!.add(Comment.fromJson(v));
       });
     }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['newsId'] = newsId;
+    data['userId'] = userId;
+    data['userName'] = userName;
+    data['userImage'] = userImage;
+    data['comment'] = comment;
+    data['parentId'] = parentId;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['likeCount'] = likeCount;
+    data['dislikeCount'] = dislikeCount;
+    data['isLiked'] = isLiked;
+    data['isDisliked'] = isDisliked;
+    if (replies != null) {
+      data['replies'] = replies!.map((v) => v.toJson()).toList();
+    }
+    return data;
   }
 }
 

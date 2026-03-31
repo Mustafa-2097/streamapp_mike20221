@@ -119,10 +119,6 @@ class PersonalDataController extends GetxController {
     }
   }
 
-  String? _displayToIso(String display) {
-    if (display == "dd/mm/yyyy" || display.isEmpty) return null;
-    return display;
-  }
 
   String _stripEmoji(String input) {
     return input

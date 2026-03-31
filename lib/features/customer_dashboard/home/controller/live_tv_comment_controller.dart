@@ -45,10 +45,9 @@ class LiveTvCommentController extends GetxController {
         final List commentsData = data['comments'] ?? [];
         totalComments.value = commentsData.length;
         formattedTotalCount.value = totalComments.value.toString();
-        
-        commentsList.value = commentsData
-            .map((e) => LiveTvComment.fromJson(e))
-            .toList();
+
+        commentsList.value =
+            commentsData.map((e) => LiveTvComment.fromJson(e)).toList();
       }
     } catch (e) {
       debugPrint("Error fetching Live TV comments: $e");
@@ -66,12 +65,16 @@ class LiveTvCommentController extends GetxController {
     if (profile == null) return;
 
     final String tempId = "temp_${DateTime.now().millisecondsSinceEpoch}";
+    final parentId = replyingToCommentId.value.isEmpty
+        ? null
+        : replyingToCommentId.value;
+
     final optimisticComment = LiveTvComment(
       commentId: tempId,
       liveTvId: liveTvId,
       userId: profile.id,
       content: content,
-      parentCommentId: replyingToCommentId.value.isEmpty ? null : replyingToCommentId.value,
+      parentCommentId: parentId,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       user: CommentUser(
@@ -88,7 +91,6 @@ class LiveTvCommentController extends GetxController {
 
     // Save context for rollback
     final originalContent = content;
-    final parentId = replyingToCommentId.value.isEmpty ? null : replyingToCommentId.value;
 
     // Immediately update UI
     if (parentId == null) {
@@ -96,7 +98,9 @@ class LiveTvCommentController extends GetxController {
       totalComments.value++;
     } else {
       // Find parent and add to its replies list optimistically
-      final parentIndex = commentsList.indexWhere((c) => c.commentId == parentId);
+      final parentIndex = commentsList.indexWhere(
+        (c) => c.commentId == parentId,
+      );
       if (parentIndex != -1) {
         final parent = commentsList[parentIndex];
         final updatedReplies = [...parent.replies, optimisticComment];
@@ -117,7 +121,7 @@ class LiveTvCommentController extends GetxController {
         );
       }
     }
-    
+
     commentController.clear();
     cancelReply();
     commentFocusNode.unfocus();
@@ -135,13 +139,20 @@ class LiveTvCommentController extends GetxController {
         // Success - server will give us the real list upon refresh
         await fetchComments();
         if (parentId != null) {
-          final parent = commentsList.firstWhereOrNull((c) => c.commentId == parentId);
+          final parent = commentsList.firstWhereOrNull(
+            (c) => c.commentId == parentId,
+          );
           if (parent != null) await fetchReplies(parent);
         }
       } else {
         // Rollback
         _rollbackOptimistic(tempId, originalContent, parentId);
-        Get.snackbar("Error", response['message'] ?? "Failed to post comment", backgroundColor: AppColors.errorColor, colorText: Colors.white);
+        Get.snackbar(
+          "Error",
+          response['message'] ?? "Failed to post comment",
+          backgroundColor: AppColors.errorColor,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       debugPrint("Error posting Live TV comment: $e");
@@ -151,15 +162,22 @@ class LiveTvCommentController extends GetxController {
     }
   }
 
-  void _rollbackOptimistic(String tempId, String originalContent, String? parentId) {
+  void _rollbackOptimistic(
+    String tempId,
+    String originalContent,
+    String? parentId,
+  ) {
     if (parentId == null) {
       commentsList.removeWhere((c) => c.commentId == tempId);
       totalComments.value--;
     } else {
-      final parentIndex = commentsList.indexWhere((c) => c.commentId == parentId);
+      final parentIndex = commentsList.indexWhere(
+        (c) => c.commentId == parentId,
+      );
       if (parentIndex != -1) {
         final parent = commentsList[parentIndex];
-        final updatedReplies = parent.replies.where((r) => r.commentId != tempId).toList();
+        final updatedReplies =
+            parent.replies.where((r) => r.commentId != tempId).toList();
         commentsList[parentIndex] = LiveTvComment(
           commentId: parent.commentId,
           liveTvId: parent.liveTvId,
@@ -196,6 +214,56 @@ class LiveTvCommentController extends GetxController {
     String type, {
     String? parentId,
   }) async {
+    // --- OPTIMISTIC REACTIONS ---
+    LiveTvComment? target;
+    int targetIdx = -1;
+    LiveTvComment? parent;
+    int parentIdx = -1;
+
+    if (parentId == null) {
+      targetIdx = commentsList.indexWhere((c) => c.commentId == commentId);
+      if (targetIdx != -1) target = commentsList[targetIdx];
+    } else {
+      parentIdx = commentsList.indexWhere((c) => c.commentId == parentId);
+      if (parentIdx != -1) {
+        parent = commentsList[parentIdx];
+        targetIdx = parent.replies.indexWhere((r) => r.commentId == commentId);
+        if (targetIdx != -1) target = parent.replies[targetIdx];
+      }
+    }
+
+    if (target == null) return;
+
+    // Save previous state for possible rollback
+    final originalTarget = target;
+    final originalParent = parent;
+
+    // Apply immediate local update
+    final updatedTarget = _applyReactionOptimistic(target, type);
+
+    if (parentId == null) {
+      commentsList[targetIdx] = updatedTarget;
+    } else if (parent != null) {
+      final updatedReplies = [...parent.replies];
+      updatedReplies[targetIdx] = updatedTarget;
+      commentsList[parentIdx] = LiveTvComment(
+        commentId: parent.commentId,
+        liveTvId: parent.liveTvId,
+        userId: parent.userId,
+        content: parent.content,
+        parentCommentId: parent.parentCommentId,
+        createdAt: parent.createdAt,
+        updatedAt: parent.updatedAt,
+        user: parent.user,
+        replyCount: parent.replyCount,
+        replies: updatedReplies,
+        likeCount: parent.likeCount,
+        dislikeCount: parent.dislikeCount,
+        userStatus: parent.userStatus,
+      );
+    }
+    // --- END OPTIMISTIC ---
+
     try {
       final response = await CustomerApiService.postLiveTvCommentAction(
         commentId: commentId,
@@ -204,15 +272,91 @@ class LiveTvCommentController extends GetxController {
       );
 
       if (response['success'] == true) {
-        // Refresh to update counts and status
-        await fetchComments();
-        if (parentId != null) {
-          final parent = commentsList.firstWhereOrNull((c) => c.commentId == parentId);
-          if (parent != null) await fetchReplies(parent);
-        }
+        // Option to refresh if strictly necessary, otherwise local state is good
+        // await fetchComments(); 
+      } else {
+        // API failed, rollback UI
+        _rollbackReaction(originalTarget, originalParent, targetIdx, parentIdx);
       }
     } catch (e) {
       debugPrint("Error toggling Live TV comment action: $e");
+      _rollbackReaction(originalTarget, originalParent, targetIdx, parentIdx);
+    }
+  }
+
+  LiveTvComment _applyReactionOptimistic(LiveTvComment target, String type) {
+    bool isLiked = target.userStatus.isLiked;
+    bool isDisliked = target.userStatus.isDisliked;
+    int likeCount = target.likeCount;
+    int dislikeCount = target.dislikeCount;
+
+    if (type.toUpperCase() == 'LIKE') {
+      if (isLiked) {
+        isLiked = false;
+        likeCount--;
+      } else {
+        isLiked = true;
+        likeCount++;
+        if (isDisliked) {
+          isDisliked = false;
+          dislikeCount--;
+        }
+      }
+    } else if (type.toUpperCase() == 'DISLIKE') {
+      if (isDisliked) {
+        isDisliked = false;
+        dislikeCount--;
+      } else {
+        isDisliked = true;
+        dislikeCount++;
+        if (isLiked) {
+          isLiked = false;
+          likeCount--;
+        }
+      }
+    }
+
+    return LiveTvComment(
+      commentId: target.commentId,
+      liveTvId: target.liveTvId,
+      userId: target.userId,
+      content: target.content,
+      parentCommentId: target.parentCommentId,
+      createdAt: target.createdAt,
+      updatedAt: target.updatedAt,
+      user: target.user,
+      replyCount: target.replyCount,
+      replies: target.replies,
+      likeCount: likeCount < 0 ? 0 : likeCount,
+      dislikeCount: dislikeCount < 0 ? 0 : dislikeCount,
+      userStatus: CommentUserStatus(isLiked: isLiked, isDisliked: isDisliked),
+    );
+  }
+
+  void _rollbackReaction(LiveTvComment originalTarget, LiveTvComment? originalParent, int targetIdx, int parentIdx) {
+    if (originalParent == null) {
+      if (targetIdx != -1) commentsList[targetIdx] = originalTarget;
+    } else {
+      if (parentIdx != -1 && targetIdx != -1) {
+        final currentParent = commentsList[parentIdx];
+        final updatedReplies = [...currentParent.replies];
+        updatedReplies[targetIdx] = originalTarget;
+        commentsList[parentIdx] = LiveTvComment(
+          commentId: currentParent.commentId,
+          liveTvId: currentParent.liveTvId,
+          userId: currentParent.userId,
+          content: currentParent.content,
+          parentCommentId: currentParent.parentCommentId,
+          createdAt: currentParent.createdAt,
+          updatedAt: currentParent.updatedAt,
+          user: currentParent.user,
+          replyCount: currentParent.replyCount,
+          replies: updatedReplies,
+          likeCount: currentParent.likeCount,
+          dislikeCount: currentParent.dislikeCount,
+          userStatus: currentParent.userStatus,
+        );
+      }
     }
   }
 
@@ -223,9 +367,8 @@ class LiveTvCommentController extends GetxController {
       );
       if (response['success'] == true) {
         final List repliesData = response['data'] ?? [];
-        final List<LiveTvComment> fetchedReplies = repliesData
-            .map((e) => LiveTvComment.fromJson(e))
-            .toList();
+        final List<LiveTvComment> fetchedReplies =
+            repliesData.map((e) => LiveTvComment.fromJson(e)).toList();
 
         // Find parent and update replies
         final index = commentsList.indexWhere(

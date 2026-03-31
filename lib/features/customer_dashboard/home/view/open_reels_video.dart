@@ -42,7 +42,7 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
   Widget build(BuildContext context) {
     final clipsController = Get.find<ClipsController>();
     Get.put(BookmarkController());
-    
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Obx(() {
@@ -69,7 +69,8 @@ class ClipPageView extends StatefulWidget {
   State<ClipPageView> createState() => _ClipPageViewState();
 }
 
-class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClientMixin {
+class _ClipPageViewState extends State<ClipPageView>
+    with AutomaticKeepAliveClientMixin {
   VideoPlayerController? _videoController;
   bool _isInitialized = false;
   bool _hasError = false;
@@ -89,23 +90,25 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
     debugPrint("Reel Playback Target: $videoUrl");
 
     _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl))
-      ..initialize().then((_) {
-        if (mounted) {
-          setState(() {
-            _isInitialized = true;
-            _videoController!.play();
-            _videoController!.setLooping(true);
-            _videoController!.setVolume(_isMuted ? 0 : 1.0);
+      ..initialize()
+          .then((_) {
+            if (mounted) {
+              setState(() {
+                _isInitialized = true;
+                _videoController!.play();
+                _videoController!.setLooping(true);
+                _videoController!.setVolume(_isMuted ? 0 : 1.0);
+              });
+            }
+          })
+          .catchError((error) {
+            debugPrint("Reel Loading Error: $error");
+            if (mounted) {
+              setState(() {
+                _hasError = true;
+              });
+            }
           });
-        }
-      }).catchError((error) {
-        debugPrint("Reel Loading Error: $error");
-        if (mounted) {
-          setState(() {
-            _hasError = true;
-          });
-        }
-      });
   }
 
   @override
@@ -136,7 +139,7 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required by AutomaticKeepAliveClientMixin
-    
+
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -147,11 +150,11 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
             child: _hasError
                 ? _buildErrorWidget()
                 : _isInitialized
-                    ? AspectRatio(
-                        aspectRatio: _videoController!.value.aspectRatio,
-                        child: VideoPlayer(_videoController!),
-                      )
-                    : const CircularProgressIndicator(color: Colors.redAccent),
+                ? AspectRatio(
+                    aspectRatio: _videoController!.value.aspectRatio,
+                    child: VideoPlayer(_videoController!),
+                  )
+                : const CircularProgressIndicator(color: Colors.redAccent),
           ),
         ),
 
@@ -159,8 +162,12 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
         if (_isInitialized && !_videoController!.value.isPlaying && !_hasError)
           Center(
             child: GestureDetector(
-               onTap: _togglePlay,
-               child: const Icon(Icons.play_arrow, color: Colors.white54, size: 80),
+              onTap: _togglePlay,
+              child: const Icon(
+                Icons.play_arrow,
+                color: Colors.white54,
+                size: 80,
+              ),
             ),
           ),
 
@@ -169,7 +176,11 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
           top: 50,
           right: 15,
           child: IconButton(
-            icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up, color: Colors.white, size: 28),
+            icon: Icon(
+              _isMuted ? Icons.volume_off : Icons.volume_up,
+              color: Colors.white,
+              size: 28,
+            ),
             onPressed: _toggleMute,
           ),
         ),
@@ -180,7 +191,12 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.transparent, Colors.transparent, Colors.black45, Colors.black87],
+              colors: [
+                Colors.transparent,
+                Colors.transparent,
+                Colors.black45,
+                Colors.black87,
+              ],
               stops: [0.0, 0.5, 0.75, 1.0],
             ),
           ),
@@ -203,15 +219,16 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildProfileIcon(),
-              const SizedBox(height: 25),
+              // _buildProfileIcon(),
+              // const SizedBox(height: 25),
               _buildSideButton(
                 icon: Icons.bookmark,
                 label: "",
                 isActive: widget.clip.userStatus.isBookmarked,
                 activeColor: Colors.amber,
                 onTap: () {
-                  widget.clip.userStatus.isBookmarked = !widget.clip.userStatus.isBookmarked;
+                  widget.clip.userStatus.isBookmarked =
+                      !widget.clip.userStatus.isBookmarked;
                   Get.find<ClipsController>().clipsList.refresh();
                   Get.find<BookmarkController>().toggleClip(widget.clip);
                 },
@@ -221,7 +238,10 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
                 icon: Icons.thumb_up,
                 label: widget.clip.engagement.likes.toString(),
                 isActive: widget.clip.userStatus.isLiked,
-                onTap: () => Get.find<ClipsController>().toggleAction(widget.clip.clipId, "LIKE"),
+                onTap: () => Get.find<ClipsController>().toggleAction(
+                  widget.clip.clipId,
+                  "LIKE",
+                ),
               ),
               const SizedBox(height: 20),
               _buildSideButton(
@@ -229,18 +249,32 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
                 label: widget.clip.engagement.dislikes.toString(),
                 isActive: widget.clip.userStatus.isDisliked,
                 activeColor: Colors.redAccent,
-                onTap: () => Get.find<ClipsController>().toggleAction(widget.clip.clipId, "DISLIKE"),
+                onTap: () => Get.find<ClipsController>().toggleAction(
+                  widget.clip.clipId,
+                  "DISLIKE",
+                ),
               ),
               const SizedBox(height: 20),
-              _buildIconButton(Icons.chat_bubble_rounded, widget.clip.engagement.comments.toString(), 
-                  onTap: () => showCommentBottomSheet(context, widget.clip.clipId)),
+              _buildIconButton(
+                Icons.chat_bubble_rounded,
+                widget.clip.engagement.comments.toString(),
+                onTap: () =>
+                    showCommentBottomSheet(context, widget.clip.clipId),
+              ),
               const SizedBox(height: 20),
-              _buildIconButton(Icons.reply, widget.clip.engagement.shares.toString(), isMirrored: true, 
-                  onTap: () {
-                    final shareLink = UrlHelper.sanitizeUrl(widget.clip.shareUrl);
-                    Share.share("${widget.clip.title}\n\n$shareLink");
-                    Get.find<ClipsController>().toggleAction(widget.clip.clipId, "SHARE");
-                  }),
+              _buildIconButton(
+                Icons.reply,
+                widget.clip.engagement.shares.toString(),
+                isMirrored: true,
+                onTap: () {
+                  final shareLink = UrlHelper.sanitizeUrl(widget.clip.shareUrl);
+                  Share.share("${widget.clip.title}\n\n$shareLink");
+                  Get.find<ClipsController>().toggleAction(
+                    widget.clip.clipId,
+                    "SHARE",
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -256,7 +290,11 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
             children: [
               Text(
                 widget.clip.title,
-                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -264,16 +302,32 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
               if (widget.clip.tags.isNotEmpty)
                 Text(
                   widget.clip.tags.map((t) => "#$t").join(" "),
-                  style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               const SizedBox(height: 10),
               Row(
                 children: [
-                  CircleAvatar(radius: 10, backgroundColor: Colors.white24, child: const Icon(Icons.person, size: 12, color: Colors.white)),
+                  CircleAvatar(
+                    radius: 10,
+                    backgroundColor: Colors.white24,
+                    child: const Icon(
+                      Icons.person,
+                      size: 12,
+                      color: Colors.white,
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     widget.clip.user.name,
-                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Text(
@@ -293,14 +347,24 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.play_disabled_outlined, color: Colors.white24, size: 60),
+        const Icon(
+          Icons.play_disabled_outlined,
+          color: Colors.white24,
+          size: 60,
+        ),
         const SizedBox(height: 16),
-        const Text("Unable to play video", style: TextStyle(color: Colors.white70, fontSize: 14)),
+        const Text(
+          "Unable to play video",
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
         const SizedBox(height: 16),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: Colors.white10),
           onPressed: () {
-            setState(() { _hasError = false; _isInitialized = false; });
+            setState(() {
+              _hasError = false;
+              _isInitialized = false;
+            });
             _initializeVideo();
           },
           child: const Text("Retry", style: TextStyle(color: Colors.white)),
@@ -309,6 +373,7 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
     );
   }
 
+  /*
   Widget _buildProfileIcon() {
      final photo = UrlHelper.sanitizeUrl(widget.clip.user.profilePhoto);
      return Stack(
@@ -336,8 +401,15 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
         ],
      );
   }
+*/
 
-  Widget _buildSideButton({required IconData icon, required String label, bool isActive = false, Color? activeColor, VoidCallback? onTap}) {
+  Widget _buildSideButton({
+    required IconData icon,
+    required String label,
+    bool isActive = false,
+    Color? activeColor,
+    VoidCallback? onTap,
+  }) {
     return SideButton(
       icon: icon,
       label: label,
@@ -347,7 +419,12 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
     );
   }
 
-  Widget _buildIconButton(IconData icon, String label, {bool isMirrored = false, VoidCallback? onTap}) {
+  Widget _buildIconButton(
+    IconData icon,
+    String label, {
+    bool isMirrored = false,
+    VoidCallback? onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -358,7 +435,14 @@ class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClie
             child: Icon(icon, color: Colors.white, size: 32),
           ),
           const SizedBox(height: 5),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -389,15 +473,22 @@ class SideButton extends StatefulWidget {
   State<SideButton> createState() => _SideButtonState();
 }
 
-class _SideButtonState extends State<SideButton> with SingleTickerProviderStateMixin {
+class _SideButtonState extends State<SideButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.8).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.8,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -419,13 +510,22 @@ class _SideButtonState extends State<SideButton> with SingleTickerProviderStateM
             scale: _scaleAnimation,
             child: Icon(
               widget.icon,
-              color: widget.initialIsActive ? widget.activeColor : widget.inactiveColor,
+              color: widget.initialIsActive
+                  ? widget.activeColor
+                  : widget.inactiveColor,
               size: widget.size,
             ),
           ),
           if (widget.label.isNotEmpty) ...[
             const SizedBox(height: 5),
-            Text(widget.label, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+            Text(
+              widget.label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ],
       ),

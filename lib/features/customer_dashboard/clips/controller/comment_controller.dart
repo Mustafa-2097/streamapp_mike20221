@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:testapp/features/customer_dashboard/data/customer_api_service.dart';
 import 'package:testapp/features/customer_dashboard/clips/model/comment_model.dart';
+import 'package:testapp/features/customer_dashboard/clips/model/clips_model.dart';
 import 'package:testapp/core/const/app_colors.dart';
+import 'package:testapp/features/customer_dashboard/profile/controller/profile_controller.dart';
 
 class ClipCommentController extends GetxController {
   final String clipId;
@@ -60,12 +62,56 @@ class ClipCommentController extends GetxController {
     final content = commentController.text.trim();
     if (content.isEmpty) return;
 
+    final parentId = replyingToCommentId.value.isEmpty ? null : replyingToCommentId.value;
+
+    // --- Optimistic Update Start ---
+    final profile = ProfileController.instance.profile.value;
+    final dummyComment = ClipComment(
+      commentId: "TEMP_${DateTime.now().millisecondsSinceEpoch}",
+      clipId: clipId,
+      userId: profile?.id ?? "local",
+      content: content,
+      parentCommentId: parentId,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      user: ClipUser(
+        id: profile?.id ?? "local",
+        name: profile?.name ?? "User",
+        profilePhoto: profile?.profilePhoto ?? "",
+      ),
+      replyCount: 0,
+      replies: [],
+      likeCount: 0,
+      dislikeCount: 0,
+      userStatus: CommentUserStatus(isLiked: false, isDisliked: false),
+    );
+
+    int insertionIndex = -1;
+
+    if (parentId == null) {
+      commentsList.insert(0, dummyComment);
+      totalComments.value++;
+      formattedTotalCount.value = "${totalComments.value}";
+    } else {
+      for (int i = 0; i < commentsList.length; i++) {
+        if (commentsList[i].commentId == parentId) {
+          commentsList[i].replies.add(dummyComment);
+          commentsList[i].replyCount++;
+          insertionIndex = i;
+          break;
+        }
+      }
+    }
+    commentsList.refresh();
+
+    final prevText = content;
+    commentController.clear();
+    cancelReply();
+    commentFocusNode.unfocus();
+    // --- Optimistic Update End ---
+
     isPosting.value = true;
     try {
-      final parentId = replyingToCommentId.value.isEmpty
-          ? null
-          : replyingToCommentId.value;
-
       final response = await CustomerApiService.postComment(
         clipId: clipId,
         content: content,
@@ -73,12 +119,11 @@ class ClipCommentController extends GetxController {
       );
 
       if (response['success'] == true) {
-        commentController.clear();
-        cancelReply();
-        commentFocusNode.unfocus();
-        // Refresh comments to show the new one
+        // Success: Refresh to get real IDs and server timestamps
         await fetchComments();
       } else {
+        // Failure: Rollback
+        _rollbackSubmission(dummyComment, parentId, insertionIndex, prevText);
         Get.snackbar(
           "Error",
           response['message'] ?? "Failed to post comment",
@@ -86,10 +131,24 @@ class ClipCommentController extends GetxController {
         );
       }
     } catch (e) {
+      _rollbackSubmission(dummyComment, parentId, insertionIndex, prevText);
       print("Error posting comment: $e");
     } finally {
       isPosting.value = false;
     }
+  }
+
+  void _rollbackSubmission(ClipComment dummy, String? parentId, int index, String text) {
+    if (parentId == null) {
+      commentsList.removeWhere((c) => c.commentId == dummy.commentId);
+      totalComments.value--;
+      formattedTotalCount.value = "${totalComments.value}";
+    } else if (index != -1) {
+      commentsList[index].replies.removeWhere((r) => r.commentId == dummy.commentId);
+      commentsList[index].replyCount--;
+    }
+    commentsList.refresh();
+    commentController.text = text; // Keep text so user can retry
   }
 
   void startReply(ClipComment comment) {
@@ -108,6 +167,56 @@ class ClipCommentController extends GetxController {
     String type, {
     String? parentId,
   }) async {
+    // --- Optimistic Update Start ---
+    ClipComment? target;
+    ClipComment? parent;
+    int? parentIdx;
+
+    if (parentId == null) {
+      target = commentsList.firstWhereOrNull((c) => c.commentId == commentId);
+    } else {
+      parentIdx = commentsList.indexWhere((c) => c.commentId == parentId);
+      if (parentIdx != -1) {
+        parent = commentsList[parentIdx];
+        target = parent.replies.firstWhereOrNull((r) => r.commentId == commentId);
+      }
+    }
+
+    if (target == null) return;
+
+    final oldIsLiked = target.userStatus.isLiked;
+    final oldIsDisliked = target.userStatus.isDisliked;
+    final oldLikes = target.likeCount;
+    final oldDislikes = target.dislikeCount;
+
+    if (type == "LIKE") {
+      if (target.userStatus.isLiked) {
+        target.userStatus.isLiked = false;
+        target.likeCount--;
+      } else {
+        target.userStatus.isLiked = true;
+        target.likeCount++;
+        if (target.userStatus.isDisliked) {
+          target.userStatus.isDisliked = false;
+          target.dislikeCount--;
+        }
+      }
+    } else if (type == "DISLIKE") {
+      if (target.userStatus.isDisliked) {
+        target.userStatus.isDisliked = false;
+        target.dislikeCount--;
+      } else {
+        target.userStatus.isDisliked = true;
+        target.dislikeCount++;
+        if (target.userStatus.isLiked) {
+          target.userStatus.isLiked = false;
+          target.likeCount--;
+        }
+      }
+    }
+    commentsList.refresh();
+    // --- Optimistic Update End ---
+
     try {
       final response = await CustomerApiService.postCommentAction(
         commentId: commentId,
@@ -115,11 +224,20 @@ class ClipCommentController extends GetxController {
         parentId: parentId,
       );
 
-      if (response['success'] == true) {
-        // Refresh to update counts and status
-        await fetchComments();
+      if (response['success'] != true) {
+        // Rollback
+        target.userStatus.isLiked = oldIsLiked;
+        target.userStatus.isDisliked = oldIsDisliked;
+        target.likeCount = oldLikes;
+        target.dislikeCount = oldDislikes;
+        commentsList.refresh();
       }
     } catch (e) {
+      target.userStatus.isLiked = oldIsLiked;
+      target.userStatus.isDisliked = oldIsDisliked;
+      target.likeCount = oldLikes;
+      target.dislikeCount = oldDislikes;
+      commentsList.refresh();
       print("Error toggling comment action: $e");
     }
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:testapp/features/customer_dashboard/home/widgets/upcoming_match_card.dart';
+import 'package:testapp/features/customer_dashboard/clips/widgets/video_thumbnail_widget.dart';
+import 'package:testapp/core/utils/url_helper.dart';
 
 import '../../clips/screen/clips_screen.dart';
 import '../../live/live_dashboard/screen/live_screen.dart';
@@ -12,6 +14,7 @@ import '../view/news_details_screen.dart';
 import '../view/open_reels_video.dart';
 import '../view/open_tvs.dart';
 import '../view/open_live_games.dart';
+import '../../subscription/view/subscription_screen.dart';
 import 'live_card.dart';
 import '../../profile/controller/bookmarks_controller.dart';
 import '../../news/controller/news_controller.dart';
@@ -264,7 +267,17 @@ class ContentSection extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
+          final bool isPremiumError = replayController.errorMessage.value
+              .toLowerCase()
+              .contains("premium subscription");
+
           if (replayController.replaysList.isEmpty) {
+            if (isPremiumError) {
+              return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: _buildPremiumReplayCard(),
+              );
+            }
             return const SizedBox();
           }
 
@@ -416,17 +429,8 @@ class ContentSection extends StatelessWidget {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            Image.network(
-                              clip.videoUrl
-                                  .replaceAll('localhost', '10.0.30.59')
-                                  .replaceAll('127.0.0.1', '10.0.30.59'),
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(
-                                    Icons.play_circle_outline,
-                                    color: Colors.white,
-                                    size: 40,
-                                  ),
+                            VideoThumbnailWidget(
+                              videoUrl: UrlHelper.sanitizeUrl(clip.videoUrl),
                             ),
                             Container(
                               decoration: BoxDecoration(
@@ -645,6 +649,91 @@ class ContentSection extends StatelessWidget {
                 style: TextStyle(color: Colors.white, fontSize: 16.sp),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumReplayCard() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF1E1E1E),
+            const Color(0xFF2D2D2D),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: Colors.amber.withOpacity(0.3), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: Colors.amber.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.lock_person_rounded,
+              color: Colors.amber,
+              size: 32.sp,
+            ),
+          ),
+          SizedBox(width: 16.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Premium Required",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  "Subscribe to watch exclusive match replays",
+                  style: TextStyle(
+                    color: Colors.grey[400],
+                    fontSize: 12.sp,
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                InkWell(
+                  onTap: () => Get.to(() => const SubscriptionPage()),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                    decoration: BoxDecoration(
+                      color: Colors.amber,
+                      borderRadius: BorderRadius.circular(30.r),
+                    ),
+                    child: Text(
+                      "Upgrade Now",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

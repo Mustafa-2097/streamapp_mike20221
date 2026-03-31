@@ -34,7 +34,7 @@ class OnboardingScreen extends StatelessWidget {
 
           /// ---------------- Page Indicator ----------------
           Positioned(
-            bottom: kBottomNavigationBarHeight * 4,
+            bottom: kBottomNavigationBarHeight * 3.6,
             left: 0,
             right: 0,
             child: Center(
@@ -67,8 +67,11 @@ class OnboardingScreen extends StatelessWidget {
                 return GestureDetector(
                   onTap: controller.nextPage,
                   child: Container(
-                    width: sw*0.9,
-                    padding: EdgeInsets.symmetric(horizontal: 28.w, vertical: 10.h),
+                    width: sw * 0.9,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 28.w,
+                      vertical: 10.h,
+                    ),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -76,7 +79,11 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                     child: Text(
                       isLast ? "Get Started" : "Next",
-                      style: GoogleFonts.inter(fontSize: sw * 0.036, fontWeight: FontWeight.w700, color: AppColors.textColor),
+                      style: GoogleFonts.inter(
+                        fontSize: sw * 0.036,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textColor,
+                      ),
                     ),
                   ),
                 );

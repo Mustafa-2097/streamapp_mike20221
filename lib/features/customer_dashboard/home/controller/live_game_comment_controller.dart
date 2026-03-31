@@ -33,15 +33,14 @@ class LiveGameCommentController extends GetxController {
     try {
       isLoading.value = true;
       final response = await CustomerApiService.getLiveGameComments(gameId);
-      
+
       if (response['success'] == true) {
         final List data = response['data'] ?? [];
         totalComments.value = data.length;
         formattedTotalCount.value = totalComments.value.toString();
-        
-        commentsList.value = data
-            .map((e) => LiveGameComment.fromJson(e))
-            .toList();
+
+        commentsList.value =
+            data.map((e) => LiveGameComment.fromJson(e)).toList();
       }
     } catch (e) {
       debugPrint("Error fetching game comments: $e");
@@ -63,7 +62,9 @@ class LiveGameCommentController extends GetxController {
       id: tempId,
       userId: profile.id,
       content: text,
-      parentCommentId: replyingToCommentId.value.isEmpty ? null : replyingToCommentId.value,
+      parentCommentId: replyingToCommentId.value.isEmpty
+          ? null
+          : replyingToCommentId.value,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       user: CommentUser(
@@ -80,7 +81,9 @@ class LiveGameCommentController extends GetxController {
 
     // Save context for rollback
     final originalText = text;
-    final parentId = replyingToCommentId.value.isEmpty ? null : replyingToCommentId.value;
+    final parentId = replyingToCommentId.value.isEmpty
+        ? null
+        : replyingToCommentId.value;
 
     // Push local UI update first
     if (parentId == null) {
@@ -149,7 +152,12 @@ class LiveGameCommentController extends GetxController {
       } else {
         // Rollback
         _rollbackOptimistic(tempId, originalText, parentId);
-        Get.snackbar("Error", response['message'] ?? "Failed to post comment", backgroundColor: AppColors.errorColor, colorText: Colors.white);
+        Get.snackbar(
+          "Error",
+          response['message'] ?? "Failed to post comment",
+          backgroundColor: AppColors.errorColor,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       debugPrint("Error posting game comment: $e");
@@ -159,7 +167,11 @@ class LiveGameCommentController extends GetxController {
     }
   }
 
-  void _rollbackOptimistic(String tempId, String originalText, String? parentId) {
+  void _rollbackOptimistic(
+    String tempId,
+    String originalText,
+    String? parentId,
+  ) {
     if (parentId == null) {
       commentsList.removeWhere((c) => c.id == tempId);
       totalComments.value--;
@@ -167,7 +179,8 @@ class LiveGameCommentController extends GetxController {
       final parentIndex = commentsList.indexWhere((c) => c.id == parentId);
       if (parentIndex != -1) {
         final parent = commentsList[parentIndex];
-        final updatedReplies = parent.replies.where((r) => r.id != tempId).toList();
+        final updatedReplies =
+            parent.replies.where((r) => r.id != tempId).toList();
         commentsList[parentIndex] = LiveGameComment(
           id: parent.id,
           userId: parent.userId,
@@ -203,6 +216,55 @@ class LiveGameCommentController extends GetxController {
     String type, {
     String? parentId,
   }) async {
+    // --- OPTIMISTIC REACTIONS ---
+    LiveGameComment? target;
+    int targetIdx = -1;
+    LiveGameComment? parent;
+    int parentIdx = -1;
+
+    if (parentId == null) {
+      targetIdx = commentsList.indexWhere((c) => c.id == commentId);
+      if (targetIdx != -1) target = commentsList[targetIdx];
+    } else {
+      parentIdx = commentsList.indexWhere((c) => c.id == parentId);
+      if (parentIdx != -1) {
+        parent = commentsList[parentIdx];
+        targetIdx = parent.replies.indexWhere((r) => r.id == commentId);
+        if (targetIdx != -1) target = parent.replies[targetIdx];
+      }
+    }
+
+    if (target == null) return;
+
+    // Save previous state for possible rollback
+    final originalTarget = target;
+    final originalParent = parent;
+
+    // Apply immediate local update
+    final updatedTarget = _applyReactionOptimistic(target, type);
+
+    if (parentId == null) {
+      commentsList[targetIdx] = updatedTarget;
+    } else if (parent != null) {
+      final updatedReplies = [...parent.replies];
+      updatedReplies[targetIdx] = updatedTarget;
+      commentsList[parentIdx] = LiveGameComment(
+        id: parent.id,
+        userId: parent.userId,
+        content: parent.content,
+        parentCommentId: parent.parentCommentId,
+        createdAt: parent.createdAt,
+        updatedAt: parent.updatedAt,
+        user: parent.user,
+        totalLikes: parent.totalLikes,
+        totalDislikes: parent.totalDislikes,
+        liked: parent.liked,
+        disliked: parent.disliked,
+        replies: updatedReplies,
+      );
+    }
+    // --- END OPTIMISTIC ---
+
     try {
       final response = await CustomerApiService.postLiveGameCommentAction(
         commentId,
@@ -211,32 +273,89 @@ class LiveGameCommentController extends GetxController {
       );
 
       if (response['success'] == true) {
-        // Simple refresh for now
-        await fetchComments();
-        if (parentId != null) {
-          final replies = await fetchReplies(parentId);
-          final index = commentsList.indexWhere((c) => c.id == parentId);
-          if (index != -1) {
-            final parent = commentsList[index];
-            commentsList[index] = LiveGameComment(
-              id: parent.id,
-              userId: parent.userId,
-              content: parent.content,
-              parentCommentId: parent.parentCommentId,
-              createdAt: parent.createdAt,
-              updatedAt: parent.updatedAt,
-              user: parent.user,
-              totalLikes: parent.totalLikes,
-              totalDislikes: parent.totalDislikes,
-              liked: parent.liked,
-              disliked: parent.disliked,
-              replies: replies,
-            );
-          }
-        }
+        // Success: optionally sync backend in background
+        // await fetchComments(); 
+      } else {
+        // API failed, rollback UI
+        _rollbackReaction(originalTarget, originalParent, targetIdx, parentIdx);
       }
     } catch (e) {
       debugPrint("Error toggling action: $e");
+      _rollbackReaction(originalTarget, originalParent, targetIdx, parentIdx);
+    }
+  }
+
+  LiveGameComment _applyReactionOptimistic(LiveGameComment target, String type) {
+    bool isLiked = target.liked;
+    bool isDisliked = target.disliked;
+    int likeCount = target.totalLikes;
+    int dislikeCount = target.totalDislikes;
+
+    if (type.toUpperCase() == 'LIKE') {
+      if (isLiked) {
+        isLiked = false;
+        likeCount--;
+      } else {
+        isLiked = true;
+        likeCount++;
+        if (isDisliked) {
+          isDisliked = false;
+          dislikeCount--;
+        }
+      }
+    } else if (type.toUpperCase() == 'DISLIKE') {
+      if (isDisliked) {
+        isDisliked = false;
+        dislikeCount--;
+      } else {
+        isDisliked = true;
+        dislikeCount++;
+        if (isLiked) {
+          isLiked = false;
+          likeCount--;
+        }
+      }
+    }
+
+    return LiveGameComment(
+      id: target.id,
+      userId: target.userId,
+      content: target.content,
+      parentCommentId: target.parentCommentId,
+      createdAt: target.createdAt,
+      updatedAt: target.updatedAt,
+      user: target.user,
+      totalLikes: likeCount < 0 ? 0 : likeCount,
+      totalDislikes: dislikeCount < 0 ? 0 : dislikeCount,
+      liked: isLiked,
+      disliked: isDisliked,
+      replies: target.replies,
+    );
+  }
+
+  void _rollbackReaction(LiveGameComment originalTarget, LiveGameComment? originalParent, int targetIdx, int parentIdx) {
+    if (originalParent == null) {
+      if (targetIdx != -1) commentsList[targetIdx] = originalTarget;
+    } else {
+      if (parentIdx != -1 && targetIdx != -1) {
+        final currentParent = commentsList[parentIdx];
+        final updatedReplies = [...currentParent.replies];
+        updatedReplies[targetIdx] = originalTarget;
+        commentsList[parentIdx] = LiveGameComment(
+          id: currentParent.id,
+          userId: currentParent.userId,
+          content: currentParent.content,
+          parentCommentId: currentParent.parentCommentId,
+          createdAt: currentParent.createdAt,
+          updatedAt: currentParent.updatedAt,
+          user: currentParent.user,
+          totalLikes: currentParent.totalLikes,
+          totalDislikes: currentParent.totalDislikes,
+          liked: currentParent.liked,
+          disliked: currentParent.disliked,
+          replies: updatedReplies,
+        );
+      }
     }
   }
 

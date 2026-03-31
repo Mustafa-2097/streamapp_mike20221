@@ -124,11 +124,29 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
   }
 
   Widget _buildHistoryCard(PaymentHistoryModel item) {
-    // Basic dynamic logos based on provider string
+    // Priority: Local PayPal asset if provider is PayPal, else use network logo, else fallback
+    Widget logoWidget;
     final providerLower = item.provider.toLowerCase();
-    String logoPath = "assets/images/stripe.png"; // default
+
     if (providerLower.contains('paypal')) {
-      logoPath = "assets/images/subscription_logo.png"; // reusing paypal/subscription logo
+      logoWidget = Image.asset(
+        "assets/images/paypal.png",
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => Icon(Icons.payment, color: Colors.white),
+      );
+    } else if (item.logo != null && item.logo!.startsWith('http')) {
+      logoWidget = Image.network(
+        item.logo!,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => Icon(Icons.payment, color: Colors.white),
+      );
+    } else {
+      String logoPath = "assets/images/stripe.png"; // default
+      logoWidget = Image.asset(
+        logoPath,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => Icon(Icons.payment, color: Colors.white),
+      );
     }
 
     return Container(
@@ -143,18 +161,14 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
         children: [
           // Platform/Provider Logo Box
           Container(
-            height: 52.r,
-            width: 52.r,
-            padding: EdgeInsets.all(8.r),
+            height: 64.r,
+            width: 64.r,
+            padding: EdgeInsets.all(4.r),
             decoration: BoxDecoration(
-              color: Colors.black87,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12.r),
             ),
-            child: Image.asset(
-              logoPath,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Icon(Icons.payment, color: Colors.white),
-            ),
+            child: logoWidget,
           ),
           SizedBox(width: 10.w),
           

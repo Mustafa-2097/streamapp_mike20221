@@ -182,22 +182,23 @@ class _CommentTile extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 24),
-                        GestureDetector(
-                          onTap: () => controller.startReply(comment),
-                          child: Row(
-                            children: const [
-                              Icon(Icons.reply, color: Colors.grey, size: 18),
-                              SizedBox(width: 6),
-                              Text(
-                                "Reply",
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
+                        if (!comment.commentId.startsWith("TEMP"))
+                          GestureDetector(
+                            onTap: () => controller.startReply(comment),
+                            child: Row(
+                              children: const [
+                                Icon(Icons.reply, color: Colors.grey, size: 18),
+                                SizedBox(width: 6),
+                                Text(
+                                  "Reply",
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
                       ],
                     ),
 
@@ -425,25 +426,12 @@ class _CommentInput extends StatelessWidget {
                         horizontal: 20,
                         vertical: 10,
                       ),
-                      suffixIcon: Obx(
-                        () => controller.isPosting.value
-                            ? const Padding(
-                                padding: EdgeInsets.all(12.0),
-                                child: SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                              )
-                            : IconButton(
-                                icon: const Icon(
-                                  Icons.send,
-                                  color: Colors.blue,
-                                ),
-                                onPressed: controller.submitComment,
-                              ),
+                      suffixIcon: IconButton(
+                        icon: const Icon(
+                          Icons.send,
+                          color: Colors.blue,
+                        ),
+                        onPressed: controller.submitComment,
                       ),
                     ),
                   ),

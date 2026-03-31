@@ -9,11 +9,11 @@ class ReplayComment {
   final DateTime createdAt;
   final DateTime updatedAt;
   final ReplayUser user;
-  final int replyCount;
-  final List<ReplayComment> replies;
-  final int likeCount;
-  final int dislikeCount;
-  final ReplayCommentUserStatus userStatus;
+  int replyCount;
+  List<ReplayComment> replies;
+  int likeCount;
+  int dislikeCount;
+  ReplayCommentUserStatus userStatus;
 
   ReplayComment({
     required this.commentId,
@@ -33,7 +33,7 @@ class ReplayComment {
 
   factory ReplayComment.fromJson(Map<String, dynamic> json) {
     return ReplayComment(
-      commentId: json['commentId'] ?? '',
+      commentId: json['id'] ?? json['commentId'] ?? '',
       replayId: json['replayId'] ?? '',
       userId: json['userId'] ?? '',
       content: json['content'] ?? '',
@@ -54,8 +54,8 @@ class ReplayComment {
 }
 
 class ReplayCommentUserStatus {
-  final bool isLiked;
-  final bool isDisliked;
+  bool isLiked;
+  bool isDisliked;
 
   ReplayCommentUserStatus({
     required this.isLiked,

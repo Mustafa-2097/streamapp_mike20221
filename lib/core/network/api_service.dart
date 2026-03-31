@@ -243,6 +243,12 @@ class ApiService {
       return;
     }
 
+    // Don't show snackbar for premium subscription requirement messages
+    // as we want to handle these gracefully in the UI
+    if (message.toLowerCase().contains("premium subscription")) {
+      return;
+    }
+
     _lastErrorMessage = message;
     _lastErrorTime = now;
 

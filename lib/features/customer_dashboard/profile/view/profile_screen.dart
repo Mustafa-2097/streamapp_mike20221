@@ -193,8 +193,9 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     child: Obx(() {
                       final profile = controller.profile.value;
-                      final planName = profile?.subscription?.plan?.name ?? "Basic";
-                      final endDate = profile?.subscription?.endDate ?? "dd/mm/yyyy";
+                      final sub = profile?.subscription;
+                      final planName = sub?.plan?.name ?? "No Active Plan";
+                      final endDate = sub?.formattedEndDate ?? "N/A";
 
                       return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
