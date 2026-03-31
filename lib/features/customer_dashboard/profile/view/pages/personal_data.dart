@@ -18,7 +18,7 @@ class PersonalData extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: const BackButton(color: Colors.white),
-        title: Text(
+        title: const Text(
           "Personal Data",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
@@ -26,7 +26,6 @@ class PersonalData extends StatelessWidget {
       body: ScaffoldBg(
         child: SafeArea(
           child: Obx(() {
-            // Show a centered loader while fetching current profile
             if (controller.isInitializing.value) {
               return const Center(
                 child: CircularProgressIndicator(color: Colors.white),
@@ -71,35 +70,32 @@ class PersonalData extends StatelessWidget {
                               clipBehavior: Clip.antiAlias,
                               child: imageProvider != null
                                   ? (localFile != null
-                                        ? Image.file(
-                                            localFile,
-                                            fit: BoxFit.cover,
-                                          )
-                                        : Image.network(
-                                            networkUrl!,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) =>
-                                                    Icon(
-                                                      Icons.person,
-                                                      size: 50.r,
-                                                      color: Colors.white,
-                                                    ),
-                                            loadingBuilder:
-                                                (
-                                                  context,
-                                                  child,
-                                                  progress,
-                                                ) => progress == null
-                                                ? child
-                                                : const Center(
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          color: Colors.white,
-                                                          strokeWidth: 2,
+                                      ? Image.file(
+                                          localFile,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.network(
+                                          networkUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  Icon(
+                                            Icons.person,
+                                            size: 50.r,
+                                            color: Colors.white,
+                                          ),
+                                          loadingBuilder:
+                                              (context, child, progress) =>
+                                                  progress == null
+                                                      ? child
+                                                      : const Center(
+                                                          child:
+                                                              CircularProgressIndicator(
+                                                            color: Colors.white,
+                                                            strokeWidth: 2,
+                                                          ),
                                                         ),
-                                                  ),
-                                          ))
+                                        ))
                                   : Icon(
                                       Icons.person,
                                       size: 50.r,
@@ -123,15 +119,15 @@ class PersonalData extends StatelessWidget {
                       ),
                     ),
 
-                    SizedBox(height: 10),
-                    Divider(),
+                    SizedBox(height: 10.h),
+                    const Divider(color: Colors.white12),
 
                     // ── Name ─────────────────────────────────────────────────
                     Text(
                       "Name",
-                      style: TextStyle(fontSize: 16.sp, color: Colors.white),
+                      style: TextStyle(fontSize: 16.sp, color: Colors.white70),
                     ),
-                    SizedBox(height: 6),
+                    SizedBox(height: 6.h),
                     TextField(
                       controller: controller.nameController,
                       style: TextStyle(fontSize: 18.sp, color: Colors.white),
@@ -146,16 +142,15 @@ class PersonalData extends StatelessWidget {
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                    Divider(),
-                    SizedBox(height: 20),
+                    const Divider(color: Colors.white12),
+                    SizedBox(height: 20.h),
 
                     // ── Email (read-only) ─────────────────────────────────────
                     Text(
                       "Email",
-                      style: TextStyle(fontSize: 16.sp, color: Colors.white),
+                      style: TextStyle(fontSize: 16.sp, color: Colors.white70),
                     ),
-                    SizedBox(height: 6),
-                    // ✅ Obx so it updates reactively once profile loads
+                    SizedBox(height: 6.h),
                     Obx(
                       () => Text(
                         controller.email.value.isNotEmpty
@@ -164,15 +159,15 @@ class PersonalData extends StatelessWidget {
                         style: TextStyle(fontSize: 18.sp, color: Colors.grey),
                       ),
                     ),
-                    Divider(),
-                    SizedBox(height: 20),
+                    const Divider(color: Colors.white12),
+                    SizedBox(height: 20.h),
 
                     // ── Date of Birth ─────────────────────────────────────────
                     Text(
                       "Date of Birth",
-                      style: TextStyle(fontSize: 16.sp, color: Colors.white),
+                      style: TextStyle(fontSize: 16.sp, color: Colors.white70),
                     ),
-                    SizedBox(height: 6),
+                    SizedBox(height: 6.h),
                     Row(
                       children: [
                         Obx(
@@ -199,15 +194,15 @@ class PersonalData extends StatelessWidget {
                         ),
                       ],
                     ),
-                    Divider(),
-                    SizedBox(height: 20),
+                    const Divider(color: Colors.white12),
+                    SizedBox(height: 20.h),
 
                     // ── Country ───────────────────────────────────────────────
                     Text(
                       "Country",
-                      style: TextStyle(fontSize: 16.sp, color: Colors.white),
+                      style: TextStyle(fontSize: 16.sp, color: Colors.white70),
                     ),
-                    SizedBox(height: 6),
+                    SizedBox(height: 6.h),
                     GestureDetector(
                       onTap: () => controller.showCountryPickerSheet(context),
                       child: Row(
@@ -230,23 +225,29 @@ class PersonalData extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Divider(),
-                    SizedBox(height: 20),
+                    const Divider(color: Colors.white12),
+                    SizedBox(height: 40.h),
 
                     // ── Save Button ───────────────────────────────────────────
-                    Obx(
-                      () => SizedBox(
+                    Obx(() {
+                      final hasChanges = controller.hasChanges;
+                      final isSaving = controller.isLoading.value;
+                      final isSaved = controller.buttonText.value == 'Saved!';
+
+                      return SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: controller.isLoading.value
-                              ? null
-                              : () => controller.saveProfile(),
+                          onPressed: (hasChanges && !isSaving) || isSaved
+                              ? () => controller.saveProfile()
+                              : null,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                controller.buttonText.value == 'Saved!'
+                            backgroundColor: isSaved
                                 ? Colors.green
-                                : Colors.white,
-                            foregroundColor: Colors.black,
+                                : (hasChanges ? Colors.white : Colors.white24),
+                            disabledBackgroundColor: Colors.white10,
+                            foregroundColor: isSaved || !hasChanges
+                                ? Colors.white
+                                : Colors.black,
                             padding: EdgeInsets.symmetric(vertical: 16.h),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30.r),
@@ -255,7 +256,7 @@ class PersonalData extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              if (controller.isLoading.value) ...[
+                              if (isSaving) ...[
                                 SizedBox(
                                   height: 20.r,
                                   width: 20.r,
@@ -264,22 +265,24 @@ class PersonalData extends StatelessWidget {
                                     strokeWidth: 2,
                                   ),
                                 ),
-                                SizedBox(
-                                  width: 10.w,
-                                ), // Add spacing between spinner and text
+                                SizedBox(width: 10.w),
                               ],
                               Text(
                                 controller.buttonText.value,
                                 style: TextStyle(
                                   fontSize: 16.sp,
                                   fontWeight: FontWeight.bold,
+                                  color: (hasChanges || isSaved)
+                                      ? (isSaved ? Colors.white : Colors.black)
+                                      : Colors.white38,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    }),
+                    SizedBox(height: 20.h),
                   ],
                 ),
               ),

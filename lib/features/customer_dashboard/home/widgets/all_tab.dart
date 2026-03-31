@@ -11,6 +11,7 @@ import '../../replay/view/replay_screen.dart';
 import '../view/news_details_screen.dart';
 import '../view/open_reels_video.dart';
 import '../view/open_tvs.dart';
+import '../view/open_live_games.dart';
 import 'live_card.dart';
 import '../../profile/controller/bookmarks_controller.dart';
 import '../../news/controller/news_controller.dart';
@@ -18,45 +19,11 @@ import '../../clips/controller/clips_controller.dart';
 import '../../replay/controller/replay_controller.dart';
 import '../../live/live_dashboard/controller/live_controller.dart';
 import '../controller/live_tv_controller.dart';
+import '../controller/live_game_controller.dart';
 import '../model/live_tv_model.dart';
 
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
-
-  // final List<String> _videoUrls = [
-  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
-  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv?autoplay=1',
-  //   'https://media.streambrothers.com:2000/VideoPlayer/hpgnrhawxv2?autoplay=1',
-  // ];
-
-  // final List<String> _videoTitles = [
-  //   'Live TV Channel 1',
-  //   'Live TV Channel 2',
-  //   'Live TV Channel 3',
-  // ];
-
-  final List<String> _liveImages = [
-    'assets/images/live01.png',
-    'assets/images/live02.png',
-    'assets/images/live01.png',
-  ];
-
-  // Viewer counts for each live stream
-  final List<String> _viewerCounts = ['205K', '189K', '156K'];
-
-  // Titles for accessibility/alt text
-  final List<String> _titles = [
-    'Bangladesh vs Australia - Cricket Championship',
-    'BIG GAME - Brazil vs Spain - World Cup',
-    'Bangladesh vs Australia - Cricket Championship',
-  ];
-
-  // Descriptions for each live stream
-  final List<String> _descriptions = [
-    'Commentary: Watch the Asekay Mustafa take on the Australia Wallabies...',
-    'Commentary: New Zealand All Blacks vs South Africa Springboks – Rugby Ch...',
-    'Commentary: Watch the Asekay Mustafa take on the Australia Wallabies...',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -67,41 +34,73 @@ class ContentSection extends StatelessWidget {
       LiveMatchesController(),
     );
     final LiveTvController liveTvController = Get.put(LiveTvController());
+    final LiveGameController liveGameController = Get.put(LiveGameController());
 
     // Fetch upcoming if empty
     if (liveController.upcomingMatches.isEmpty &&
         !liveController.isUpcomingLoading) {
       liveController.fetchUpcomingMatches();
     }
+
+    // NEW: Fetch live TVs if empty
+    if (liveTvController.liveTvs.isEmpty && !liveTvController.isLoading.value) {
+      liveTvController.fetchLiveTvs();
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Live Now section
+        // Live Now section - View All removed as requested
         _sectionName("Live Now", () {
           Get.to(LiveMatchesScreen());
-        }),
+        }, showViewAll: false),
         SizedBox(height: 16.h),
 
         // Horizontal Scrollable Live Now List
         SizedBox(
           height: 200.h,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            itemCount: _liveImages.length,
-            itemBuilder: (context, index) {
+          child: Obx(() {
+            if (liveGameController.isLoading.value &&
+                liveGameController.liveGames.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (liveGameController.liveGames.isEmpty) {
               return Padding(
-                padding: EdgeInsets.only(right: 12.w),
-                child: LiveCard(
-                  imagePath: _liveImages[index],
-                  viewerCount: _viewerCounts[index],
-                  title: _titles[index],
-                  description: _descriptions[index],
-                  isLocked: index == 0,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: _buildPromoCard(),
               );
-            },
-          ),
+            }
+
+            return ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              itemCount: liveGameController.liveGames.length,
+              itemBuilder: (context, index) {
+                final game = liveGameController.liveGames[index];
+
+                // Sanitize thumbnail URL
+                final imageUrl = game.thumbnail
+                    .replaceAll('localhost', '10.0.30.59')
+                    .replaceAll('127.0.0.1', '10.0.30.59')
+                    .replaceFirst('undefined/', 'http://10.0.30.59:8000/');
+
+                return Padding(
+                  padding: EdgeInsets.only(right: 12.w),
+                  child: LiveCard(
+                    imagePath: imageUrl,
+                    viewerCount: "${game.viewers}",
+                    title: game.title,
+                    description: game.commentary,
+                    isLocked: game.isPremium,
+                    onTap: () {
+                      liveGameController.fetchLiveGameById(game.id);
+                      Get.to(() => const OpenLiveGame());
+                    },
+                  ),
+                );
+              },
+            );
+          }),
         ),
         SizedBox(height: 24.h),
 
@@ -129,7 +128,12 @@ class ContentSection extends StatelessWidget {
             }
 
             if (liveTvController.liveTvs.isEmpty) {
-              return const SizedBox();
+              return const Center(
+                child: Text(
+                  "No channels available",
+                  style: TextStyle(color: Colors.white54),
+                ),
+              );
             }
 
             return SizedBox(
@@ -220,12 +224,6 @@ class ContentSection extends StatelessWidget {
                           alignment: Alignment.centerLeft,
                           padding: const EdgeInsets.only(left: 20),
                           margin: const EdgeInsets.only(bottom: 12),
-                          // decoration: BoxDecoration(
-                          //   color: isBookmarked
-                          //       ? Colors.redAccent.withOpacity(0.8)
-                          //       : Colors.amber.withOpacity(0.8),
-                          //   borderRadius: BorderRadius.circular(12),
-                          // ),
                           child: Icon(
                             isBookmarked
                                 ? Icons.delete_outlined
@@ -242,12 +240,7 @@ class ContentSection extends StatelessWidget {
                           league: match.dayHeader, // "Wednesday" or similar
                           match: "${match.homeTeam} vs ${match.awayTeam}",
                           time: match.date, // e.g. "20:00"
-                          isHighlighted: controller.remindedMatchIds.contains(
-                            match.id,
-                          ),
                           isBookmarked: isBookmarked,
-                          onRemindTap: () =>
-                              controller.toggleReminder(match.id),
                         ),
                       );
                     }),
@@ -630,7 +623,7 @@ class ContentSection extends StatelessWidget {
     );
   }
 
-  Padding _sectionName(String label, VoidCallback? onTap) {
+  Padding _sectionName(String label, VoidCallback? onTap, {bool showViewAll = true}) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Row(
@@ -644,13 +637,14 @@ class ContentSection extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          GestureDetector(
-            onTap: onTap,
-            child: Text(
-              'View All',
-              style: TextStyle(color: Colors.white, fontSize: 16.sp),
+          if (showViewAll)
+            GestureDetector(
+              onTap: onTap,
+              child: Text(
+                'View All',
+                style: TextStyle(color: Colors.white, fontSize: 16.sp),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -681,6 +675,91 @@ class ContentSection extends StatelessWidget {
             color: Colors.grey[800],
             child: const Icon(Icons.tv, color: Colors.white54),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPromoCard() {
+    return Container(
+      width: double.infinity,
+      height: 220,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        image: const DecorationImage(
+          image: AssetImage('assets/images/spain.png'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Gradient Overlay to make text pop
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.2),
+                  Colors.black.withOpacity(0.6),
+                ],
+              ),
+            ),
+          ),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'BRAZIL VS SPAIN',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildCountdownBox("12H"),
+                    _buildCountdownBox("12M"),
+                    _buildCountdownBox("12S"),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'BIG GAME || World Cup',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCountdownBox(String val) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        val,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );

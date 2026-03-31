@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../news/model/news_model.dart';
 import '../../news/controller/news_controller.dart';
 import '../../profile/controller/bookmarks_controller.dart';
+import '../../profile/controller/profile_controller.dart';
 
 class NewsDetailsScreen extends StatefulWidget {
   final Article article;
@@ -20,6 +21,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   bool isLoading = false;
   Comment? replyingToComment;
   Map<String, bool> loadingReplies = {};
+  Map<String, bool> expandedReplies = {}; // NEW: track expanded status
 
   @override
   void initState() {
@@ -177,16 +179,29 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
 
   Future<void> _handleLoadReplies(Comment comment) async {
     if (comment.id == null) return;
-    setState(() => loadingReplies[comment.id!] = true);
-    try {
-      final replies = await controller.fetchCommentReplies(comment.id!);
-      setState(() {
-        comment.replies = replies;
-      });
-    } catch (e) {
-      debugPrint("Error loading replies: $e");
-    } finally {
-      setState(() => loadingReplies[comment.id!] = false);
+    
+    // If already expanded, collapse it
+    if (expandedReplies[comment.id!] == true) {
+      setState(() => expandedReplies[comment.id!] = false);
+      return;
+    }
+
+    // Expand it
+    setState(() => expandedReplies[comment.id!] = true);
+
+    // If replies not loaded yet, fetch them (optional if already in model)
+    if (comment.replies == null || comment.replies!.isEmpty) {
+      setState(() => loadingReplies[comment.id!] = true);
+      try {
+        final replies = await controller.fetchCommentReplies(comment.id!);
+        setState(() {
+          comment.replies = replies;
+        });
+      } catch (e) {
+        debugPrint("Error loading replies: $e");
+      } finally {
+        setState(() => loadingReplies[comment.id!] = false);
+      }
     }
   }
 
@@ -375,12 +390,16 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                     // Comment Input
                     Row(
                       children: [
-                        const CircleAvatar(
-                          radius: 18,
-                          backgroundImage: NetworkImage(
-                            'https://i.pravatar.cc/150?img=12',
-                          ),
-                        ),
+                        Obx(() {
+                          final userPhoto = Get.find<ProfileController>().profile.value?.profilePhoto;
+                          return CircleAvatar(
+                            radius: 18,
+                            backgroundImage: userPhoto != null && userPhoto.isNotEmpty
+                                ? NetworkImage(userPhoto)
+                                : const NetworkImage('https://i.pravatar.cc/150?img=12'), // Fallback
+                            backgroundColor: Colors.grey[800],
+                          );
+                        }),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Container(
@@ -428,30 +447,48 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                     SizedBox(
                       height: 180,
                       child: Obx(
-                        () => ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: controller.newsList.length,
-                          separatorBuilder: (c, i) => const SizedBox(width: 12),
-                          itemBuilder: (context, index) {
-                            final item = controller.newsList[index];
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        NewsDetailsScreen(article: item),
-                                  ),
-                                );
-                              },
-                              child: _buildRecommendationCard(
-                                item.title ?? "No Title",
-                                item.urlToImage ?? "",
-                                item.publishedAt ?? "",
+                        () {
+                          final recommendations = controller.newsList
+                              .where((a) =>
+                                  a.id != currentArticle.id &&
+                                  (a.category == currentArticle.category ||
+                                      currentArticle.category == "All"))
+                              .toList();
+
+                          if (recommendations.isEmpty) {
+                            return const Center(
+                              child: Text(
+                                "No related news found",
+                                style: TextStyle(color: Colors.white54),
                               ),
                             );
-                          },
-                        ),
+                          }
+
+                          return ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: recommendations.length,
+                            separatorBuilder: (c, i) => const SizedBox(width: 12),
+                            itemBuilder: (context, index) {
+                              final item = recommendations[index];
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          NewsDetailsScreen(article: item),
+                                    ),
+                                  );
+                                },
+                                child: _buildRecommendationCard(
+                                  item.title ?? "No Title",
+                                  item.urlToImage ?? "",
+                                  item.publishedAt ?? "",
+                                ),
+                              );
+                            },
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -463,154 +500,171 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   }
 
   Widget _buildCommentList(List<Comment> comments, {double padding = 0}) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: comments.length,
-      separatorBuilder: (c, i) =>
-          SizedBox(height: padding > 0 ? 8 : 16), // Smaller spacing for replies
-      itemBuilder: (context, index) {
-        final comment = comments[index];
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(left: padding),
-              child: _buildCommentItem(comment),
-            ),
-            if (comment.replies != null && comment.replies!.isNotEmpty)
-              _buildCommentList(comment.replies!, padding: padding + 24),
-          ],
-        );
-      },
+    return Padding(
+      padding: EdgeInsets.only(left: padding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: comments.map((comment) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 12),
+              _buildCommentItem(comment),
+              if (comment.replies != null && 
+                  comment.replies!.isNotEmpty && 
+                  expandedReplies[comment.id!] == true)
+                _buildCommentList(comment.replies!, padding: 24),
+            ],
+          );
+        }).toList(),
+      ),
     );
   }
 
   Widget _buildCommentItem(Comment comment) {
-    return Column(
+    final String avatarUrl = comment.userImage ?? 'https://i.pravatar.cc/150?u=${comment.userName}';
+    
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: "${comment.userName ?? "User"}: ",
-                style: const TextStyle(
-                  color: Color(0xFFFFD700),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-              TextSpan(
-                text: comment.comment ?? "",
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-              ),
-            ],
-          ),
+        CircleAvatar(
+          radius: 14,
+          backgroundImage: NetworkImage(avatarUrl),
+          backgroundColor: Colors.grey[800],
         ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            GestureDetector(
-              onTap: () => _handleToggleCommentEngagement(comment, 'like'),
-              child: Row(
-                children: [
-                  Icon(
-                    comment.isLiked == true
-                        ? Icons.thumb_up
-                        : Icons.thumb_up_outlined,
-                    color: comment.isLiked == true
-                        ? const Color(0xFFFFD700)
-                        : Colors.grey[400],
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    "${comment.likeCount ?? 0}",
-                    style: TextStyle(
-                      color: comment.isLiked == true
-                          ? const Color(0xFFFFD700)
-                          : Colors.grey[400],
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            GestureDetector(
-              onTap: () => _handleToggleCommentEngagement(comment, 'dislike'),
-              child: Row(
-                children: [
-                  Icon(
-                    comment.isDisliked == true
-                        ? Icons.thumb_down
-                        : Icons.thumb_down_outlined,
-                    color: comment.isDisliked == true
-                        ? Colors.redAccent
-                        : Colors.grey[400],
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    "${comment.dislikeCount ?? 0}",
-                    style: TextStyle(
-                      color: comment.isDisliked == true
-                          ? Colors.redAccent
-                          : Colors.grey[400],
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            GestureDetector(
-              onTap: () {
-                setState(() => replyingToComment = comment);
-                FocusScope.of(context).unfocus(); // Scroll to input
-                // Scroll calculation would go here if using a controller
-              },
-              child: Row(
-                children: [
-                  const Icon(Icons.reply, color: Colors.grey, size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    "Reply",
-                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            if (loadingReplies[comment.id!] == true)
-              const SizedBox(
-                width: 12,
-                height: 12,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.grey,
-                ),
-              )
-            else
-              GestureDetector(
-                onTap: () => _handleLoadReplies(comment),
-                child: Row(
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RichText(
+                text: TextSpan(
                   children: [
-                    const Icon(
-                      Icons.comment_outlined,
-                      color: Colors.grey,
-                      size: 16,
+                    TextSpan(
+                      text: "${comment.userName ?? "User"}: ",
+                      style: const TextStyle(
+                        color: Color(0xFFFFD700),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      "Replies",
-                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                    TextSpan(
+                      text: comment.comment ?? "",
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
                     ),
                   ],
                 ),
               ),
-          ],
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => _handleToggleCommentEngagement(comment, 'like'),
+                    child: Row(
+                      children: [
+                        Icon(
+                          comment.isLiked == true
+                              ? Icons.thumb_up
+                              : Icons.thumb_up_outlined,
+                          color: comment.isLiked == true
+                              ? const Color(0xFFFFD700)
+                              : Colors.grey[400],
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          "${comment.likeCount ?? 0}",
+                          style: TextStyle(
+                            color: comment.isLiked == true
+                                ? const Color(0xFFFFD700)
+                                : Colors.grey[400],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  GestureDetector(
+                    onTap: () => _handleToggleCommentEngagement(comment, 'dislike'),
+                    child: Row(
+                      children: [
+                        Icon(
+                          comment.isDisliked == true
+                              ? Icons.thumb_down
+                              : Icons.thumb_down_outlined,
+                          color: comment.isDisliked == true
+                              ? Colors.redAccent
+                              : Colors.grey[400],
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          "${comment.dislikeCount ?? 0}",
+                          style: TextStyle(
+                            color: comment.isDisliked == true
+                                ? Colors.redAccent
+                                : Colors.grey[400],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Only show Reply and Load Replies for main comments
+                  if (comment.parentId == null) ...[
+                    const SizedBox(width: 16),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() => replyingToComment = comment);
+                        FocusScope.of(context).unfocus(); // Scroll to input
+                      },
+                      child: Row(
+                        children: [
+                          const Icon(Icons.reply, color: Colors.grey, size: 16),
+                          const SizedBox(width: 4),
+                          Text(
+                            "Reply",
+                            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (comment.replies != null && comment.replies!.isNotEmpty) ...[
+                      const SizedBox(width: 16),
+                      if (loadingReplies[comment.id!] == true)
+                        const SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.grey,
+                          ),
+                        )
+                      else
+                        GestureDetector(
+                          onTap: () => _handleLoadReplies(comment),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.comment_outlined,
+                                color: Colors.grey,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                "Replies",
+                                style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ],
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );

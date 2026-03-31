@@ -1,6 +1,6 @@
 class ApiEndpoints {
   /// Base URL
-  static const String baseUrl = 'http://10.0.30.59:8000/api/v1';
+  static const String baseUrl = 'https://mike20221.smtsigma.com/api/v1';
 
   /// Auth
   static const String register = '$baseUrl/auth/register';
@@ -32,10 +32,13 @@ class ApiEndpoints {
   static const String footballMatches = '$baseUrl/matches/football';
   static const String rugbyMatches = '$baseUrl/matches/rugby';
   static String matchInfo(String matchId) => '$baseUrl/matches/$matchId/info';
-  static String matchSummary(String matchId) => '$baseUrl/matches/$matchId/summary';
-  static String matchHeader(String matchId) => '$baseUrl/matches/$matchId/header';
+  static String matchSummary(String matchId) =>
+      '$baseUrl/matches/$matchId/summary';
+  static String matchHeader(String matchId) =>
+      '$baseUrl/matches/$matchId/header';
   static String matchStats(String matchId) => '$baseUrl/matches/$matchId/stats';
-  static String matchLineup(String matchId) => '$baseUrl/matches/$matchId/lineup';
+  static String matchLineup(String matchId) =>
+      '$baseUrl/matches/$matchId/lineup';
   static String matchTable(String matchId) => '$baseUrl/matches/$matchId/table';
   static String matchH2H(String matchId) => '$baseUrl/matches/$matchId/h2h';
 
@@ -44,16 +47,32 @@ class ApiEndpoints {
 
   /// Subscription Plans
   static const String plans = '$baseUrl/plans';
-  static const String createCheckoutSession = '$baseUrl/payments/create-checkout-session';
+  static const String createCheckoutSession =
+      '$baseUrl/payments/create-checkout-session';
   static const String paymentHistory = '$baseUrl/payments/history';
 
   /// Live TV
   static const String liveTv = '$baseUrl/live-tv';
   static String singleLiveTv(String id) => '$liveTv/$id';
-  static const String liveTvComments = '$liveTv/comments';
+  static String likeLiveTv(String id) => '$liveTv/$id/like';
+  static String dislikeLiveTv(String id) => '$liveTv/$id/dislike';
+  static String shareLiveTv(String id) => '$liveTv/$id/share';
+  static String liveTvComments(String id) => '$liveTv/$id/comments';
   static const String liveTvCommentsAction = '$liveTv/comments/action';
   static String liveTvCommentReplies(String commentId) =>
       '$liveTv/comments/$commentId/replies';
+
+  /// Live Games
+  static const String liveGames = '$baseUrl/live-games';
+  static String singleLiveGame(String id) => '$liveGames/$id';
+  static String likeLiveGame(String id) => '$liveGames/$id/like';
+  static String dislikeLiveGame(String id) => '$liveGames/$id/dislike';
+  static String shareLiveGame(String id) => '$liveGames/$id/share';
+  static String liveGameComments(String gameId) =>
+      '$liveGames/$gameId/comments';
+  static String liveGameCommentsAction = '$liveGames/comments/action';
+  static String liveGameCommentReplies(String commentId) =>
+      '$liveGames/comments/$commentId/replies';
 
   /// News
   ///  static const String news = '$baseUrl/news?category=sports';
@@ -63,7 +82,8 @@ class ApiEndpoints {
   static String bookmark(String newsId) => '$news/$newsId/bookmark';
   static const String myBookmarks = '$news/my-bookmarks';
   static String deleteBookmark(String bookmarkId) => '$myBookmarks/$bookmarkId';
-  static String bookmarkDetails(String bookmarkId) => '$myBookmarks/$bookmarkId/details';
+  static String bookmarkDetails(String bookmarkId) =>
+      '$myBookmarks/$bookmarkId/details';
   static String commentAction(String commentId) =>
       '$news/comments/$commentId/action';
   static String newsCommentReplies(String commentId) =>
@@ -76,7 +96,8 @@ class ApiEndpoints {
   static String shareClip(String clipId) => '$clips/share/$clipId';
   static const String clipBookmark = '$clips/bookmark';
   static const String myClipBookmarks = '$clips/my-bookmarks';
-  static String deleteClipBookmark(String bookmarkId) => '$myClipBookmarks/$bookmarkId';
+  static String deleteClipBookmark(String bookmarkId) =>
+      '$myClipBookmarks/$bookmarkId';
 
   /// Clips Comments
   static const String clipsComments = '$clips/comments';
@@ -91,12 +112,14 @@ class ApiEndpoints {
   static const String replaysAction = '$replays/action';
   static const String replaysBookmark = '$replays/bookmark';
   static const String myReplayBookmarks = '$replays/my-bookmarks';
-  static String deleteReplayBookmark(String bookmarkId) => '$myReplayBookmarks/$bookmarkId';
+  static String deleteReplayBookmark(String bookmarkId) =>
+      '$myReplayBookmarks/$bookmarkId';
 
   /// Replays Comments
   static const String replaysComments = '$replays/comments';
   static const String replaysCommentsAction = '$replays/comments/action';
-  static String singleReplayComments(String replayId) => '$replays/comments/$replayId';
+  static String singleReplayComments(String replayId) =>
+      '$replays/comments/$replayId';
   static String replayCommentReplies(String commentId) =>
       '$replays/comments/$commentId/replies';
 
@@ -113,6 +136,7 @@ class ApiEndpoints {
 
   /// Notifications
   static const String notifications = '$baseUrl/notifications';
-  static const String markNotificationsAsSeen = '$baseUrl/notifications/mark-as-seen';
+  static const String markNotificationsAsSeen =
+      '$baseUrl/notifications/mark-as-seen';
   static const String notificationSettings = '$baseUrl/notifications/settings';
 }

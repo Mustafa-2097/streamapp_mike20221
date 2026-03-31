@@ -32,7 +32,6 @@ class LiveMatchesScreen extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
-      //appBar: _buildAppBar(),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -167,8 +166,6 @@ class LiveMatchesScreen extends StatelessWidget {
     );
   }
 
-  // TABS (FIXED)
-
   // MATCH LIST
   Widget _buildMatchList() {
     if (controller.isLoading && controller.matches.isEmpty) {
@@ -300,8 +297,6 @@ class LiveMatchesScreen extends StatelessWidget {
                       width: 36,
                       height: 36,
                       fit: BoxFit.contain,
-
-                      /// prevents crash if image fails
                       errorBuilder: (_, __, ___) =>
                           const Icon(Icons.sports_soccer),
                     )
@@ -409,8 +404,6 @@ class LiveMatchesScreen extends StatelessWidget {
       },
       child: LiveUpcomingCard(
         match: match,
-        isReminded: controller.remindedMatchIds.contains(match.id),
-        onRemindTap: () => controller.toggleReminder(match.id),
       ),
     );
   }
@@ -550,5 +543,4 @@ class LiveMatchesScreen extends StatelessWidget {
       },
     );
   }
-
 }

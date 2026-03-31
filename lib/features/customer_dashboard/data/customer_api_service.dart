@@ -38,13 +38,11 @@ class CustomerApiService {
     final String? token = await SharedPreferencesHelper.getToken();
     if (token == null || token.isEmpty) throw Exception("User token not found");
 
-    // Build only the fields that were provided
+    // Build fields
     final Map<String, dynamic> bodyFields = {};
-    if (name != null && name.isNotEmpty) bodyFields['name'] = name;
-    if (dateOfBirth != null && dateOfBirth.isNotEmpty) {
-      bodyFields['dateOfBirth'] = dateOfBirth;
-    }
-    if (country != null && country.isNotEmpty) bodyFields['country'] = country;
+    if (name != null) bodyFields['name'] = name;
+    if (dateOfBirth != null) bodyFields['dateOfBirth'] = dateOfBirth;
+    if (country != null) bodyFields['country'] = country;
 
     // If there's an image, use multipart; otherwise use regular JSON PATCH
     if (imageFile != null) {
@@ -102,7 +100,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get("${ApiEndpoints.liveScores}?page=$page", headers: headers);
+    return await ApiService.get(
+      "${ApiEndpoints.liveScores}?page=$page",
+      headers: headers,
+    );
   }
 
   /// New Live Matches API
@@ -114,7 +115,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get("${ApiEndpoints.liveMatches}?page=$page", headers: headers);
+    return await ApiService.get(
+      "${ApiEndpoints.liveMatches}?page=$page",
+      headers: headers,
+    );
   }
 
   /// Upcoming Matches
@@ -133,7 +137,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.matchInfo(matchId), headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.matchInfo(matchId),
+      headers: headers,
+    );
   }
 
   /// Match Summary
@@ -145,7 +152,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.matchSummary(matchId), headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.matchSummary(matchId),
+      headers: headers,
+    );
   }
 
   /// Match Header
@@ -157,7 +167,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.matchHeader(matchId), headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.matchHeader(matchId),
+      headers: headers,
+    );
   }
 
   /// Match Stats
@@ -169,7 +182,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.matchStats(matchId), headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.matchStats(matchId),
+      headers: headers,
+    );
   }
 
   /// Match Lineup
@@ -181,7 +197,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.matchLineup(matchId), headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.matchLineup(matchId),
+      headers: headers,
+    );
   }
 
   /// Match Table
@@ -193,7 +212,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.matchTable(matchId), headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.matchTable(matchId),
+      headers: headers,
+    );
   }
 
   /// Match H2H
@@ -205,7 +227,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.matchH2H(matchId), headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.matchH2H(matchId),
+      headers: headers,
+    );
   }
 
   /// Subscription Plans
@@ -227,10 +252,7 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    final body = {
-      'planId': planId,
-      'userId': userId,
-    };
+    final body = {'planId': planId, 'userId': userId};
     return await ApiService.post(
       ApiEndpoints.createCheckoutSession,
       headers: headers,
@@ -282,7 +304,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get("${ApiEndpoints.recentMatches}?page=$page", headers: headers);
+    return await ApiService.get(
+      "${ApiEndpoints.recentMatches}?page=$page",
+      headers: headers,
+    );
   }
 
   /// Football Matches API
@@ -294,7 +319,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get("${ApiEndpoints.footballMatches}?page=$page", headers: headers);
+    return await ApiService.get(
+      "${ApiEndpoints.footballMatches}?page=$page",
+      headers: headers,
+    );
   }
 
   /// Rugby Matches API
@@ -306,7 +334,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get("${ApiEndpoints.rugbyMatches}?page=$page", headers: headers);
+    return await ApiService.get(
+      "${ApiEndpoints.rugbyMatches}?page=$page",
+      headers: headers,
+    );
   }
 
   /// ================= LEAGUE TABLE =================
@@ -335,7 +366,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.singleLiveTv(id), headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.singleLiveTv(id),
+      headers: headers,
+    );
   }
 
   /// ================= CLIPS =================
@@ -374,10 +408,7 @@ class CustomerApiService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: {
-        'clipId': clipId,
-        'type': type,
-      },
+      body: {'clipId': clipId, 'type': type},
     );
   }
 
@@ -438,7 +469,9 @@ class CustomerApiService {
     );
   }
 
-  static Future<Map<String, dynamic>> getCommentReplies(String commentId) async {
+  static Future<Map<String, dynamic>> getCommentReplies(
+    String commentId,
+  ) async {
     final String? token = await SharedPreferencesHelper.getToken();
     return await ApiService.get(
       ApiEndpoints.commentReplies(commentId),
@@ -507,7 +540,8 @@ class CustomerApiService {
   }
 
   static Future<Map<String, dynamic>> getReplayCommentReplies(
-      String commentId) async {
+    String commentId,
+  ) async {
     final String? token = await SharedPreferencesHelper.getToken();
     return await ApiService.get(
       ApiEndpoints.replayCommentReplies(commentId),
@@ -534,8 +568,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.singleChatRoom(roomId),
-        headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.singleChatRoom(roomId),
+      headers: headers,
+    );
   }
 
   static Future<Map<String, dynamic>> joinChatRoom(String roomId) async {
@@ -544,8 +580,11 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.post(ApiEndpoints.joinChatRoom(roomId),
-        headers: headers, body: {});
+    return await ApiService.post(
+      ApiEndpoints.joinChatRoom(roomId),
+      headers: headers,
+      body: {},
+    );
   }
 
   static Future<Map<String, dynamic>> getRoomMessages(String roomId) async {
@@ -554,8 +593,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.roomMessages(roomId),
-        headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.roomMessages(roomId),
+      headers: headers,
+    );
   }
 
   static Future<Map<String, dynamic>> sendMessage({
@@ -567,10 +608,7 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    final body = {
-      'roomId': roomId,
-      'content': content,
-    };
+    final body = {'roomId': roomId, 'content': content};
     return await ApiService.post(
       ApiEndpoints.chatMessages,
       headers: headers,
@@ -587,10 +625,7 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    final body = {
-      'messageId': messageId,
-      'emoji': emoji,
-    };
+    final body = {'messageId': messageId, 'emoji': emoji};
     return await ApiService.post(
       ApiEndpoints.messageReaction,
       headers: headers,
@@ -614,8 +649,11 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.patch(ApiEndpoints.markNotificationsAsSeen,
-        headers: headers, body: {});
+    return await ApiService.patch(
+      ApiEndpoints.markNotificationsAsSeen,
+      headers: headers,
+      body: {},
+    );
   }
 
   static Future<Map<String, dynamic>> getNotificationSettings() async {
@@ -624,19 +662,65 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.notificationSettings,
-        headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.notificationSettings,
+      headers: headers,
+    );
   }
 
   static Future<Map<String, dynamic>> updateNotificationSettings(
-      Map<String, dynamic> body) async {
+    Map<String, dynamic> body,
+  ) async {
     final String? token = await SharedPreferencesHelper.getToken();
     final headers = {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.patch(ApiEndpoints.notificationSettings,
-        headers: headers, body: body);
+    return await ApiService.patch(
+      ApiEndpoints.notificationSettings,
+      headers: headers,
+      body: body,
+    );
+  }
+
+  /// ================= LIVE TV ACTIONS =================
+  static Future<Map<String, dynamic>> likeLiveTv(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(
+      ApiEndpoints.likeLiveTv(id),
+      headers: headers,
+      body: {}, // Empty body if not required
+    );
+  }
+
+  static Future<Map<String, dynamic>> dislikeLiveTv(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(
+      ApiEndpoints.dislikeLiveTv(id),
+      headers: headers,
+      body: {},
+    );
+  }
+
+  static Future<Map<String, dynamic>> shareLiveTv(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(
+      ApiEndpoints.shareLiveTv(id),
+      headers: headers,
+      body: {},
+    );
   }
 
   /// ================= LIVE TV COMMENTS =================
@@ -646,8 +730,10 @@ class CustomerApiService {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.singleLiveTv(tvId),
-        headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.liveTvComments(tvId),
+      headers: headers,
+    );
   }
 
   static Future<Map<String, dynamic>> postLiveTvComment({
@@ -659,13 +745,12 @@ class CustomerApiService {
     if (token == null || token.isEmpty) throw Exception("User token not found");
 
     return await ApiService.post(
-      ApiEndpoints.liveTvComments,
+      ApiEndpoints.liveTvComments(liveTvId),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
       body: {
-        'liveTvId': liveTvId,
         'content': content,
         if (parentId != null) 'parentId': parentId,
       },
@@ -695,13 +780,170 @@ class CustomerApiService {
   }
 
   static Future<Map<String, dynamic>> getLiveTvCommentReplies(
-      String commentId) async {
+    String commentId,
+  ) async {
     final String? token = await SharedPreferencesHelper.getToken();
     final headers = {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-    return await ApiService.get(ApiEndpoints.liveTvCommentReplies(commentId),
-        headers: headers);
+    return await ApiService.get(
+      ApiEndpoints.liveTvCommentReplies(commentId),
+      headers: headers,
+    );
+  }
+
+  static Future<Map<String, dynamic>> getLiveGames() async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(ApiEndpoints.liveGames, headers: headers);
+  }
+
+  static Future<Map<String, dynamic>> getLiveGameById(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(
+      ApiEndpoints.singleLiveGame(id),
+      headers: headers,
+    );
+  }
+
+  static Future<Map<String, dynamic>> getLiveGameComments(String gameId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(
+      ApiEndpoints.liveGameComments(gameId),
+      headers: headers,
+    );
+  }
+
+  static Future<Map<String, dynamic>> postLiveGameComment(
+    String gameId,
+    String content, {
+    String? parentId,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    final body = {
+      "content": content,
+      if (parentId != null) "parentCommentId": parentId,
+    };
+    return await ApiService.post(
+      ApiEndpoints.liveGameComments(gameId),
+      headers: headers,
+      body: body,
+    );
+  }
+
+  static Future<Map<String, dynamic>> postLiveGameCommentAction(
+    String commentId,
+    String type, {
+    String? parentId,
+  }) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.post(
+      ApiEndpoints.liveGameCommentsAction,
+      headers: headers,
+      body: {
+        'commentId': commentId,
+        'type': type,
+        if (parentId != null) 'parentId': parentId,
+      },
+    );
+  }
+
+  static Future<Map<String, dynamic>> getLiveGameCommentReplies(
+    String commentId,
+  ) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(
+      ApiEndpoints.liveGameCommentReplies(commentId),
+      headers: headers,
+    );
+  }
+
+  static Future<Map<String, dynamic>> likeLiveGame(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(
+      ApiEndpoints.likeLiveGame(id),
+      headers: headers,
+      body: {},
+    );
+  }
+
+  static Future<Map<String, dynamic>> dislikeLiveGame(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(
+      ApiEndpoints.dislikeLiveGame(id),
+      headers: headers,
+      body: {},
+    );
+  }
+
+  static Future<Map<String, dynamic>> shareLiveGame(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.patch(
+      ApiEndpoints.shareLiveGame(id),
+      headers: headers,
+      body: {},
+    );
+  }
+
+  /// ================= REPLAYS =================
+  static Future<Map<String, dynamic>> getReplays({required int page}) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(
+      ApiEndpoints.replays,
+      queryParameters: {'page': page.toString()},
+      headers: headers,
+    );
+  }
+
+  static Future<Map<String, dynamic>> getReplayById(String id) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.get(
+      ApiEndpoints.singleReplay(id),
+      headers: headers,
+    );
   }
 }

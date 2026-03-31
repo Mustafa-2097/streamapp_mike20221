@@ -20,7 +20,7 @@ class OtpController extends GetxController {
   // Timer state (5 minutes = 300 seconds)
   final minutesRemaining = 5.obs;
   final secondsRemaining = 0.obs;
-  final isResendEnabled = false.obs;
+  final isResendEnabled = true.obs; // Always enabled as per user request
   final isLoading = false.obs;
 
   Timer? _timer;
@@ -39,14 +39,14 @@ class OtpController extends GetxController {
     // Set initial time to 5 minutes (300 seconds)
     minutesRemaining.value = 4; // 5 minutes = 4:59, 4:58, ..., 0:01, 0:00
     secondsRemaining.value = 59;
-    isResendEnabled.value = false;
+    
+    // isResendEnabled.value = true; // Stay true
 
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (minutesRemaining.value == 0 && secondsRemaining.value == 0) {
         // Timer expired
         timer.cancel();
-        isResendEnabled.value = true;
         debugPrint('OTP timer expired for email: $email');
       } else {
         // Update timer

@@ -121,15 +121,15 @@ class SocialLinks {
 }
 
 class Engagement {
-  final String id;
-  final String clipId;
-  final int likes;
-  final int dislikes;
-  final int shares;
-  final int comments;
-  final int bookmarks;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  String id;
+  String clipId;
+  int likes;
+  int dislikes;
+  int shares;
+  int comments;
+  int bookmarks;
+  DateTime createdAt;
+  DateTime updatedAt;
 
   Engagement({
     required this.id,

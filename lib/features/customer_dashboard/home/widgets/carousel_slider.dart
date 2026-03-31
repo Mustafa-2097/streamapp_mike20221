@@ -13,7 +13,8 @@ class HomeCarouselSlider extends StatefulWidget {
 }
 
 class _HomeCarouselSliderState extends State<HomeCarouselSlider> {
-  final CarouselSliderController _carouselController = CarouselSliderController();
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
 
   int _currentIndex = 0;
 
@@ -72,10 +73,7 @@ class _HomeCarouselSliderState extends State<HomeCarouselSlider> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(15.r),
-        child: Image.asset(
-          _imageUrls[index],
-          fit: BoxFit.cover,
-        ),
+        child: Image.asset(_imageUrls[index], fit: BoxFit.cover),
       ),
     );
   }

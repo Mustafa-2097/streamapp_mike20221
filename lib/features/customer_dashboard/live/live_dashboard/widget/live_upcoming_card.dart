@@ -5,14 +5,10 @@ import '../../../profile/controller/bookmarks_controller.dart';
 
 class LiveUpcomingCard extends StatelessWidget {
   final UpcomingMatchModel match;
-  final bool isReminded;
-  final VoidCallback? onRemindTap;
 
   const LiveUpcomingCard({
     super.key,
     required this.match,
-    required this.isReminded,
-    this.onRemindTap,
   });
 
   @override
@@ -73,10 +69,6 @@ class LiveUpcomingCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _remindButton(
-                      isReminded: isReminded,
-                      onTap: onRemindTap ?? () {},
-                    ),
                   ],
                 ),
               ),
@@ -91,7 +83,6 @@ class LiveUpcomingCard extends StatelessWidget {
   Widget _buildActualCountdown() {
     String? timeStr = match.timeRemaining;
 
-    // Optional: If timestamp exists and timeRemaining is null, calculate it!
     if (timeStr == null || timeStr.isEmpty) {
       final ts = int.tryParse(match.timestamp);
       if (ts != null) {
@@ -102,14 +93,17 @@ class LiveUpcomingCard extends StatelessWidget {
         } else {
           final h = diff.inHours;
           final m = diff.inMinutes % 60;
-          final s = diff.inSeconds % 60;
-          timeStr = "${h}H ${m}M ${s}S";
+          timeStr = "${h}H ${m}M";
         }
       }
     }
 
     if (timeStr != null && timeStr.isNotEmpty) {
-      final parts = timeStr.split(' ');
+      // Split and remove the last part if it looks like seconds (ends with 'S')
+      List<String> parts = timeStr.split(' ');
+      if (parts.length > 2 && parts.last.endsWith('S')) {
+        parts.removeLast();
+      }
       return Row(children: parts.map((part) => _timeChip(part)).toList());
     }
 
@@ -178,37 +172,6 @@ class LiveUpcomingCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _remindButton({
-    required bool isReminded,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isReminded ? Colors.amber : Colors.white,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.notifications_none, size: 16, color: Colors.black),
-            const SizedBox(width: 4),
-            const Text(
-              "Remind",
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

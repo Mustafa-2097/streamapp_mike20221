@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:share_plus/share_plus.dart';
 import 'package:get/get.dart';
+import 'package:video_player/video_player.dart';
 import '../widgets/show_comments_bottom_sheet.dart';
 import '../../clips/model/clips_model.dart';
 import '../../clips/controller/clips_controller.dart';
 import '../../profile/controller/bookmarks_controller.dart';
-import 'package:testapp/core/network/api_endpoints.dart';
+import 'package:testapp/core/utils/url_helper.dart';
 
 class OpenReelsVideo extends StatefulWidget {
   final List<ClipModel> clips;
@@ -41,6 +42,7 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
   Widget build(BuildContext context) {
     final clipsController = Get.find<ClipsController>();
     Get.put(BookmarkController());
+    
     return Scaffold(
       backgroundColor: Colors.black,
       body: Obx(() {
@@ -58,56 +60,133 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
   }
 }
 
-class ClipPageView extends StatelessWidget {
+class ClipPageView extends StatefulWidget {
   final ClipModel clip;
 
   const ClipPageView({super.key, required this.clip});
 
-  String _fixUrl(String url) {
-    return url
-        .replaceAll('localhost', '10.0.30.59')
-        .replaceAll('127.0.0.1', '10.0.30.59');
+  @override
+  State<ClipPageView> createState() => _ClipPageViewState();
+}
+
+class _ClipPageViewState extends State<ClipPageView> with AutomaticKeepAliveClientMixin {
+  VideoPlayerController? _videoController;
+  bool _isInitialized = false;
+  bool _hasError = false;
+  bool _isMuted = false;
+
+  @override
+  bool get wantKeepAlive => true; // Essential for smooth scrolling in reels
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeVideo();
+  }
+
+  void _initializeVideo() {
+    final videoUrl = UrlHelper.sanitizeUrl(widget.clip.videoUrl);
+    debugPrint("Reel Playback Target: $videoUrl");
+
+    _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl))
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _isInitialized = true;
+            _videoController!.play();
+            _videoController!.setLooping(true);
+            _videoController!.setVolume(_isMuted ? 0 : 1.0);
+          });
+        }
+      }).catchError((error) {
+        debugPrint("Reel Loading Error: $error");
+        if (mounted) {
+          setState(() {
+            _hasError = true;
+          });
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _videoController?.pause();
+    _videoController?.dispose();
+    super.dispose();
+  }
+
+  void _togglePlay() {
+    if (_videoController != null && _videoController!.value.isInitialized) {
+      if (_videoController!.value.isPlaying) {
+        _videoController!.pause();
+      } else {
+        _videoController!.play();
+      }
+      setState(() {});
+    }
+  }
+
+  void _toggleMute() {
+    setState(() {
+      _isMuted = !_isMuted;
+      _videoController?.setVolume(_isMuted ? 0 : 1.0);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required by AutomaticKeepAliveClientMixin
+    
     return Stack(
       fit: StackFit.expand,
       children: [
-        // 1. Background (Placeholder for VideoPlayer)
-        Container(
-          color: Colors.black,
-          child: Image.network(
-            _fixUrl(clip.videoUrl),
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => const Center(
-              child: Icon(
-                Icons.play_circle_outline,
-                color: Colors.white,
-                size: 80,
-              ),
-            ),
+        // 1. VIDEO PLAYER
+        GestureDetector(
+          onTap: _togglePlay,
+          child: Center(
+            child: _hasError
+                ? _buildErrorWidget()
+                : _isInitialized
+                    ? AspectRatio(
+                        aspectRatio: _videoController!.value.aspectRatio,
+                        child: VideoPlayer(_videoController!),
+                      )
+                    : const CircularProgressIndicator(color: Colors.redAccent),
           ),
         ),
 
-        // 2. Dark Gradient Overlay
+        // 2. Play/Pause Big Icon
+        if (_isInitialized && !_videoController!.value.isPlaying && !_hasError)
+          Center(
+            child: GestureDetector(
+               onTap: _togglePlay,
+               child: const Icon(Icons.play_arrow, color: Colors.white54, size: 80),
+            ),
+          ),
+
+        // 3. Mute Toggle Button
+        Positioned(
+          top: 50,
+          right: 15,
+          child: IconButton(
+            icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up, color: Colors.white, size: 28),
+            onPressed: _toggleMute,
+          ),
+        ),
+
+        // 4. Dark Overlay (Bottom area)
         const DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Colors.transparent,
-                Colors.transparent,
-                Colors.black54,
-                Colors.black87,
-              ],
-              stops: [0.0, 0.6, 0.8, 1.0],
+              colors: [Colors.transparent, Colors.transparent, Colors.black45, Colors.black87],
+              stops: [0.0, 0.5, 0.75, 1.0],
             ),
           ),
         ),
 
-        // 3. Top Section (Back button)
+        // 5. Navigation & UI
         Positioned(
           top: 50,
           left: 10,
@@ -117,186 +196,171 @@ class ClipPageView extends StatelessWidget {
           ),
         ),
 
-        // 4. Right Sidebar (Action Buttons)
+        // 6. Interaction Sidebar
         Positioned(
           right: 10,
           bottom: 100,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // User Profile Photo
-              // CircleAvatar(
-              //   radius: 22,
-              //   backgroundImage: NetworkImage(_fixUrl(clip.user.profilePhoto)),
-              // ),
+              _buildProfileIcon(),
               const SizedBox(height: 25),
-
-              // Bookmark
-              SideButton(
+              _buildSideButton(
                 icon: Icons.bookmark,
-                label: "", // No count needed
-                activeColor: const Color(0xFFFFD700),
-                initialIsActive: clip.userStatus.isBookmarked,
-                size: 32,
+                label: "",
+                isActive: widget.clip.userStatus.isBookmarked,
+                activeColor: Colors.amber,
                 onTap: () {
-                  clip.userStatus.isBookmarked = !clip.userStatus.isBookmarked;
-                  // Ensure the list changes so that if we go back to ClipsScreen it reflects the change
+                  widget.clip.userStatus.isBookmarked = !widget.clip.userStatus.isBookmarked;
                   Get.find<ClipsController>().clipsList.refresh();
-                  Get.find<BookmarkController>().toggleClip(clip);
+                  Get.find<BookmarkController>().toggleClip(widget.clip);
                 },
               ),
               const SizedBox(height: 20),
-
-
-              // Like
-              SideButton(
+              _buildSideButton(
                 icon: Icons.thumb_up,
-                label: clip.engagement.likes.toString(),
-                initialIsActive: clip.userStatus.isLiked,
-                onTap: () => Get.find<ClipsController>().toggleAction(
-                  clip.clipId,
-                  "LIKE",
-                ),
+                label: widget.clip.engagement.likes.toString(),
+                isActive: widget.clip.userStatus.isLiked,
+                onTap: () => Get.find<ClipsController>().toggleAction(widget.clip.clipId, "LIKE"),
               ),
               const SizedBox(height: 20),
-
-              // Dislike
-              SideButton(
+              _buildSideButton(
                 icon: Icons.thumb_down,
-                label: clip.engagement.dislikes.toString(),
-                initialIsActive: clip.userStatus.isDisliked,
-                onTap: () => Get.find<ClipsController>().toggleAction(
-                  clip.clipId,
-                  "DISLIKE",
-                ),
+                label: widget.clip.engagement.dislikes.toString(),
+                isActive: widget.clip.userStatus.isDisliked,
+                activeColor: Colors.redAccent,
+                onTap: () => Get.find<ClipsController>().toggleAction(widget.clip.clipId, "DISLIKE"),
               ),
               const SizedBox(height: 20),
-
-              // Comment Button
-              GestureDetector(
-                onTap: () {
-                  showCommentBottomSheet(context, clip.clipId);
-                },
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.chat_bubble_rounded,
-                      color: Colors.white,
-                      size: 32,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(0, 1),
-                          blurRadius: 4.0,
-                          color: Colors.black54,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      clip.engagement.comments.toString(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        shadows: [Shadow(blurRadius: 2, color: Colors.black)],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildIconButton(Icons.chat_bubble_rounded, widget.clip.engagement.comments.toString(), 
+                  onTap: () => showCommentBottomSheet(context, widget.clip.clipId)),
               const SizedBox(height: 20),
-
-              // Share Icon
-              GestureDetector(
-                onTap: () {
-                  final shareLink = ApiEndpoints.shareClip(clip.clipId)
-                      .replaceAll('localhost', '10.0.30.59')
-                      .replaceAll('127.0.0.1', '10.0.30.59');
-                  Share.share("${clip.title}\n\n$shareLink");
-                  Get.find<ClipsController>().toggleAction(
-                    clip.clipId,
-                    "SHARE",
-                  );
-                },
-                child: Column(
-                  children: [
-                    Transform(
-                      alignment: Alignment.center,
-                      transform: Matrix4.rotationY(math.pi),
-                      child: const Icon(
-                        Icons.reply,
-                        color: Colors.white,
-                        size: 35,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      clip.engagement.shares.toString(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildIconButton(Icons.reply, widget.clip.engagement.shares.toString(), isMirrored: true, 
+                  onTap: () {
+                    final shareLink = UrlHelper.sanitizeUrl(widget.clip.shareUrl);
+                    Share.share("${widget.clip.title}\n\n$shareLink");
+                    Get.find<ClipsController>().toggleAction(widget.clip.clipId, "SHARE");
+                  }),
             ],
           ),
         ),
 
-        // 5. Bottom Info Section
+        // 7. Info Overlay
         Positioned(
           left: 15,
-          bottom: 20,
-          right: 80,
+          bottom: 25,
+          right: 100,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                clip.title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  shadows: [Shadow(blurRadius: 4, color: Colors.black)],
-                ),
+                widget.clip.title,
+                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
+              if (widget.clip.tags.isNotEmpty)
+                Text(
+                  widget.clip.tags.map((t) => "#$t").join(" "),
+                  style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+              const SizedBox(height: 10),
               Row(
                 children: [
+                  CircleAvatar(radius: 10, backgroundColor: Colors.white24, child: const Icon(Icons.person, size: 12, color: Colors.white)),
+                  const SizedBox(width: 8),
                   Text(
-                    clip.formattedViews,
-                    style: TextStyle(color: Colors.grey[300], fontSize: 12),
+                    widget.clip.user.name,
+                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Text("•", style: TextStyle(color: Colors.grey[300])),
-                  ),
+                  const SizedBox(width: 12),
                   Text(
-                    clip.timeAgo,
-                    style: TextStyle(color: Colors.grey[300], fontSize: 12),
+                    widget.clip.timeAgo,
+                    style: const TextStyle(color: Colors.white60, fontSize: 12),
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
-              if (clip.tags.isNotEmpty)
-                Text(
-                  clip.tags.map((t) => "#$t").join(" "),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              const SizedBox(height: 10),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.play_disabled_outlined, color: Colors.white24, size: 60),
+        const SizedBox(height: 16),
+        const Text("Unable to play video", style: TextStyle(color: Colors.white70, fontSize: 14)),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.white10),
+          onPressed: () {
+            setState(() { _hasError = false; _isInitialized = false; });
+            _initializeVideo();
+          },
+          child: const Text("Retry", style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileIcon() {
+     final photo = UrlHelper.sanitizeUrl(widget.clip.user.profilePhoto);
+     return Stack(
+        alignment: Alignment.bottomCenter,
+        clipBehavior: Clip.none,
+        children: [
+           Container(
+              padding: const EdgeInsets.all(1.5),
+              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+              child: CircleAvatar(
+                 radius: 20,
+                 backgroundColor: Colors.grey[900],
+                 backgroundImage: photo.isNotEmpty ? NetworkImage(photo) : null,
+                 child: photo.isEmpty ? const Icon(Icons.person, color: Colors.white38) : null,
+              ),
+           ),
+           Positioned(
+              bottom: -8,
+              child: Container(
+                 padding: const EdgeInsets.all(2),
+                 decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                 child: const Icon(Icons.add, color: Colors.white, size: 14),
+              ),
+           ),
+        ],
+     );
+  }
+
+  Widget _buildSideButton({required IconData icon, required String label, bool isActive = false, Color? activeColor, VoidCallback? onTap}) {
+    return SideButton(
+      icon: icon,
+      label: label,
+      initialIsActive: isActive,
+      activeColor: activeColor ?? const Color.fromARGB(255, 14, 126, 255),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildIconButton(IconData icon, String label, {bool isMirrored = false, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.rotationY(isMirrored ? math.pi : 0),
+            child: Icon(icon, color: Colors.white, size: 32),
+          ),
+          const SizedBox(height: 5),
+          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+        ],
+      ),
     );
   }
 }
@@ -325,25 +389,15 @@ class SideButton extends StatefulWidget {
   State<SideButton> createState() => _SideButtonState();
 }
 
-class _SideButtonState extends State<SideButton>
-    with SingleTickerProviderStateMixin {
-  late bool isActive;
+class _SideButtonState extends State<SideButton> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    isActive = widget.initialIsActive;
-
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.8,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _controller = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.8).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -352,48 +406,26 @@ class _SideButtonState extends State<SideButton>
     super.dispose();
   }
 
-  void _toggleState() {
-    setState(() {
-      isActive = !isActive;
-    });
-    _controller.forward().then((_) => _controller.reverse());
-    if (widget.onTap != null) widget.onTap!();
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _toggleState,
+      onTap: () {
+        _controller.forward().then((_) => _controller.reverse());
+        if (widget.onTap != null) widget.onTap!();
+      },
       child: Column(
         children: [
           ScaleTransition(
             scale: _scaleAnimation,
             child: Icon(
               widget.icon,
-              color: isActive
-                  ? widget.activeColor
-                  : widget.inactiveColor,
+              color: widget.initialIsActive ? widget.activeColor : widget.inactiveColor,
               size: widget.size,
-              shadows: const [
-                Shadow(
-                  offset: Offset(0, 1),
-                  blurRadius: 4.0,
-                  color: Colors.black54,
-                ),
-              ],
             ),
           ),
           if (widget.label.isNotEmpty) ...[
             const SizedBox(height: 5),
-            Text(
-              widget.label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                shadows: [Shadow(blurRadius: 2, color: Colors.black)],
-              ),
-            ),
+            Text(widget.label, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
           ],
         ],
       ),

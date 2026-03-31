@@ -65,11 +65,13 @@ class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               );
             }),
 
-            /// Search icon
+            /// Search icon - Commented out as requested
+            /*
             IconButton(
               onPressed: () => showSearchOverlay(context),
               icon: Icon(Icons.search, color: Colors.white),
             ),
+            */
 
             /// Profile avatar
             GestureDetector(

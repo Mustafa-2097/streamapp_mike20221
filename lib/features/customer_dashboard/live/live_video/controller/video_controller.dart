@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:video_player/video_player.dart';
 import 'package:testapp/core/network/api_endpoints.dart';
 import 'package:testapp/core/network/api_service.dart';
 import 'package:testapp/core/offline_storage/shared_pref.dart';
@@ -9,6 +10,16 @@ import '../../../profile/controller/bookmarks_controller.dart';
 class VideoLiveController extends GetxController {
   var isLoading = false.obs;
   var replay = Rxn<ReplayModel>();
+  
+  VideoPlayerController? videoPlayerController;
+  var isVideoInitialized = false.obs;
+  var isPlaying = false.obs;
+
+  @override
+  void onClose() {
+    videoPlayerController?.dispose();
+    super.onClose();
+  }
 
   Future<void> fetchReplay(String id) async {
     try {
@@ -22,13 +33,57 @@ class VideoLiveController extends GetxController {
       final response = await ApiService.get(ApiEndpoints.singleReplay(id), headers: headers);
 
       if (response['success'] == true) {
-        replay.value = ReplayModel.fromJson(response['data']);
+        final fetchedReplay = ReplayModel.fromJson(response['data']);
+        replay.value = fetchedReplay;
+        
+        // Initialize video player after fetching data
+        await _initializeVideo(fetchedReplay.videoUrl);
       }
     } catch (e) {
       print("Error fetching replay: $e");
     } finally {
       isLoading.value = false;
     }
+  }
+
+  Future<void> _initializeVideo(String url) async {
+    final fixedUrl = url
+        .replaceAll('localhost', '10.0.30.59')
+        .replaceAll('127.0.0.1', '10.0.30.59');
+    
+    try {
+      videoPlayerController?.dispose(); // Clean up previous one if any
+      videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(fixedUrl));
+      
+      await videoPlayerController!.initialize();
+      isVideoInitialized.value = true;
+      
+      // Auto-play
+      videoPlayerController!.play();
+      isPlaying.value = true;
+      
+      videoPlayerController!.addListener(() {
+         isPlaying.value = videoPlayerController!.value.isPlaying;
+         update(); // Trigger UI update for player state
+      });
+      
+    } catch (e) {
+      print("Error initializing video: $e");
+      isVideoInitialized.value = false;
+    }
+  }
+
+  void togglePlayback() {
+    if (videoPlayerController == null || !videoPlayerController!.value.isInitialized) return;
+    
+    if (videoPlayerController!.value.isPlaying) {
+      videoPlayerController!.pause();
+      isPlaying.value = false;
+    } else {
+      videoPlayerController!.play();
+      isPlaying.value = true;
+    }
+    update();
   }
 
   Future<void> toggleAction(String type) async {
@@ -39,7 +94,6 @@ class VideoLiveController extends GetxController {
     final status = originalReplay.userStatus;
     final engagement = originalReplay.engagement;
 
-    // Optimistic Update for LIKE/DISLIKE (optional, but keep for better feel)
     if (type == "LIKE") {
       if (status.isLiked) {
         status.isLiked = false;
@@ -65,7 +119,6 @@ class VideoLiveController extends GetxController {
         }
       }
     }
-    // Note: No optimistic update for SHARE to match user request
 
     replay.refresh();
 
@@ -84,14 +137,12 @@ class VideoLiveController extends GetxController {
       final response = await ApiService.post(ApiEndpoints.replaysAction, headers: headers, body: body);
 
       if (response['success'] == true) {
-        // Sync with server state
         final syncResponse = await ApiService.get(ApiEndpoints.singleReplay(replayId), headers: headers);
         if (syncResponse['success'] == true) {
           replay.value = ReplayModel.fromJson(syncResponse['data']);
         }
       }
     } catch (e) {
-      // Revert optimistic update on error
       replay.value = originalReplay;
       replay.refresh();
       print("Error toggling replay action: $e");
@@ -108,13 +159,11 @@ class VideoLiveController extends GetxController {
 
     try {
       await Share.share("${r.title}\n\n$shareLink");
-      // This will now sync with server and only increment if server says so
       await toggleAction("SHARE");
     } catch (e) {
       print("Error sharing: $e");
     }
   }
-
 
   Future<void> toggleBookmark() async {
     if (replay.value == null) return;
@@ -123,7 +172,6 @@ class VideoLiveController extends GetxController {
     final replayId = originalReplay.replayId;
     final status = originalReplay.userStatus;
 
-    // Optimistic Update
     status.isBookmarked = !status.isBookmarked;
     replay.refresh();
 
@@ -141,17 +189,14 @@ class VideoLiveController extends GetxController {
       final response = await ApiService.post(ApiEndpoints.replaysBookmark, headers: headers, body: body);
 
       if (response['success'] == true) {
-        // Refresh Bookmark list if controller exists
         if (Get.isRegistered<BookmarkController>()) {
           Get.find<BookmarkController>().fetchReplayBookmarks();
         }
       }
     } catch (e) {
-      // Revert on error
-      replay.value = originalReplay;
+      status.isBookmarked = !status.isBookmarked; // Revert
       replay.refresh();
       print("Error toggling replay bookmark: $e");
     }
   }
 }
-

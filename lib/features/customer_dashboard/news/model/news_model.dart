@@ -147,8 +147,17 @@ class Comment {
     id = json['id'] ?? json['commentId']?.toString();
     newsId = json['newsId']?.toString();
     userId = json['userId'];
-    userName = json['userName'];
-    userImage = json['userImage'];
+    if (json['user'] != null) {
+      userName = json['user']['name'] ?? json['userName'];
+      userImage = json['user']['profilePhoto'] ?? json['user']['userImage'] ?? json['userImage'] ?? json['user']['image'];
+    } else {
+      userName = json['userName'];
+      userImage = json['userImage'];
+    }
+    
+    if (userImage != null && userImage!.contains('localhost')) {
+      userImage = userImage!.replaceFirst('localhost', '10.0.30.59');
+    }
     comment = json['comment'] ?? json['content'];
     parentId = (json['parentId'] ?? json['parentCommentId'])?.toString();
     createdAt = json['createdAt'];

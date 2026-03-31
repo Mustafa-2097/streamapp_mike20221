@@ -8,9 +8,7 @@ class UpcomingMatchCard extends StatelessWidget {
   final String league;
   final String match;
   final String time;
-  final bool isHighlighted;
   final bool isBookmarked;
-  final VoidCallback? onRemindTap;
 
   const UpcomingMatchCard({
     super.key,
@@ -20,9 +18,7 @@ class UpcomingMatchCard extends StatelessWidget {
     required this.league,
     required this.match,
     required this.time,
-    this.isHighlighted = false,
     this.isBookmarked = false,
-    this.onRemindTap,
   });
 
   @override
@@ -86,7 +82,7 @@ class UpcomingMatchCard extends StatelessWidget {
 
           SizedBox(width: 12.w),
 
-          /// Remind button
+          /// Time section
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -103,37 +99,6 @@ class UpcomingMatchCard extends StatelessWidget {
                     style: TextStyle(color: Colors.white, fontSize: 10.sp),
                   ),
                 ],
-              ),
-              SizedBox(height: 6.h),
-              GestureDetector(
-                onTap: onRemindTap,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
-                  decoration: BoxDecoration(
-                    color: isHighlighted ? Colors.amber : Colors.white,
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        isHighlighted
-                            ? Icons.notifications
-                            : Icons.notifications_none,
-                        size: 14.sp,
-                        color: Colors.black,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        'Remind',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 10.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ],
           ),

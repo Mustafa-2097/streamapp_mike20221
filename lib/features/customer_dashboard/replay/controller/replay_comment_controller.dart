@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:testapp/features/customer_dashboard/data/customer_api_service.dart';
 import 'package:testapp/features/customer_dashboard/replay/model/replay_comment_model.dart';
+import 'package:testapp/features/customer_dashboard/replay/model/replay_model.dart';
+import 'package:testapp/features/customer_dashboard/profile/controller/profile_controller.dart';
 import 'package:testapp/core/const/app_colors.dart';
 
 class ReplayCommentController extends GetxController {
@@ -60,36 +62,128 @@ class ReplayCommentController extends GetxController {
     final content = commentController.text.trim();
     if (content.isEmpty) return;
 
-    isPosting.value = true;
-    try {
-      final parentId = replyingToCommentId.value.isEmpty
-          ? null
-          : replyingToCommentId.value;
+    // --- OPTIMISTIC UI: PHASE 1 (INSTANT ADD) ---
+    final profile = Get.find<ProfileController>().profile.value;
+    if (profile == null) return;
 
+    final String tempId = "temp_${DateTime.now().millisecondsSinceEpoch}";
+    final optimisticComment = ReplayComment(
+      commentId: tempId,
+      replayId: replayId,
+      userId: profile.id,
+      content: content,
+      parentCommentId: replyingToCommentId.value.isEmpty ? null : replyingToCommentId.value,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      user: ReplayUser(
+        id: profile.id,
+        name: profile.name ?? "",
+        profilePhoto: profile.profilePhoto ?? "",
+      ),
+      replyCount: 0,
+      replies: [],
+      likeCount: 0,
+      dislikeCount: 0,
+      userStatus: ReplayCommentUserStatus(isLiked: false, isDisliked: false),
+    );
+
+    // Save context for possible rollback
+    final originalContent = content;
+    final parentId = replyingToCommentId.value.isEmpty ? null : replyingToCommentId.value;
+
+    // Immediately update UI
+    if (parentId == null) {
+      commentsList.insert(0, optimisticComment);
+      totalComments.value++;
+    } else {
+      // Find parent and add to its replies list optimistically
+      final parentIndex = commentsList.indexWhere((c) => c.commentId == parentId);
+      if (parentIndex != -1) {
+        final parent = commentsList[parentIndex];
+        final updatedReplies = [...parent.replies, optimisticComment];
+        commentsList[parentIndex] = ReplayComment(
+          commentId: parent.commentId,
+          replayId: parent.replayId,
+          userId: parent.userId,
+          content: parent.content,
+          parentCommentId: parent.parentCommentId,
+          createdAt: parent.createdAt,
+          updatedAt: parent.updatedAt,
+          user: parent.user,
+          replyCount: parent.replyCount + 1,
+          replies: updatedReplies,
+          likeCount: parent.likeCount,
+          dislikeCount: parent.dislikeCount,
+          userStatus: parent.userStatus,
+        );
+      }
+    }
+    
+    commentController.clear();
+    cancelReply();
+    commentFocusNode.unfocus();
+    isPosting.value = true;
+
+    try {
       final response = await CustomerApiService.postReplayComment(
         replayId: replayId,
-        content: content,
+        content: originalContent,
         parentId: parentId,
       );
 
       if (response['success'] == true) {
-        commentController.clear();
-        cancelReply();
-        commentFocusNode.unfocus();
-        // Refresh comments to show the new one
+        // Success - server will give us the real list upon refresh
         await fetchComments();
+        // If it was a reply, we might need to fetch replies for that parent to be sure
+        if (parentId != null) {
+          final parent = commentsList.firstWhereOrNull((c) => c.commentId == parentId);
+          if (parent != null) await fetchReplies(parent);
+        }
       } else {
+        // Rollback on error
+        _rollbackOptimistic(tempId, originalContent, parentId);
         Get.snackbar(
           "Error",
           response['message'] ?? "Failed to post comment",
           backgroundColor: AppColors.errorColor,
+          colorText: Colors.white,
         );
       }
     } catch (e) {
       print("Error posting comment: $e");
+      _rollbackOptimistic(tempId, originalContent, parentId);
     } finally {
       isPosting.value = false;
     }
+  }
+
+  void _rollbackOptimistic(String tempId, String originalContent, String? parentId) {
+    if (parentId == null) {
+      commentsList.removeWhere((c) => c.commentId == tempId);
+      totalComments.value--;
+    } else {
+      final parentIndex = commentsList.indexWhere((c) => c.commentId == parentId);
+      if (parentIndex != -1) {
+        final parent = commentsList[parentIndex];
+        final updatedReplies = parent.replies.where((r) => r.commentId != tempId).toList();
+        commentsList[parentIndex] = ReplayComment(
+          commentId: parent.commentId,
+          replayId: parent.replayId,
+          userId: parent.userId,
+          content: parent.content,
+          parentCommentId: parent.parentCommentId,
+          createdAt: parent.createdAt,
+          updatedAt: parent.updatedAt,
+          user: parent.user,
+          replyCount: parent.replyCount - 1,
+          replies: updatedReplies,
+          likeCount: parent.likeCount,
+          dislikeCount: parent.dislikeCount,
+          userStatus: parent.userStatus,
+        );
+      }
+    }
+    commentController.text = originalContent; // Restore text
   }
 
   void startReply(ReplayComment comment) {
@@ -118,6 +212,10 @@ class ReplayCommentController extends GetxController {
       if (response['success'] == true) {
         // Refresh to update counts and status
         await fetchComments();
+        if (parentId != null) {
+          final parent = commentsList.firstWhereOrNull((c) => c.commentId == parentId);
+          if (parent != null) await fetchReplies(parent);
+        }
       }
     } catch (e) {
       print("Error toggling comment action: $e");
@@ -149,7 +247,7 @@ class ReplayCommentController extends GetxController {
             createdAt: parentComment.createdAt,
             updatedAt: parentComment.updatedAt,
             user: parentComment.user,
-            replyCount: parentComment.replyCount,
+            replyCount: fetchedReplies.length,
             replies: fetchedReplies,
             likeCount: parentComment.likeCount,
             dislikeCount: parentComment.dislikeCount,

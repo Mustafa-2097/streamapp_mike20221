@@ -25,12 +25,8 @@ class LiveTvController extends GetxController {
         final List<LiveTvModel> list = data.map((json) => LiveTvModel.fromJson(json)).toList();
         liveTvs.assignAll(list);
         debugPrint("Live TVs fetched: ${liveTvs.length}");
-        if (liveTvs.isEmpty) {
-          Get.snackbar("Notice", "No live TV channels found", snackPosition: SnackPosition.BOTTOM);
-        }
       } else {
         debugPrint("Failed to fetch live TVs: ${response['message']}");
-        Get.snackbar("Error", response['message'] ?? "Failed to load live TVs", snackPosition: SnackPosition.BOTTOM);
       }
     } catch (e) {
       debugPrint("Error fetching live TVs: $e");
@@ -46,16 +42,104 @@ class LiveTvController extends GetxController {
       
       if (response['success'] == true && response['data'] != null) {
         selectedLiveTv.value = LiveTvModel.fromJson(response['data']);
-        comments.assignAll(selectedLiveTv.value?.comments ?? []);
         debugPrint("Single Live TV fetched: ${selectedLiveTv.value?.title}");
       } else {
         debugPrint("Failed to fetch live TV detail: ${response['message']}");
-        Get.snackbar("Error", response['message'] ?? "Failed to load TV details", snackPosition: SnackPosition.BOTTOM);
       }
     } catch (e) {
       debugPrint("Error fetching live TV by ID: $e");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> toggleLike(String id) async {
+    try {
+      final response = await CustomerApiService.likeLiveTv(id);
+      if (response['success'] == true) {
+        // Update local state if it's the selected one
+        if (selectedLiveTv.value?.id == id) {
+          final data = response['data'];
+          selectedLiveTv.value = LiveTvModel(
+            id: selectedLiveTv.value!.id,
+            title: selectedLiveTv.value!.title,
+            link: selectedLiveTv.value!.link,
+            thumbnail: selectedLiveTv.value!.thumbnail,
+            commentsEnabled: selectedLiveTv.value!.commentsEnabled,
+            likes: data['likes'] ?? selectedLiveTv.value!.likes,
+            dislikes: data['dislikes'] ?? selectedLiveTv.value!.dislikes,
+            shares: selectedLiveTv.value!.shares,
+            createdAt: selectedLiveTv.value!.createdAt,
+            updatedAt: selectedLiveTv.value!.updatedAt,
+            commentCount: selectedLiveTv.value!.commentCount,
+            comments: selectedLiveTv.value!.comments,
+            liked: data['liked'] ?? !selectedLiveTv.value!.liked,
+            disliked: data['disliked'] ?? false,
+          );
+        }
+        fetchLiveTvs(); // Refresh home list
+      }
+    } catch (e) {
+      debugPrint("Error toggling like: $e");
+    }
+  }
+
+  Future<void> toggleDislike(String id) async {
+    try {
+      final response = await CustomerApiService.dislikeLiveTv(id);
+      if (response['success'] == true) {
+        if (selectedLiveTv.value?.id == id) {
+           final data = response['data'];
+           selectedLiveTv.value = LiveTvModel(
+            id: selectedLiveTv.value!.id,
+            title: selectedLiveTv.value!.title,
+            link: selectedLiveTv.value!.link,
+            thumbnail: selectedLiveTv.value!.thumbnail,
+            commentsEnabled: selectedLiveTv.value!.commentsEnabled,
+            likes: data['likes'] ?? selectedLiveTv.value!.likes,
+            dislikes: data['dislikes'] ?? selectedLiveTv.value!.dislikes,
+            shares: selectedLiveTv.value!.shares,
+            createdAt: selectedLiveTv.value!.createdAt,
+            updatedAt: selectedLiveTv.value!.updatedAt,
+            commentCount: selectedLiveTv.value!.commentCount,
+            comments: selectedLiveTv.value!.comments,
+            liked: data['liked'] ?? false,
+            disliked: data['disliked'] ?? !selectedLiveTv.value!.disliked,
+          );
+        }
+        fetchLiveTvs();
+      }
+    } catch (e) {
+      debugPrint("Error toggling dislike: $e");
+    }
+  }
+
+  Future<void> shareLiveTv(String id) async {
+    try {
+      final response = await CustomerApiService.shareLiveTv(id);
+      if (response['success'] == true) {
+        if (selectedLiveTv.value?.id == id) {
+           selectedLiveTv.value = LiveTvModel(
+            id: selectedLiveTv.value!.id,
+            title: selectedLiveTv.value!.title,
+            link: selectedLiveTv.value!.link,
+            thumbnail: selectedLiveTv.value!.thumbnail,
+            commentsEnabled: selectedLiveTv.value!.commentsEnabled,
+            likes: selectedLiveTv.value!.likes,
+            dislikes: selectedLiveTv.value!.dislikes,
+            shares: selectedLiveTv.value!.shares + 1,
+            createdAt: selectedLiveTv.value!.createdAt,
+            updatedAt: selectedLiveTv.value!.updatedAt,
+            commentCount: selectedLiveTv.value!.commentCount,
+            comments: selectedLiveTv.value!.comments,
+            liked: selectedLiveTv.value!.liked,
+            disliked: selectedLiveTv.value!.disliked,
+          );
+        }
+        fetchLiveTvs();
+      }
+    } catch (e) {
+      debugPrint("Error sharing: $e");
     }
   }
 }

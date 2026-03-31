@@ -185,8 +185,8 @@ class NewsController extends GetxController {
       final body = {
         'newsId': newsId,
         'comment': comment,
-        'content': comment, 
-        'parentCommentId': parentId, // Send null if it's a main comment
+        'content': comment,
+        if (parentId != null) 'parentId': parentId,
       };
       print("Posting comment to ${ApiEndpoints.comments(newsId)} with body: $body");
       final response = await ApiService.post(
@@ -199,16 +199,6 @@ class NewsController extends GetxController {
         // Update local article if it exists in newsList
         int index = newsList.indexWhere((a) => a.id == newsId);
         if (index != -1) {
-          if (parentId == null) {
-            // Main comment
-            if (newsList[index].comments == null) {
-              newsList[index].comments = [];
-            }
-            newsList[index].comments!.insert(0, newComment);
-          } else {
-            // Reply: find parent comment
-            _addCommentToParent(newsList[index].comments, parentId, newComment);
-          }
           newsList[index].commentCount =
               (newsList[index].commentCount ?? 0) + 1;
           newsList.refresh();
@@ -221,23 +211,6 @@ class NewsController extends GetxController {
     return null;
   }
 
-  void _addCommentToParent(
-    List<Comment>? comments,
-    String parentId,
-    Comment newComment,
-  ) {
-    if (comments == null) return;
-    for (var comment in comments) {
-      if (comment.id == parentId) {
-        comment.replies ??= [];
-        comment.replies!.insert(0, newComment);
-        return;
-      }
-      if (comment.replies != null) {
-        _addCommentToParent(comment.replies, parentId, newComment);
-      }
-    }
-  }
 
   Future<Map<String, dynamic>?> toggleEngagement(
     String newsId,
