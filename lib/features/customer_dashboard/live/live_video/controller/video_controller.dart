@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:video_player/video_player.dart';
 import 'package:testapp/core/network/api_endpoints.dart';
 import 'package:testapp/core/network/api_service.dart';
 import 'package:testapp/core/offline_storage/shared_pref.dart';
@@ -11,13 +10,8 @@ class VideoLiveController extends GetxController {
   var isLoading = false.obs;
   var replay = Rxn<ReplayModel>();
   
-  VideoPlayerController? videoPlayerController;
-  var isVideoInitialized = false.obs;
-  var isPlaying = false.obs;
-
   @override
   void onClose() {
-    videoPlayerController?.dispose();
     super.onClose();
   }
 
@@ -35,55 +29,12 @@ class VideoLiveController extends GetxController {
       if (response['success'] == true) {
         final fetchedReplay = ReplayModel.fromJson(response['data']);
         replay.value = fetchedReplay;
-        
-        // Initialize video player after fetching data
-        await _initializeVideo(fetchedReplay.videoUrl);
       }
     } catch (e) {
       print("Error fetching replay: $e");
     } finally {
       isLoading.value = false;
     }
-  }
-
-  Future<void> _initializeVideo(String url) async {
-    final fixedUrl = url
-        .replaceAll('localhost', '10.0.30.59')
-        .replaceAll('127.0.0.1', '10.0.30.59');
-    
-    try {
-      videoPlayerController?.dispose(); // Clean up previous one if any
-      videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(fixedUrl));
-      
-      await videoPlayerController!.initialize();
-      isVideoInitialized.value = true;
-      
-      // Auto-play
-      videoPlayerController!.play();
-      isPlaying.value = true;
-      
-      videoPlayerController!.addListener(() {
-         isPlaying.value = videoPlayerController!.value.isPlaying;
-         update(); // Trigger UI update for player state
-      });
-      
-    } catch (e) {
-      print("Error initializing video: $e");
-      isVideoInitialized.value = false;
-    }
-  }
-
-  void togglePlayback() {
-    if (videoPlayerController == null || !videoPlayerController!.value.isInitialized) return;
-    
-    if (videoPlayerController!.value.isPlaying) {
-      videoPlayerController!.pause();
-      isPlaying.value = false;
-    } else {
-      videoPlayerController!.play();
-      isPlaying.value = true;
-    }
-    update();
   }
 
   Future<void> toggleAction(String type) async {

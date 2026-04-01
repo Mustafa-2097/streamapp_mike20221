@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:video_player/video_player.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import '../controller/video_controller.dart';
 import '../../../replay/controller/replay_comment_controller.dart';
@@ -15,15 +15,23 @@ class VideoLiveScreen extends StatefulWidget {
 }
 
 class _VideoLiveScreenState extends State<VideoLiveScreen> {
-  // Use tag to distinguish between multiple video controllers if needed (not here)
   final VideoLiveController controller = Get.put(VideoLiveController());
   ReplayCommentController? commentController;
+  final WebViewController webController = WebViewController()
+    ..setJavaScriptMode(JavaScriptMode.unrestricted)
+    ..setBackgroundColor(Colors.black);
 
   @override
   void initState() {
     super.initState();
     if (widget.replayId != null) {
-      controller.fetchReplay(widget.replayId!);
+      controller.fetchReplay(widget.replayId!).then((_) {
+        if (controller.replay.value != null) {
+          webController.loadRequest(
+            Uri.parse(_fixUrl(controller.replay.value!.videoUrl)),
+          );
+        }
+      });
       commentController = Get.put(
         ReplayCommentController(replayId: widget.replayId!),
       );
@@ -40,6 +48,15 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Get.back(),
+        ),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: Obx(() {
           if (controller.isLoading.value) {
@@ -60,8 +77,12 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
 
           return Column(
             children: [
-              // ✅ TOP VIDEO SECTION
-              _videoPreviewSection(replay),
+              // ✅ TOP VIDEO SECTION (WEBVIEW)
+              SizedBox(
+                height: 240,
+                width: double.infinity,
+                child: WebViewWidget(controller: webController),
+              ),
 
               // ✅ DETAILS + COMMENTS
               Expanded(
@@ -121,139 +142,15 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
                   ),
                 ),
               ),
+              _commentInputBar(),
             ],
           );
         }),
       ),
-
-      // ✅ COMMENT INPUT
-      bottomNavigationBar: _commentInputBar(),
     );
   }
 
-  // ------------------------------ VIDEO PREVIEW ------------------------------
-  Widget _videoPreviewSection(replay) {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Obx(() {
-            if (controller.isVideoInitialized.value && controller.videoPlayerController != null) {
-              return VideoPlayer(controller.videoPlayerController!);
-            } else {
-              // Return thumbnail until the video player is ready
-              return Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: NetworkImage(_fixUrl(replay.thumbnailUrl)),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              );
-            }
-          }),
-
-          // Play/Pause Overlay Toggle
-          Obx(() => GestureDetector(
-            onTap: controller.togglePlayback,
-            child: Container(
-              color: Colors.transparent,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: !controller.isPlaying.value
-                    ? const Icon(Icons.play_circle_filled, color: Colors.white70, size: 64)
-                    : const SizedBox.shrink(),
-              ),
-            ),
-          )),
-
-          // Top Overlay (Live + viewers)
-          Positioned(
-            top: 12,
-            left: 12,
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.circle, size: 8, color: Colors.white),
-                      SizedBox(width: 6),
-                      Text(
-                        "Replay",
-                        style: TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Bottom progress bar + time
-          Positioned(
-            bottom: 6,
-            left: 12,
-            right: 12,
-            child: Obx(() {
-              final isInit = controller.isVideoInitialized.value;
-              final player = controller.videoPlayerController;
-              
-              double progress = 0;
-              String timeText = "00:00 / 00:00";
-              
-              if (isInit && player != null) {
-                progress = player.value.position.inMilliseconds / 
-                           player.value.duration.inMilliseconds.clamp(1, 999999999);
-                
-                timeText = "${_formatDuration(player.value.position)} / ${_formatDuration(player.value.duration)}";
-              }
-
-              return Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        timeText,
-                        style: const TextStyle(color: Colors.white70, fontSize: 11),
-                      ),
-                      const Icon(Icons.fullscreen, color: Colors.white, size: 18),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 4,
-                      backgroundColor: Colors.white24,
-                      valueColor: const AlwaysStoppedAnimation(Colors.yellow), // Yellow to match premium theme
-                    ),
-                  ),
-                ],
-              );
-            }),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatDuration(Duration d) {
-    String twoDigits(int n) => n.toString().padLeft(2, "0");
-    String minutes = twoDigits(d.inMinutes.remainder(60));
-    String seconds = twoDigits(d.inSeconds.remainder(60));
-    return d.inHours > 0 ? "${twoDigits(d.inHours)}:$minutes:$seconds" : "$minutes:$seconds";
-  }
+  // ------------------------------ UTILS ------------------------------
 
   // ------------------------------ TITLE + DROPDOWN ------------------------------
   Widget _titleAndDropdown(replay) {
@@ -462,10 +359,7 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
               ),
               const SizedBox(width: 10),
               IconButton(
-                icon: const Icon(
-                  Icons.send,
-                  color: Colors.redAccent,
-                ),
+                icon: const Icon(Icons.send, color: Colors.redAccent),
                 onPressed: commentController!.submitComment,
               ),
             ],

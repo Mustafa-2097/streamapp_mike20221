@@ -21,13 +21,17 @@ class CommentBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(ClipCommentController(clipId: clipId));
 
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
-      decoration: const BoxDecoration(
-        color: Color(0xFF121418),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      child: Column(
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: const BoxDecoration(
+          color: Color(0xFF121418),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
         children: [
           const SizedBox(height: 12),
           Container(
@@ -97,8 +101,9 @@ class CommentBottomSheet extends StatelessWidget {
           _CommentInput(controller: controller),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _CommentTile extends StatelessWidget {
