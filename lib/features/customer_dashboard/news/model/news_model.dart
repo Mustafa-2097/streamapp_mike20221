@@ -174,12 +174,16 @@ class Comment {
     userId = json['userId'];
     if (json['user'] != null) {
       userName = json['user']['name'] ?? json['userName'];
-      userImage = json['user']['profilePhoto'] ?? json['user']['userImage'] ?? json['userImage'] ?? json['user']['image'];
+      userImage =
+          json['user']['profilePhoto'] ??
+          json['user']['userImage'] ??
+          json['userImage'] ??
+          json['user']['image'];
     } else {
       userName = json['userName'];
       userImage = json['userImage'];
     }
-    
+
     if (userImage != null && userImage!.contains('localhost')) {
       userImage = userImage!.replaceFirst('localhost', '10.0.30.59');
     }

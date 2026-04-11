@@ -4,6 +4,7 @@ import '../../news/model/news_model.dart';
 import '../../news/controller/news_controller.dart';
 import '../../profile/controller/bookmarks_controller.dart';
 import '../../profile/controller/profile_controller.dart';
+import '../../../../core/utils/url_helper.dart';
 
 class NewsDetailsScreen extends StatefulWidget {
   final Article article;
@@ -295,10 +296,13 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
         comment.likeCount = originalLikeCount;
         comment.dislikeCount = originalDislikeCount;
       });
-      Get.snackbar("Error", "Failed to sync reaction with server",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white);
+      Get.snackbar(
+        "Error",
+        "Failed to sync reaction with server",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -522,13 +526,13 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                               ?.profilePhoto;
                           return CircleAvatar(
                             radius: 18,
-                            backgroundImage:
-                                userPhoto != null && userPhoto.isNotEmpty
-                                ? NetworkImage(userPhoto)
-                                : const NetworkImage(
-                                    'https://i.pravatar.cc/150?img=12',
-                                  ), // Fallback
                             backgroundColor: Colors.grey[800],
+                            backgroundImage: (userPhoto != null && userPhoto.trim().isNotEmpty)
+                                ? NetworkImage(UrlHelper.sanitizeUrl(userPhoto))
+                                : null,
+                            child: (userPhoto == null || userPhoto.trim().isEmpty)
+                                ? const Icon(Icons.person, size: 20, color: Colors.white)
+                                : null,
                           );
                         }),
                         const SizedBox(width: 12),
@@ -653,16 +657,16 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   }
 
   Widget _buildCommentItem(Comment comment) {
-    final String avatarUrl =
-        comment.userImage ?? 'https://i.pravatar.cc/150?u=${comment.userName}';
+    final bool hasImage = comment.userImage != null && comment.userImage!.trim().isNotEmpty;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CircleAvatar(
           radius: 14,
-          backgroundImage: NetworkImage(avatarUrl),
           backgroundColor: Colors.grey[800],
+          backgroundImage: hasImage ? NetworkImage(UrlHelper.sanitizeUrl(comment.userImage!)) : null,
+          child: !hasImage ? const Icon(Icons.person, size: 16, color: Colors.white) : null,
         ),
         const SizedBox(width: 12),
         Expanded(

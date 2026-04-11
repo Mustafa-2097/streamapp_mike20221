@@ -10,6 +10,7 @@ import '../../profile/view/pages/payment_history_page.dart';
 import '../../profile/view/pages/personal_data.dart';
 import '../../profile/view/pages/support_center_page.dart';
 import '../../profile/view/pages/terms_conditions_page.dart';
+import '../../profile/view/pages/privacy_policy_page.dart';
 import '../../../../core/offline_storage/shared_pref.dart';
 import '../../subscription/view/subscription_screen.dart';
 import '../view/notification_page.dart';
@@ -109,8 +110,13 @@ class PersonalDetails extends StatelessWidget {
           ),
           _DrawerItem(
             icon: Icons.lock_outline,
-            label: 'Privacy & Policy',
-            onTap: () => Get.to(() => TermsConditionsPage()),
+            label: 'Privacy Policy',
+            onTap: () => Get.to(() => const PrivacyPolicyPage()),
+          ),
+          _DrawerItem(
+            icon: Icons.description_outlined,
+            label: 'Terms & Conditions',
+            onTap: () => Get.to(() => const TermsConditionsPage()),
           ),
 
           SizedBox(height: 18.h),

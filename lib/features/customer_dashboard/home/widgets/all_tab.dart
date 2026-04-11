@@ -64,7 +64,7 @@ class ContentSection extends StatelessWidget {
           child: Obx(() {
             if (liveGameController.isLoading.value &&
                 liveGameController.liveGames.isEmpty) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator(color: Colors.white));
             }
 
             if (liveGameController.liveGames.isEmpty) {
@@ -127,7 +127,7 @@ class ContentSection extends StatelessWidget {
           child: Obx(() {
             if (liveTvController.isLoading.value &&
                 liveTvController.liveTvs.isEmpty) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator(color: Colors.white));
             }
 
             if (liveTvController.liveTvs.isEmpty) {
@@ -264,7 +264,7 @@ class ContentSection extends StatelessWidget {
         Obx(() {
           if (replayController.isLoading.value &&
               replayController.replaysList.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Colors.white));
           }
 
           final bool isPremiumError = replayController.errorMessage.value
@@ -389,7 +389,7 @@ class ContentSection extends StatelessWidget {
               clipsController.clipsList.isEmpty) {
             return SizedBox(
               height: 280.h,
-              child: const Center(child: CircularProgressIndicator()),
+              child: const Center(child: CircularProgressIndicator(color: Colors.white)),
             );
           }
 
@@ -627,7 +627,11 @@ class ContentSection extends StatelessWidget {
     );
   }
 
-  Padding _sectionName(String label, VoidCallback? onTap, {bool showViewAll = true}) {
+  Padding _sectionName(
+    String label,
+    VoidCallback? onTap, {
+    bool showViewAll = true,
+  }) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Row(
@@ -661,10 +665,7 @@ class ContentSection extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20.r),
         gradient: LinearGradient(
-          colors: [
-            const Color(0xFF1E1E1E),
-            const Color(0xFF2D2D2D),
-          ],
+          colors: [const Color(0xFF1E1E1E), const Color(0xFF2D2D2D)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -707,16 +708,16 @@ class ContentSection extends StatelessWidget {
                 SizedBox(height: 4.h),
                 Text(
                   "Subscribe to watch exclusive match replays",
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12.sp,
-                  ),
+                  style: TextStyle(color: Colors.grey[400], fontSize: 12.sp),
                 ),
                 SizedBox(height: 12.h),
                 InkWell(
                   onTap: () => Get.to(() => const SubscriptionPage()),
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 8.h,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.amber,
                       borderRadius: BorderRadius.circular(30.r),
@@ -825,7 +826,7 @@ class ContentSection extends StatelessWidget {
                     color: Colors.white.withOpacity(0.9),
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    ),
+                  ),
                 ),
               ],
             ),

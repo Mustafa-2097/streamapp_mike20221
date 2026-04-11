@@ -51,7 +51,10 @@ class NewsController extends GetxController {
       final String? json = await SharedPreferencesHelper.getNewsListJson();
       if (json != null && json.isNotEmpty) {
         final List<dynamic> list = jsonDecode(json);
-        final cachedArticles = list.take(10).map((e) => Article.fromJson(e)).toList();
+        final cachedArticles = list
+            .take(10)
+            .map((e) => Article.fromJson(e))
+            .toList();
         if (newsList.isEmpty) {
           newsList.assignAll(cachedArticles);
         }
@@ -183,14 +186,14 @@ class NewsController extends GetxController {
           newsModel.data != null &&
           newsModel.data!.isNotEmpty) {
         final freshArticle = newsModel.data!.first;
-        
+
         // Update local list to sync view counts/stats
         int index = newsList.indexWhere((a) => a.id == id);
         if (index != -1) {
           newsList[index] = freshArticle;
           newsList.refresh();
         }
-        
+
         return freshArticle;
       }
     } catch (e) {
@@ -216,7 +219,9 @@ class NewsController extends GetxController {
         'content': comment,
         if (parentId != null) 'parentId': parentId,
       };
-      print("Posting comment to ${ApiEndpoints.comments(newsId)} with body: $body");
+      print(
+        "Posting comment to ${ApiEndpoints.comments(newsId)} with body: $body",
+      );
       final response = await ApiService.post(
         ApiEndpoints.comments(newsId),
         headers: headers,
@@ -238,7 +243,6 @@ class NewsController extends GetxController {
     }
     return null;
   }
-
 
   Future<Map<String, dynamic>?> toggleEngagement(
     String newsId,
@@ -353,7 +357,10 @@ class NewsController extends GetxController {
         'Content-Type': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
       };
-      final response = await ApiService.get(ApiEndpoints.commentReplies(commentId), headers: headers);
+      final response = await ApiService.get(
+        ApiEndpoints.commentReplies(commentId),
+        headers: headers,
+      );
       if (response['success'] == true && response['data'] != null) {
         final List rawData = response['data'];
         return rawData.map((e) => Comment.fromJson(e)).toList();
