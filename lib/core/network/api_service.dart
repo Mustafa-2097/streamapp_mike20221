@@ -8,7 +8,7 @@ import '../const/app_colors.dart';
 
 class ApiService {
   static const Duration timeout = Duration(seconds: 30);
-  
+
   // Track last shown error to prevent duplicate snackbar spam
   static String? _lastErrorMessage;
   static DateTime? _lastErrorTime;
@@ -200,10 +200,7 @@ class ApiService {
   }) async {
     try {
       final response = await http
-          .delete(
-            Uri.parse(url),
-            headers: _mergedHeaders(headers),
-          )
+          .delete(Uri.parse(url), headers: _mergedHeaders(headers))
           .timeout(timeout);
 
       final decoded = jsonDecode(response.body);
@@ -235,10 +232,10 @@ class ApiService {
   /// Shows a snackbar but prevents duplicate spam
   static void _showSnackbar(String message) {
     final now = DateTime.now();
-    
+
     // If it's the exact same message within 2 seconds, ignore it
-    if (_lastErrorMessage == message && 
-        _lastErrorTime != null && 
+    if (_lastErrorMessage == message &&
+        _lastErrorTime != null &&
         now.difference(_lastErrorTime!) < const Duration(seconds: 2)) {
       return;
     }
@@ -255,9 +252,9 @@ class ApiService {
     Get.snackbar(
       "Error",
       message,
-      backgroundColor: AppColors.errorColor,
+      backgroundColor: AppColors.primaryColor,
       colorText: Colors.black,
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       duration: const Duration(seconds: 3),
     );
   }

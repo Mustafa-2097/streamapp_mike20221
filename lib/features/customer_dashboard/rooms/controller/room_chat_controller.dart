@@ -184,8 +184,8 @@ class RoomChatController extends GetxController {
           "Error",
           response['message'] ?? "Failed to send message",
           snackPosition: SnackPosition.TOP,
-          backgroundColor: AppColors.errorColor,
-          colorText: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
         );
       }
     } catch (e) {
@@ -194,8 +194,8 @@ class RoomChatController extends GetxController {
         "Error",
         "Something went wrong. Please try again.",
         snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorColor,
-        colorText: Colors.white,
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
       );
     } finally {
     }
@@ -264,8 +264,8 @@ class RoomChatController extends GetxController {
           "Error",
           response['message'] ?? "Failed to update reaction",
           snackPosition: SnackPosition.TOP,
-          backgroundColor: AppColors.errorColor,
-          colorText: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
         );
       }
     } catch (e) {

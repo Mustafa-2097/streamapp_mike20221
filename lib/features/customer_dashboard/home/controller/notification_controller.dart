@@ -92,8 +92,9 @@ class NotificationController extends GetxController with WidgetsBindingObserver 
       Get.snackbar(
         "Notice", 
         "Failed to load notifications: $e",
-        backgroundColor: AppColors.errorColor.withOpacity(0.7),
+        backgroundColor: AppColors.primaryColor,
         colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isLoading.value = false;

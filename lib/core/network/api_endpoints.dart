@@ -16,6 +16,9 @@ class ApiEndpoints {
   /// Reset password (NEW)
   static const String resetPassword = '$baseUrl/auth/reset-password';
 
+  /// Banners
+  static const String banners = '$baseUrl/banners';
+
   /// Users Profile
   static const String userProfile = '$baseUrl/users/profile';
   static const String updateProfile = '$baseUrl/users/profile';

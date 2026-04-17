@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:testapp/core/const/app_colors.dart';
 import 'package:get/get.dart';
 import '../../news/model/news_model.dart';
 import '../../news/controller/news_controller.dart';
@@ -149,9 +150,9 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
       Get.snackbar(
         "Post Failed",
         "Could not sync comment with server. Please try again.",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
       );
     }
   }
@@ -299,9 +300,9 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
       Get.snackbar(
         "Error",
         "Failed to sync reaction with server",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
       );
     }
   }

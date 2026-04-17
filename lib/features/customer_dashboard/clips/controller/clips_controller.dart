@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../model/clips_model.dart';
 import '../../data/customer_api_service.dart';
@@ -58,7 +59,7 @@ class ClipsController extends GetxController {
       } else {
         String errorMsg = response['message'] ?? 'Unknown error';
         print("Clips API failed with message: $errorMsg");
-        Get.snackbar("Error", errorMsg, backgroundColor: AppColors.errorColor);
+        Get.snackbar("Error", errorMsg, backgroundColor: AppColors.primaryColor, colorText: Colors.black, snackPosition: SnackPosition.TOP);
       }
     } catch (e) {
       print("Exception in fetchClips: $e");

@@ -23,11 +23,12 @@ class _LanguageDropdownState extends State<LanguageDropdown> {
             size: 24.r,
             color: Colors.white,
           ),
-          SizedBox(width: 6.w),
+          SizedBox(width: 16.w),
           Text(
             "Language",
             style: TextStyle(
-              fontSize: 16.sp,
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w400,
               color: Colors.white,
             ),
           ),
@@ -40,7 +41,7 @@ class _LanguageDropdownState extends State<LanguageDropdown> {
             isDense: true,
             dropdownColor: Colors.grey.shade900,
             style: TextStyle(
-              fontSize: 16.sp,
+              fontSize: 18.sp,
               fontWeight: FontWeight.w400,
               color: Colors.white,
             ),
@@ -68,7 +69,7 @@ class _LanguageDropdownState extends State<LanguageDropdown> {
                     language,
                     textAlign: TextAlign.right,
                     style: TextStyle(
-                      fontSize: 16.sp,
+                      fontSize: 18.sp,
                       color: Colors.white,
                     ),
                   ),

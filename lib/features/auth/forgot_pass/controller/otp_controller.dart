@@ -82,16 +82,18 @@ class OtpController extends GetxController {
         Get.snackbar(
           "OTP Resent",
           "New OTP has been sent to your email",
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
         );
         debugPrint('OTP resent successfully to: $email');
       } else {
         Get.snackbar(
           "Failed",
           response['message'] ?? 'Failed to resend OTP',
-          backgroundColor: AppColors.errorColor,
+          backgroundColor: AppColors.primaryColor,
           colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {
@@ -114,6 +116,7 @@ class OtpController extends GetxController {
         "Please enter the complete 6-digit OTP",
         backgroundColor: AppColors.primaryColor,
         colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -176,8 +179,9 @@ class OtpController extends GetxController {
             Get.snackbar(
               "Error",
               "Missing reset token in response",
-              backgroundColor: AppColors.errorColor,
+              backgroundColor: AppColors.primaryColor,
               colorText: Colors.black,
+              snackPosition: SnackPosition.TOP,
             );
           }
         }
@@ -186,8 +190,9 @@ class OtpController extends GetxController {
         Get.snackbar(
           "Verification Failed",
           response['message'] ?? 'Invalid OTP',
-          backgroundColor: AppColors.errorColor,
+          backgroundColor: AppColors.primaryColor,
           colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {

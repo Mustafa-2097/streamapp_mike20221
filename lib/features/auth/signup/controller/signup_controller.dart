@@ -108,6 +108,7 @@ class SignUpController extends GetxController {
           response['message'] ?? 'Signup failed',
           backgroundColor: AppColors.primaryColor,
           colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {

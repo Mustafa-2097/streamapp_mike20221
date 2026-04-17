@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:testapp/core/const/app_colors.dart';
 import 'package:testapp/core/offline_storage/shared_pref.dart';
 import 'package:testapp/features/auth/forgot_pass/screen/otp_screen.dart';
 import 'package:testapp/features/auth/forgot_pass/screen/reset_screen.dart';
@@ -27,7 +28,13 @@ class ChangePasswordController extends GetxController {
   // ---------------- SEND OTP ----------------
   void sendOtp() {
     if (emailController.text.isEmpty) {
-      Get.snackbar("Error", "Please enter your email");
+      Get.snackbar(
+        "Error",
+        "Please enter your email",
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
+      );
       return;
     }
     Get.to(() => VerifyOtpScreen());
@@ -43,8 +50,9 @@ class ChangePasswordController extends GetxController {
       Get.snackbar(
         "Error",
         "All fields are required",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -53,8 +61,9 @@ class ChangePasswordController extends GetxController {
       Get.snackbar(
         "Error",
         "Passwords do not match",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -63,8 +72,9 @@ class ChangePasswordController extends GetxController {
       Get.snackbar(
         "Error",
         "Password must be at least 6 characters long",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -73,8 +83,9 @@ class ChangePasswordController extends GetxController {
       Get.snackbar(
         "Error",
         "New password cannot be the same as old password",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -92,13 +103,13 @@ class ChangePasswordController extends GetxController {
       if (response['success'] == true) {
         // Clear session and redirect to Login
         await SharedPreferencesHelper.clear();
-        
+
         Get.snackbar(
           "Success",
           "Password changed successfully. Please log in again.",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
           duration: const Duration(seconds: 3),
         );
 
@@ -108,9 +119,9 @@ class ChangePasswordController extends GetxController {
         Get.snackbar(
           "Error",
           response['message'] ?? "Failed to change password",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
         );
       }
     } catch (e) {
@@ -118,9 +129,9 @@ class ChangePasswordController extends GetxController {
       Get.snackbar(
         "Error",
         "Failed to change password. Please try again.",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
       );
     } finally {
       isLoading.value = false;

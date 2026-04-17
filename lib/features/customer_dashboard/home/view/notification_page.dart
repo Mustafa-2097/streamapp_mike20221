@@ -21,7 +21,7 @@ class _NotificationPageState extends State<NotificationPage> {
     super.initState();
     // Refresh to get latest 'seen' status from backend (from previous visits)
     controller.refreshNotifications();
-    
+
     // Mark as seen when entering the page (for the backend)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.markAllAsSeen();
@@ -36,7 +36,7 @@ class _NotificationPageState extends State<NotificationPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          "notification".tr,
+          "Notification".tr,
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
@@ -106,10 +106,10 @@ class _NotificationPageState extends State<NotificationPage> {
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) =>
                                     Image.asset(
-                                  "assets/images/notification_img.png",
-                                  height: 70,
-                                  width: 70,
-                                ),
+                                      "assets/images/notification_img.png",
+                                      height: 70,
+                                      width: 70,
+                                    ),
                               )
                             : Image.asset(
                                 "assets/images/notification_img.png",
@@ -153,7 +153,7 @@ class _NotificationPageState extends State<NotificationPage> {
                             ],
                           ),
                         ),
-                        
+
                         // New Notification Dot (Blue)
                         if (!item.seen)
                           Container(

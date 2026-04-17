@@ -181,7 +181,15 @@ class ContentSection extends StatelessWidget {
               }
 
               if (controller.upcomingMatches.isEmpty) {
-                return const SizedBox();
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32.h),
+                  child: const Center(
+                    child: Text(
+                      "No upcoming matches available",
+                      style: TextStyle(color: Colors.white54),
+                    ),
+                  ),
+                );
               }
 
               final displayMatches = controller.upcomingMatches.length > 3
@@ -278,7 +286,15 @@ class ContentSection extends StatelessWidget {
                 child: _buildPremiumReplayCard(),
               );
             }
-            return const SizedBox();
+            return Padding(
+              padding: EdgeInsets.symmetric(vertical: 32.h),
+              child: const Center(
+                child: Text(
+                  "No replays available",
+                  style: TextStyle(color: Colors.white54),
+                ),
+              ),
+            );
           }
 
           return SizedBox(
@@ -759,6 +775,15 @@ class ContentSection extends StatelessWidget {
           width: 90,
           height: 60,
           fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              width: 90,
+              height: 60,
+              color: Colors.grey[800],
+              child: const Icon(Icons.tv, color: Colors.white54),
+            );
+          },
           errorBuilder: (context, error, stackTrace) => Container(
             width: 90,
             height: 60,
