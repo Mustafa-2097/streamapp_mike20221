@@ -118,7 +118,8 @@ class NewsScreen extends StatelessWidget {
             );
           }
           return ListView.separated(
-            itemCount: controller.newsList.length +
+            itemCount:
+                controller.newsList.length +
                 (controller.isLoadingMore.value ? 1 : 0),
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             separatorBuilder: (c, i) => SizedBox(height: 16.h),

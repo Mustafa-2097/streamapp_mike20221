@@ -221,18 +221,16 @@ class _OpenTvsState extends State<OpenTvs> {
 
                         const SizedBox(height: 10),
                         _commentsList(),
-
-                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
                 ),
               ),
+              _commentInputBar(),
             ],
           );
         }),
       ),
-      bottomNavigationBar: _commentInputBar(),
     );
   }
 

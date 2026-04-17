@@ -127,7 +127,9 @@ class ClipCommentController extends GetxController {
         Get.snackbar(
           "Error",
           response['message'] ?? "Failed to post comment",
-          backgroundColor: AppColors.errorColor,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {

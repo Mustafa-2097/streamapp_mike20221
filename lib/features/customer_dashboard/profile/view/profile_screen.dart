@@ -71,7 +71,7 @@ class ProfileScreen extends StatelessWidget {
                     if (controller.isLoading.value) {
                       return const Padding(
                         padding: EdgeInsets.all(16),
-                        child: CircularProgressIndicator(),
+                        child: CircularProgressIndicator(color: Colors.white),
                       );
                     }
 

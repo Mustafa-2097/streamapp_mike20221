@@ -65,10 +65,10 @@ class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
 
     if (!_isInitialized) {
       return Container(
-        color: Colors.black,
+        color: Colors.grey.shade900,
         child: const Center(
           child: CircularProgressIndicator(
-            color: Colors.white24,
+            color: Colors.white54,
             strokeWidth: 2,
           ),
         ),

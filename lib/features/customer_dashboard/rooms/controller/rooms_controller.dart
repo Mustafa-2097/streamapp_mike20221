@@ -40,8 +40,8 @@ class RoomsController extends GetxController {
           "Error",
           response['message'] ?? "Failed to join room",
           snackPosition: SnackPosition.TOP,
-          backgroundColor: AppColors.errorColor,
-          colorText: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
         );
         return false;
       }
@@ -50,8 +50,8 @@ class RoomsController extends GetxController {
         "Error",
         "Something went wrong. Please try again.",
         snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorColor,
-        colorText: Colors.white,
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
       );
       return false;
     }

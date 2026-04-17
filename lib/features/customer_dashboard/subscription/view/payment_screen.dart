@@ -52,19 +52,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
               _showSuccessDialog();
             }
           } else {
-            Get.snackbar('Cancelled', 'Payment was not completed.', colorText: Colors.white, backgroundColor: Colors.amber);
+            Get.snackbar('Cancelled', 'Payment was not completed.', colorText: Colors.black, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP);
           }
         }
       } else {
         Get.snackbar(
           'Error',
           checkoutResponse['message'] ?? 'Payment failed to initiate',
-          colorText: Colors.white,
+          colorText: Colors.black,
           backgroundColor: AppColors.primaryColor,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {
-      Get.snackbar('Error', e.toString(), colorText: Colors.white, backgroundColor: AppColors.primaryColor);
+      Get.snackbar('Error', e.toString(), colorText: Colors.black, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP);
     } finally {
       if (mounted) {
         setState(() {

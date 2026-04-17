@@ -429,12 +429,9 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                     networkFlag,
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) =>
-                        Image.asset(fallbackAsset, fit: BoxFit.contain),
+                        const Icon(Icons.shield, color: Colors.white24, size: 48),
                   )
-                : Image.asset(
-                    fallbackAsset,
-                    fit: BoxFit.contain,
-                  ),
+                : const Icon(Icons.shield, color: Colors.white24, size: 48),
           ),
           const SizedBox(height: 12),
           Text(

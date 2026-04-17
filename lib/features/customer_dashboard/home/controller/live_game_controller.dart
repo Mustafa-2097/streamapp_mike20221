@@ -34,7 +34,9 @@ class LiveGameController extends GetxController {
       Get.snackbar(
         "Oops!", 
         "Something went wrong while fetching games",
-        backgroundColor: AppColors.errorColor.withOpacity(0.7),
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isLoading.value = false;

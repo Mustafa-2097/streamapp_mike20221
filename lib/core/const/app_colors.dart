@@ -12,7 +12,7 @@ class AppColors {
   static const Color redColor = Color(0xFFE61043);
   static const Color greenColor = Color(0xFF80D676);
   static const Color greyColor = Color(0xFFF6F6F6);
-  static const Color errorColor = Color.fromRGBO(246, 91, 80, 1);
+  static const Color errorColor = Color(0xFF3A0F0F);
 
   /// Select Language - Login - Forgot password -----> Pages BG Layer
   static const Color gradient01 = Color(0xCCA7997D);

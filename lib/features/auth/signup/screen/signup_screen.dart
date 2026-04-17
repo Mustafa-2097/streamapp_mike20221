@@ -40,7 +40,14 @@ class SignUpScreen extends StatelessWidget {
                   const SizedBox(height: 20),
 
                   // Logo
-                  Center(child: Image.asset(ImagesPath.logo, width: 110, height: 100, fit: BoxFit.cover)),
+                  Center(
+                    child: Image.asset(
+                      ImagesPath.logo,
+                      width: 110,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                   SizedBox(height: 30),
 
                   // Title
@@ -49,7 +56,7 @@ class SignUpScreen extends StatelessWidget {
                       "HELLO! REGISTER TO GET STARTED",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: sw*0.05,
+                        fontSize: sw * 0.05,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -61,7 +68,7 @@ class SignUpScreen extends StatelessWidget {
                   // Username with validation
                   InputField(
                     controller: controller.nameController,
-                    hint: "Username",
+                    hint: "Name",
                     validator: controller.validateName,
                   ),
                   const SizedBox(height: 20),
@@ -76,7 +83,7 @@ class SignUpScreen extends StatelessWidget {
 
                   // Password with validation
                   Obx(
-                        () => InputField(
+                    () => InputField(
                       controller: controller.passwordController,
                       hint: "Password",
                       obscureText: controller.isPasswordHidden.value,
@@ -95,39 +102,47 @@ class SignUpScreen extends StatelessWidget {
                   const SizedBox(height: 20),
 
                   // Confirm Password with validation
-                  Obx(() => InputField(
-                    controller: controller.confirmPasswordController,
-                    hint: "Confirm Password",
-                    obscureText: controller.isConfirmPasswordHidden.value,
-                    validator: controller.validateConfirmPassword,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        controller.isConfirmPasswordHidden.value
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: Colors.white,
+                  Obx(
+                    () => InputField(
+                      controller: controller.confirmPasswordController,
+                      hint: "Confirm Password",
+                      obscureText: controller.isConfirmPasswordHidden.value,
+                      validator: controller.validateConfirmPassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          controller.isConfirmPasswordHidden.value
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.white,
+                        ),
+                        onPressed: () =>
+                            controller.isConfirmPasswordHidden.toggle(),
                       ),
-                      onPressed: () => controller.isConfirmPasswordHidden.toggle(),
                     ),
-                  )),
+                  ),
 
                   const SizedBox(height: 30),
 
                   // Sign Up Button
-                  Obx(() => Center(
-                    child: CustomButton(
-                      text: controller.isLoading.value ? "Creating Account..." : "Register Now",
-                      color: Colors.white,
-                      textColor: Colors.black,
-                      onPressed: controller.isLoading.value
-                          ? null
-                          : () {
-                        if (controller.formKey.currentState!.validate()) {
-                          controller.signUp();
-                        }
-                      },
+                  Obx(
+                    () => Center(
+                      child: CustomButton(
+                        text: controller.isLoading.value
+                            ? "Creating Account..."
+                            : "Register Now",
+                        color: Colors.white,
+                        textColor: Colors.black,
+                        onPressed: controller.isLoading.value
+                            ? null
+                            : () {
+                                if (controller.formKey.currentState!
+                                    .validate()) {
+                                  controller.signUp();
+                                }
+                              },
+                      ),
                     ),
-                  )),
+                  ),
 
                   const SizedBox(height: 20),
 

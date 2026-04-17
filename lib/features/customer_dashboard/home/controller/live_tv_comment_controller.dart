@@ -150,8 +150,9 @@ class LiveTvCommentController extends GetxController {
         Get.snackbar(
           "Error",
           response['message'] ?? "Failed to post comment",
-          backgroundColor: AppColors.errorColor,
-          colorText: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {

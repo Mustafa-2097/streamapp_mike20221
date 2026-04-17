@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:testapp/core/const/app_colors.dart';
 import 'package:get/get.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:image_picker/image_picker.dart';
@@ -270,8 +271,9 @@ class PersonalDataController extends GetxController {
         Get.snackbar(
           "Success",
           response['message'] ?? "Profile updated successfully",
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
           duration: const Duration(seconds: 3),
         );
 
@@ -282,8 +284,9 @@ class PersonalDataController extends GetxController {
         Get.snackbar(
           "Error",
           response['message'] ?? "Failed to update profile",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
           duration: const Duration(seconds: 5),
         );
       }
@@ -293,8 +296,9 @@ class PersonalDataController extends GetxController {
       Get.snackbar(
         "Error",
         "Failed to update profile. Please try again.",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
         duration: const Duration(seconds: 5),
       );
     } finally {

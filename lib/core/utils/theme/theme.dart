@@ -5,29 +5,32 @@ import 'custom_themes/elevated_button_theme.dart';
 import 'custom_themes/text_field_theme.dart';
 import 'custom_themes/text_theme.dart';
 
-
 class AppTheme {
   AppTheme._();
 
   static ThemeData lightTheme = ThemeData(
-      useMaterial3: true,
-      fontFamily: 'Inter',
-      brightness: Brightness.light,
-      primaryColor: Colors.red,
-      scaffoldBackgroundColor: Colors.white,
-      textTheme: AppTextTheme.lightTextTheme,
-      elevatedButtonTheme: AppElevatedButtonTheme.lightElevatedButtonTheme,
-      appBarTheme: App_BarTheme.lightAppBarTheme,
-      inputDecorationTheme: AppTextFormFieldTheme.lightInputDecorationTheme);
+    useMaterial3: true,
+    fontFamily: 'Inter',
+    brightness: Brightness.light,
+    primaryColor: Colors.red,
+    scaffoldBackgroundColor: Colors.white,
+    textTheme: AppTextTheme.lightTextTheme,
+    elevatedButtonTheme: AppElevatedButtonTheme.lightElevatedButtonTheme,
+    appBarTheme: App_BarTheme.lightAppBarTheme,
+    inputDecorationTheme: AppTextFormFieldTheme.lightInputDecorationTheme,
+    progressIndicatorTheme: const ProgressIndicatorThemeData(color: Colors.white),
+  );
 
   static ThemeData darkTheme = ThemeData(
-      useMaterial3: true,
-      fontFamily: 'Inter',
-      brightness: Brightness.dark,
-      primaryColor: Colors.red,
-      scaffoldBackgroundColor: Colors.black,
-      textTheme: AppTextTheme.darkTextTheme,
-      elevatedButtonTheme: AppElevatedButtonTheme.darkElevatedButtonTheme,
-      appBarTheme: App_BarTheme.darkAppBarTheme,
-      inputDecorationTheme: AppTextFormFieldTheme.darkInputDecorationTheme);
+    useMaterial3: true,
+    fontFamily: 'Inter',
+    brightness: Brightness.dark,
+    primaryColor: Colors.red,
+    scaffoldBackgroundColor: Colors.black,
+    textTheme: AppTextTheme.darkTextTheme,
+    elevatedButtonTheme: AppElevatedButtonTheme.darkElevatedButtonTheme,
+    appBarTheme: App_BarTheme.darkAppBarTheme,
+    inputDecorationTheme: AppTextFormFieldTheme.darkInputDecorationTheme,
+    progressIndicatorTheme: const ProgressIndicatorThemeData(color: Colors.white),
+  );
 }

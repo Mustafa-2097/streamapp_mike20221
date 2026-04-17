@@ -27,8 +27,9 @@ class ForgotPasswordController extends GetxController {
       Get.snackbar(
         "Error",
         "Please enter your email",
-        backgroundColor: AppColors.errorColor,
+        backgroundColor: AppColors.primaryColor,
         colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -47,15 +48,17 @@ class ForgotPasswordController extends GetxController {
         Get.snackbar(
           "Success",
           response['message'] ?? "OTP sent successfully",
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
         );
       } else {
         Get.snackbar(
           "Error",
           response['message'] ?? "Failed to send OTP",
-          backgroundColor: AppColors.errorColor,
+          backgroundColor: AppColors.primaryColor,
           colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {
@@ -72,8 +75,9 @@ class ForgotPasswordController extends GetxController {
       Get.snackbar(
         "Error",
         "All fields are required",
-        backgroundColor: AppColors.errorColor,
+        backgroundColor: AppColors.primaryColor,
         colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -82,8 +86,9 @@ class ForgotPasswordController extends GetxController {
       Get.snackbar(
         "Error",
         "Passwords do not match",
-        backgroundColor: AppColors.errorColor,
+        backgroundColor: AppColors.primaryColor,
         colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -92,8 +97,9 @@ class ForgotPasswordController extends GetxController {
       Get.snackbar(
         "Error",
         "Session expired. Please verify OTP again.",
-        backgroundColor: AppColors.errorColor,
+        backgroundColor: AppColors.primaryColor,
         colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -110,23 +116,26 @@ class ForgotPasswordController extends GetxController {
         Get.snackbar(
           "Success",
           response['message'] ?? "Password reset successfully",
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
         );
       } else {
         Get.snackbar(
           "Error",
           response['message'] ?? "Failed to reset password",
-          backgroundColor: AppColors.errorColor,
+          backgroundColor: AppColors.primaryColor,
           colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {
       Get.snackbar(
         "Error",
         e.toString(),
-        backgroundColor: AppColors.errorColor,
+        backgroundColor: AppColors.primaryColor,
         colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isLoading.value = false;

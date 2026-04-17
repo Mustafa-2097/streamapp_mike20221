@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:testapp/core/const/app_colors.dart';
 import 'profile_controller.dart';
 
 class ContactUsController extends GetxController {
@@ -38,18 +39,22 @@ class ContactUsController extends GetxController {
       await Future.delayed(const Duration(seconds: 1));
 
       EasyLoading.dismiss();
-      Get.snackbar("Success", "Your message has been sent!", 
-        backgroundColor: Colors.amber, 
+      Get.snackbar(
+        "Success",
+        "Your message has been sent!",
+        backgroundColor: AppColors.primaryColor,
         colorText: Colors.black,
-        snackPosition: SnackPosition.BOTTOM
+        snackPosition: SnackPosition.TOP,
       );
       messageController.clear();
     } catch (e) {
       EasyLoading.dismiss();
-      Get.snackbar("Error", e.toString(), 
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM
+      Get.snackbar(
+        "Error",
+        e.toString(),
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
+        snackPosition: SnackPosition.TOP,
       );
     }
   }

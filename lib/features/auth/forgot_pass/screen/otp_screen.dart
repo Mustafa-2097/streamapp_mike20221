@@ -179,8 +179,9 @@ class VerifyOtpScreen extends StatelessWidget {
                                 Get.snackbar(
                                   "Incomplete OTP",
                                   "Please enter 6-digit OTP",
-                                  backgroundColor: Colors.red,
-                                  colorText: Colors.white,
+                                  backgroundColor: AppColors.primaryColor,
+                                  colorText: Colors.black,
+                                  snackPosition: SnackPosition.TOP,
                                 );
                               }
                             },

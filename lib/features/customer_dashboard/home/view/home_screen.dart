@@ -11,6 +11,7 @@ import '../widgets/all_tab.dart';
 import '../widgets/carousel_slider.dart';
 import '../widgets/custom_appdrawer.dart';
 import '../widgets/custom_home_appbar.dart';
+import '../controller/banner_controller.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -49,6 +50,9 @@ class HomeScreen extends StatelessWidget {
                     }
                     if (Get.isRegistered<ClipsController>()) {
                       await Get.find<ClipsController>().fetchClips();
+                    }
+                    if (Get.isRegistered<BannerController>()) {
+                      await Get.find<BannerController>().fetchBanners();
                     }
                   },
                   color: Colors.white,

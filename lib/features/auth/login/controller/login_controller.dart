@@ -110,8 +110,9 @@ class SignInController extends GetxController {
         Get.snackbar(
           "Success",
           response['message'] ?? 'Login successful',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
         );
 
         debugPrint('Navigating to CustomerDashboard');
@@ -121,8 +122,9 @@ class SignInController extends GetxController {
         Get.snackbar(
           "Error",
           response['message'] ?? 'Login failed',
-          backgroundColor: AppColors.errorColor,
+          backgroundColor: AppColors.primaryColor,
           colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {
