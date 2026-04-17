@@ -23,7 +23,7 @@ class PersonalDataController extends GetxController {
   var currentNameText = ''.obs;
 
   // Raw country name (without emoji)
-  String _rawCountryName = '';
+  var _rawCountryName = ''.obs;
 
   // Track original values
   String _originalName = '';
@@ -36,7 +36,7 @@ class PersonalDataController extends GetxController {
   bool get hasChanges {
     final nameChanged = currentNameText.value.trim() != _originalName;
     final dateChanged = selectedDate.value != _originalDate;
-    final countryChanged = _rawCountryName != _originalCountry;
+    final countryChanged = _rawCountryName.value != _originalCountry;
     final imageChanged = profileImageFile.value != null;
 
     return nameChanged || dateChanged || countryChanged || imageChanged;
@@ -87,9 +87,9 @@ class PersonalDataController extends GetxController {
         // Country
         final rawCountry = data['country'];
         if (rawCountry != null && rawCountry.toString().isNotEmpty) {
-          _rawCountryName = _stripEmoji(rawCountry.toString());
-          _originalCountry = _rawCountryName;
-          selectedCountry.value = _rawCountryName;
+          _rawCountryName.value = _stripEmoji(rawCountry.toString());
+          _originalCountry = _rawCountryName.value;
+          selectedCountry.value = _rawCountryName.value;
         }
 
         // Profile image - robust localhost fix
@@ -185,7 +185,7 @@ class PersonalDataController extends GetxController {
       context: context,
       showPhoneCode: false,
       onSelect: (Country country) {
-        _rawCountryName = country.name;
+        _rawCountryName.value = country.name;
         selectedCountry.value = "${country.flagEmoji}  ${country.name}";
       },
     );
@@ -238,10 +238,14 @@ class PersonalDataController extends GetxController {
       buttonText.value = 'Saving...';
       isLoading.value = true;
 
+      // Ensure we don't send placeholder values to the backend
+      final dob = selectedDate.value == "dd/mm/yyyy" ? null : selectedDate.value;
+      final ctry = _rawCountryName.value.isNotEmpty ? _rawCountryName.value : (_originalCountry.isNotEmpty ? _originalCountry : null);
+
       final response = await CustomerApiService.updateProfile(
         name: currentNameText.value.trim(),
-        dateOfBirth: selectedDate.value,
-        country: _rawCountryName.isNotEmpty ? _rawCountryName : _originalCountry,
+        dateOfBirth: dob,
+        country: ctry,
         imageFile: profileImageFile.value,
       );
 
@@ -293,14 +297,7 @@ class PersonalDataController extends GetxController {
     } catch (e) {
       buttonText.value = 'Save';
       debugPrint("Profile save crash: $e");
-      Get.snackbar(
-        "Error",
-        "Failed to update profile. Please try again.",
-        backgroundColor: AppColors.primaryColor,
-        colorText: Colors.black,
-        snackPosition: SnackPosition.TOP,
-        duration: const Duration(seconds: 5),
-      );
+      // Error already handled in ApiService globally
     } finally {
       isLoading.value = false;
     }

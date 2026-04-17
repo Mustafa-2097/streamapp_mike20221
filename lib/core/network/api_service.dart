@@ -240,9 +240,10 @@ class ApiService {
       return;
     }
 
-    // Don't show snackbar for premium subscription requirement messages
-    // as we want to handle these gracefully in the UI
-    if (message.toLowerCase().contains("premium subscription")) {
+    // Don't show snackbar for specific messages that should be handled gracefully or are irrelevant to the user
+    final lowercaseMsg = message.toLowerCase();
+    if (lowercaseMsg.contains("premium subscription") || 
+        lowercaseMsg.contains("invalid time value")) {
       return;
     }
 

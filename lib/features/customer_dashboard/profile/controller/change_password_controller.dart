@@ -126,13 +126,7 @@ class ChangePasswordController extends GetxController {
       }
     } catch (e) {
       debugPrint("Error changing password: $e");
-      Get.snackbar(
-        "Error",
-        "Failed to change password. Please try again.",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.primaryColor,
-        colorText: Colors.black,
-      );
+      // Error already handled in ApiService globally
     } finally {
       isLoading.value = false;
     }

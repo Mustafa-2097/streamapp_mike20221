@@ -130,13 +130,8 @@ class ForgotPasswordController extends GetxController {
         );
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        e.toString(),
-        backgroundColor: AppColors.primaryColor,
-        colorText: Colors.black,
-        snackPosition: SnackPosition.TOP,
-      );
+      // Error handled globally in ApiService
+      debugPrint("Reset password error: $e");
     } finally {
       isLoading.value = false;
     }

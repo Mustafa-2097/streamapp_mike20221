@@ -116,40 +116,61 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               // Subscription Plans
               Expanded(
                 child: isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Colors.red))
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colors.red),
+                      )
                     : error.isNotEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(error, style: TextStyle(color: Colors.white70, fontSize: 14.sp)),
-                                SizedBox(height: 16.h),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    setState(() { isLoading = true; error = ''; });
-                                    _fetchPlans();
-                                  },
-                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
-                                  child: const Text('Retry', style: TextStyle(color: Colors.white)),
-                                ),
-                              ],
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              error,
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14.sp,
+                              ),
                             ),
-                          )
-                        : ListView.builder(
-                            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-                            itemCount: plans.length,
-                            itemBuilder: (context, index) {
-                              final plan = plans[index];
-                              return Padding(
-                                padding: EdgeInsets.only(bottom: 20.h),
-                                child: _buildPlanCard(
-                                  context: context,
-                                  plan: plan,
-                                  isMostPopular: plan.isPremium && plan.billingCycle == 'MONTHLY',
-                                ),
-                              );
-                            },
-                          ),
+                            SizedBox(height: 16.h),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  isLoading = true;
+                                  error = '';
+                                });
+                                _fetchPlans();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                              ),
+                              child: const Text(
+                                'Retry',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 16.h,
+                        ),
+                        itemCount: plans.length,
+                        itemBuilder: (context, index) {
+                          final plan = plans[index];
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 20.h),
+                            child: _buildPlanCard(
+                              context: context,
+                              plan: plan,
+                              isMostPopular:
+                                  plan.isPremium &&
+                                  plan.billingCycle == 'MONTHLY',
+                            ),
+                          );
+                        },
+                      ),
               ),
             ],
           ),
@@ -167,10 +188,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(26.r),
-        border: Border.all(
-          color: Colors.white,
-          width: 1.5,
-        ),
+        border: Border.all(color: Colors.white, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,7 +233,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 decoration: BoxDecoration(
                   color: _planTypeColor(plan.type).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(color: _planTypeColor(plan.type).withOpacity(0.4)),
+                  border: Border.all(
+                    color: _planTypeColor(plan.type).withOpacity(0.4),
+                  ),
                 ),
                 child: Text(
                   plan.type,
@@ -234,7 +254,11 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           Center(
             child: Column(
               children: [
-                Image.asset("assets/images/subscription_logo.png", width: 50, fit: BoxFit.cover),
+                Image.asset(
+                  "assets/images/subscription_logo.png",
+                  width: 50,
+                  fit: BoxFit.cover,
+                ),
                 SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -268,36 +292,39 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           SizedBox(height: 10.h),
 
           // Features (show first 3)
-          ...plan.features.take(3).map((f) => Padding(
-                padding: EdgeInsets.only(bottom: 12.h),
-                child: _buildFeatureRow(f),
-              )),
+          ...plan.features
+              .take(3)
+              .map(
+                (f) => Padding(
+                  padding: EdgeInsets.only(bottom: 12.h),
+                  child: _buildFeatureRow(f),
+                ),
+              ),
 
           // See more button
-          if (plan.features.length > 3)
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  showSubscriptionBottomSheet(context, plan: plan);
-                },
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  'See more',
-                  style: TextStyle(
-                    color: AppColors.primaryColor,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w400,
-                    decoration: TextDecoration.underline,
-                    decorationColor: AppColors.primaryColor,
-                  ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () {
+                showSubscriptionBottomSheet(context, plan: plan);
+              },
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'See more',
+                style: TextStyle(
+                  color: AppColors.primaryColor,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w400,
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColors.primaryColor,
                 ),
               ),
             ),
+          ),
         ],
       ),
     );
@@ -320,19 +347,12 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          Icons.check,
-          color: AppColors.primaryColor,
-          size: 18.r,
-        ),
+        Icon(Icons.check, color: AppColors.primaryColor, size: 18.r),
         SizedBox(width: 12.w),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14.sp,
-            ),
+            style: TextStyle(color: Colors.white, fontSize: 14.sp),
           ),
         ),
       ],

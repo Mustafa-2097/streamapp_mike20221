@@ -54,6 +54,18 @@ class LiveCard extends StatelessWidget {
                             width: double.infinity,
                             height: double.infinity,
                             fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                color: Colors.grey[850],
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white24,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              );
+                            },
                             errorBuilder: (context, error, stackTrace) =>
                                 Container(
                               color: Colors.grey[800],

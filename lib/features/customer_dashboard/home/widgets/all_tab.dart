@@ -333,16 +333,37 @@ class ContentSection extends StatelessWidget {
                             height: 122.h,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
-                              image: DecorationImage(
-                                image: NetworkImage(imageUrl),
-                                fit: BoxFit.cover,
-                              ),
+                              color: Colors.grey[850],
                             ),
-                            child: Center(
-                              child: Icon(
-                                Icons.play_circle_outline,
-                                color: Colors.white54,
-                                size: 40,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Stack(
+                                children: [
+                                  Image.network(
+                                    imageUrl,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        color: Colors.grey[850],
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Container(
+                                      color: Colors.grey[800],
+                                      child: const Icon(Icons.image, color: Colors.white24),
+                                    ),
+                                  ),
+                                  const Center(
+                                    child: Icon(
+                                      Icons.play_circle_outline,
+                                      color: Colors.white54,
+                                      size: 40,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
