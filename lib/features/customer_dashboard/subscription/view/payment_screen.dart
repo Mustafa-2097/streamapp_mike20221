@@ -65,7 +65,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
         );
       }
     } catch (e) {
-      Get.snackbar('Error', e.toString(), colorText: Colors.black, backgroundColor: AppColors.primaryColor, snackPosition: SnackPosition.TOP);
+      // Error already handled in ApiService globally
+      debugPrint("Payment Error: $e");
     } finally {
       if (mounted) {
         setState(() {
