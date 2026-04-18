@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:share_plus/share_plus.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/show_comments_bottom_sheet.dart';
 import '../../clips/model/clips_model.dart';
 import '../../clips/controller/clips_controller.dart';
@@ -83,6 +84,8 @@ class _ClipPageViewState extends State<ClipPageView>
   void initState() {
     super.initState();
     _initializeVideo();
+    // Increment view count when entering the clip
+    Get.find<ClipsController>().incrementViewCount(widget.clip.clipId);
   }
 
   void _initializeVideo() {
@@ -311,15 +314,25 @@ class _ClipPageViewState extends State<ClipPageView>
               const SizedBox(height: 10),
               Row(
                 children: [
-                  CircleAvatar(
-                    radius: 10,
-                    backgroundColor: Colors.white24,
-                    child: const Icon(
-                      Icons.person,
-                      size: 12,
-                      color: Colors.white,
+                    Container(
+                      width: 24.r,
+                      height: 24.r,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white24,
+                        image: widget.clip.user.profilePhoto.isNotEmpty
+                            ? DecorationImage(
+                                image: NetworkImage(
+                                  UrlHelper.sanitizeUrl(widget.clip.user.profilePhoto),
+                                ),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: widget.clip.user.profilePhoto.isEmpty
+                          ? Icon(Icons.person, color: Colors.white70, size: 14.r)
+                          : null,
                     ),
-                  ),
                   const SizedBox(width: 8),
                   Text(
                     widget.clip.user.name,

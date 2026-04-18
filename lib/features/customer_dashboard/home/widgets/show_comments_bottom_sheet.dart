@@ -19,7 +19,7 @@ class CommentBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ClipCommentController(clipId: clipId));
+    final controller = Get.put(ClipCommentController(clipId: clipId), tag: clipId);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -122,13 +122,24 @@ class _CommentTile extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundImage: NetworkImage(
-                  comment.user.profilePhoto
-                      .replaceAll('localhost', '10.0.30.59')
-                      .replaceAll('127.0.0.1', '10.0.30.59'),
+              Container(
+                width: 32.r,
+                height: 32.r,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white12,
+                  image: DecorationImage(
+                    image: NetworkImage(
+                      comment.user.profilePhoto
+                          .replaceAll('localhost', '10.0.30.59')
+                          .replaceAll('127.0.0.1', '10.0.30.59'),
+                    ),
+                    fit: BoxFit.cover,
+                  ),
                 ),
+                child: comment.user.profilePhoto.isEmpty
+                    ? const Icon(Icons.person, color: Colors.white54, size: 16)
+                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -267,13 +278,25 @@ class _RepliesList extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 12,
-                    backgroundImage: NetworkImage(
-                      reply.user.profilePhoto
-                          .replaceAll('localhost', '10.0.30.59')
-                          .replaceAll('127.0.0.1', '10.0.30.59'),
+                  Container(
+                    width: 24.r,
+                    height: 24.r,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white12,
+                      image: DecorationImage(
+                        image: NetworkImage(
+                          reply.user.profilePhoto
+                              .replaceAll('localhost', '10.0.30.59')
+                              .replaceAll('127.0.0.1', '10.0.30.59'),
+                        ),
+                        fit: BoxFit.cover,
+                      ),
                     ),
+                    child: reply.user.profilePhoto.isEmpty
+                        ? const Icon(Icons.person,
+                            color: Colors.white54, size: 12)
+                        : null,
                   ),
                   const SizedBox(width: 10),
                   Expanded(

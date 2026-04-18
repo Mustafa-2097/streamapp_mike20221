@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:testapp/core/const/app_colors.dart';
 import 'package:testapp/features/customer_dashboard/home/widgets/upcoming_match_card.dart';
 import 'package:testapp/features/customer_dashboard/clips/widgets/video_thumbnail_widget.dart';
 import 'package:testapp/core/utils/url_helper.dart';
@@ -64,7 +65,9 @@ class ContentSection extends StatelessWidget {
           child: Obx(() {
             if (liveGameController.isLoading.value &&
                 liveGameController.liveGames.isEmpty) {
-              return const Center(child: CircularProgressIndicator(color: Colors.white));
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              );
             }
 
             if (liveGameController.liveGames.isEmpty) {
@@ -127,7 +130,9 @@ class ContentSection extends StatelessWidget {
           child: Obx(() {
             if (liveTvController.isLoading.value &&
                 liveTvController.liveTvs.isEmpty) {
-              return const Center(child: CircularProgressIndicator(color: Colors.white));
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              );
             }
 
             if (liveTvController.liveTvs.isEmpty) {
@@ -272,12 +277,15 @@ class ContentSection extends StatelessWidget {
         Obx(() {
           if (replayController.isLoading.value &&
               replayController.replaysList.isEmpty) {
-            return const Center(child: CircularProgressIndicator(color: Colors.white));
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
           }
 
-          final bool isPremiumError = replayController.errorMessage.value
-              .toLowerCase()
-              .contains("premium subscription");
+          final bool isPremiumError =
+              replayController.errorMessage.value.toLowerCase().contains("premium") ||
+              replayController.errorMessage.value.toLowerCase().contains("subscription") ||
+              replayController.errorMessage.value.toLowerCase().contains("active");
 
           if (replayController.replaysList.isEmpty) {
             if (isPremiumError) {
@@ -344,17 +352,23 @@ class ContentSection extends StatelessWidget {
                                     width: double.infinity,
                                     height: double.infinity,
                                     fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Container(
-                                        color: Colors.grey[850],
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        Container(
-                                      color: Colors.grey[800],
-                                      child: const Icon(Icons.image, color: Colors.white24),
-                                    ),
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                          if (loadingProgress == null)
+                                            return child;
+                                          return Container(
+                                            color: Colors.grey[850],
+                                          );
+                                        },
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                              color: Colors.grey[800],
+                                              child: const Icon(
+                                                Icons.image,
+                                                color: Colors.white24,
+                                              ),
+                                            ),
                                   ),
                                   const Center(
                                     child: Icon(
@@ -426,7 +440,9 @@ class ContentSection extends StatelessWidget {
               clipsController.clipsList.isEmpty) {
             return SizedBox(
               height: 280.h,
-              child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
             );
           }
 
@@ -706,7 +722,10 @@ class ContentSection extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        border: Border.all(color: Colors.amber.withOpacity(0.3), width: 1),
+        border: Border.all(
+          color: AppColors.primaryColor.withOpacity(0.3),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.3),
@@ -720,12 +739,12 @@ class ContentSection extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(0.1),
+              color: AppColors.primaryColor.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.lock_person_rounded,
-              color: Colors.amber,
+              color: AppColors.primaryColor,
               size: 32.sp,
             ),
           ),
@@ -756,7 +775,7 @@ class ContentSection extends StatelessWidget {
                       vertical: 8.h,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.amber,
+                      color: AppColors.primaryColor,
                       borderRadius: BorderRadius.circular(30.r),
                     ),
                     child: Text(

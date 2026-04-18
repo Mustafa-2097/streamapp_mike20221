@@ -43,24 +43,18 @@ class ProfileScreen extends StatelessWidget {
                       height: 90.w,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.primaryColor,
+                        color: AppColors.primaryColor.withOpacity(0.1),
                         border: Border.all(color: Colors.white24, width: 2),
+                        image: hasPhoto
+                            ? DecorationImage(
+                                image: NetworkImage(photoUrl!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                       ),
-                      clipBehavior: Clip.antiAlias,
-                      child: hasPhoto 
-                        ? Image.network(
-                            photoUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              debugPrint("Image Load Error: $error");
-                              return Icon(Icons.person, size: 50.r, color: Colors.white);
-                            },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2));
-                            },
-                          )
-                        : Icon(Icons.person, size: 50.r, color: Colors.white),
+                      child: !hasPhoto
+                          ? Icon(Icons.person, size: 50.r, color: Colors.white)
+                          : null,
                     );
                   }),
 
