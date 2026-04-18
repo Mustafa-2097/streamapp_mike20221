@@ -242,8 +242,10 @@ class ApiService {
 
     // Don't show snackbar for specific messages that should be handled gracefully or are irrelevant to the user
     final lowercaseMsg = message.toLowerCase();
-    if (lowercaseMsg.contains("premium subscription") || 
-        lowercaseMsg.contains("invalid time value")) {
+    if (lowercaseMsg.contains("premium subscription") ||
+        lowercaseMsg.contains("active subscription") ||
+        lowercaseMsg.contains("invalid time value") ||
+        lowercaseMsg.contains("inconsistent column data")) {
       return;
     }
 

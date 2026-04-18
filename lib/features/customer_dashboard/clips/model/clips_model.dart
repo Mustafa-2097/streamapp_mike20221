@@ -4,7 +4,7 @@ class ClipModel {
   final String videoUrl;
   final String title;
   final List<String> tags;
-  final int viewCount;
+  int viewCount; // Changed from final to allow local increment
   final DateTime createdAt;
   final DateTime updatedAt;
   final ClipUser user;

@@ -14,7 +14,7 @@ import '../../profile/view/pages/privacy_policy_page.dart';
 import '../../../../core/offline_storage/shared_pref.dart';
 import '../../subscription/view/subscription_screen.dart';
 import '../view/notification_page.dart';
-import 'language_dropdown.dart';
+
 
 class PersonalDetails extends StatelessWidget {
   const PersonalDetails({super.key});
@@ -74,7 +74,32 @@ class PersonalDetails extends StatelessWidget {
             ),
           ),
           SizedBox(height: 10.h),
-          LanguageDropdown(),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 6.h),
+            child: Row(
+              children: [
+                Icon(Icons.language_outlined, size: 24.r, color: Colors.white),
+                SizedBox(width: 16.w),
+                Text(
+                  "Language",
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  "English",
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ),
+          ),
           _DrawerItem(
             icon: Icons.notifications_outlined,
             label: 'Notification Setting',

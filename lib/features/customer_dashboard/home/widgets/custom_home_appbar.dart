@@ -82,24 +82,22 @@ class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                 final profileCtrl = Get.find<ProfileController>();
                 final photoUrl = profileCtrl.profile.value?.profilePhoto;
 
-                return CircleAvatar(
-                  radius: 12.r,
-                  backgroundColor: Colors.white,
-                  child: ClipOval(
-                    child: photoUrl != null && photoUrl.isNotEmpty
-                        ? Image.network(
-                            photoUrl,
+                return Container(
+                  width: 24.r,
+                  height: 24.r,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white24,
+                    image: photoUrl != null && photoUrl.isNotEmpty
+                        ? DecorationImage(
+                            image: NetworkImage(photoUrl),
                             fit: BoxFit.cover,
-                            width: 24.r,
-                            height: 24.r,
-                            errorBuilder: (context, error, stackTrace) => Icon(
-                              Icons.person,
-                              size: 20.r,
-                              color: Colors.black,
-                            ),
                           )
-                        : Icon(Icons.person, size: 20.r, color: Colors.black),
+                        : null,
                   ),
+                  child: photoUrl == null || photoUrl.isEmpty
+                      ? Icon(Icons.person, size: 16.r, color: Colors.white)
+                      : null,
                 );
               }),
             ),

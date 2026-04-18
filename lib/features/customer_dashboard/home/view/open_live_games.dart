@@ -297,27 +297,9 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          "Commentary",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          game.commentary,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Action Bar (Like/Dislike/Share)
-                        _gameActionBar(game),
+                        // Action Bar (Like/Dislike/Share) - REMOVED AS REQUESTED
+                        
+                        // Comments section
 
                         // Comments section
                         const SizedBox(height: 20),

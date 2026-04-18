@@ -412,6 +412,19 @@ class CustomerApiService {
     );
   }
 
+  static Future<Map<String, dynamic>> incrementClipView(String clipId) async {
+    final String? token = await SharedPreferencesHelper.getToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+    return await ApiService.post(
+      ApiEndpoints.incrementClipView(clipId),
+      headers: headers,
+      body: {},
+    );
+  }
+
   /// ================= CLIPS COMMENTS =================
 
   static Future<Map<String, dynamic>> postComment({

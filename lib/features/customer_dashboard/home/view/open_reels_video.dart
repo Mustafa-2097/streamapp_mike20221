@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:share_plus/share_plus.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/show_comments_bottom_sheet.dart';
 import '../../clips/model/clips_model.dart';
 import '../../clips/controller/clips_controller.dart';
@@ -25,6 +26,7 @@ class OpenReelsVideo extends StatefulWidget {
 
 class _OpenReelsVideoState extends State<OpenReelsVideo> {
   late PageController _pageController;
+  final RxBool _isMuted = false.obs;
 
   @override
   void initState() {
@@ -45,25 +47,57 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Obx(() {
-        return PageView.builder(
-          scrollDirection: Axis.vertical,
-          controller: _pageController,
-          itemCount: clipsController.clipsList.length,
-          itemBuilder: (context, index) {
-            final clip = clipsController.clipsList[index];
-            return ClipPageView(clip: clip);
-          },
-        );
-      }),
+      body: Stack(
+        children: [
+          Obx(() {
+            return PageView.builder(
+              scrollDirection: Axis.vertical,
+              controller: _pageController,
+              itemCount: clipsController.clipsList.length,
+              itemBuilder: (context, index) {
+                final clip = clipsController.clipsList[index];
+                return ClipPageView(
+                  clip: clip,
+                  isMuted: _isMuted,
+                );
+              },
+            );
+          }),
+
+          // Mute Toggle Button (Top Right Global)
+          Positioned(
+            top: 50,
+            right: 15,
+            child: Obx(() => IconButton(
+              icon: Icon(
+                _isMuted.value ? Icons.volume_off : Icons.volume_up,
+                color: Colors.white,
+                size: 28,
+              ),
+              onPressed: () => _isMuted.value = !_isMuted.value,
+            )),
+          ),
+          
+          // Back Button (Top Left Global)
+          Positioned(
+            top: 50,
+            left: 10,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
+              onPressed: () => Get.back(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class ClipPageView extends StatefulWidget {
   final ClipModel clip;
+  final RxBool isMuted;
 
-  const ClipPageView({super.key, required this.clip});
+  const ClipPageView({super.key, required this.clip, required this.isMuted});
 
   @override
   State<ClipPageView> createState() => _ClipPageViewState();
@@ -74,7 +108,7 @@ class _ClipPageViewState extends State<ClipPageView>
   VideoPlayerController? _videoController;
   bool _isInitialized = false;
   bool _hasError = false;
-  bool _isMuted = false;
+  late Worker _muteWorker;
 
   @override
   bool get wantKeepAlive => true; // Essential for smooth scrolling in reels
@@ -83,6 +117,12 @@ class _ClipPageViewState extends State<ClipPageView>
   void initState() {
     super.initState();
     _initializeVideo();
+    // React to global mute changes
+    _muteWorker = ever(widget.isMuted, (bool muted) {
+      _videoController?.setVolume(muted ? 0 : 1.0);
+    });
+    // Increment view count when entering the clip
+    Get.find<ClipsController>().incrementViewCount(widget.clip.clipId);
   }
 
   void _initializeVideo() {
@@ -97,7 +137,7 @@ class _ClipPageViewState extends State<ClipPageView>
                 _isInitialized = true;
                 _videoController!.play();
                 _videoController!.setLooping(true);
-                _videoController!.setVolume(_isMuted ? 0 : 1.0);
+                _videoController!.setVolume(widget.isMuted.value ? 0 : 1.0);
               });
             }
           })
@@ -113,6 +153,7 @@ class _ClipPageViewState extends State<ClipPageView>
 
   @override
   void dispose() {
+    _muteWorker.dispose();
     _videoController?.pause();
     _videoController?.dispose();
     super.dispose();
@@ -127,13 +168,6 @@ class _ClipPageViewState extends State<ClipPageView>
       }
       setState(() {});
     }
-  }
-
-  void _toggleMute() {
-    setState(() {
-      _isMuted = !_isMuted;
-      _videoController?.setVolume(_isMuted ? 0 : 1.0);
-    });
   }
 
   @override
@@ -171,19 +205,7 @@ class _ClipPageViewState extends State<ClipPageView>
             ),
           ),
 
-        // 3. Mute Toggle Button
-        Positioned(
-          top: 50,
-          right: 15,
-          child: IconButton(
-            icon: Icon(
-              _isMuted ? Icons.volume_off : Icons.volume_up,
-              color: Colors.white,
-              size: 28,
-            ),
-            onPressed: _toggleMute,
-          ),
-        ),
+        // 3. (REMOVED LOCAL MUTE BUTTON - NOW GLOBAL)
 
         // 4. Dark Overlay (Bottom area)
         const DecoratedBox(
@@ -202,15 +224,7 @@ class _ClipPageViewState extends State<ClipPageView>
           ),
         ),
 
-        // 5. Navigation & UI
-        Positioned(
-          top: 50,
-          left: 10,
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
-            onPressed: () => Get.back(),
-          ),
-        ),
+        // 5. (REMOVED LOCAL BACK BUTTON - NOW GLOBAL)
 
         // 6. Interaction Sidebar
         Positioned(
@@ -311,15 +325,25 @@ class _ClipPageViewState extends State<ClipPageView>
               const SizedBox(height: 10),
               Row(
                 children: [
-                  CircleAvatar(
-                    radius: 10,
-                    backgroundColor: Colors.white24,
-                    child: const Icon(
-                      Icons.person,
-                      size: 12,
-                      color: Colors.white,
+                    Container(
+                      width: 24.r,
+                      height: 24.r,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white24,
+                        image: widget.clip.user.profilePhoto.isNotEmpty
+                            ? DecorationImage(
+                                image: NetworkImage(
+                                  UrlHelper.sanitizeUrl(widget.clip.user.profilePhoto),
+                                ),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: widget.clip.user.profilePhoto.isEmpty
+                          ? Icon(Icons.person, color: Colors.white70, size: 14.r)
+                          : null,
                     ),
-                  ),
                   const SizedBox(width: 8),
                   Text(
                     widget.clip.user.name,

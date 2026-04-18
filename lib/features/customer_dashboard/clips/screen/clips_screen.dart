@@ -100,10 +100,23 @@ class ClipsScreen extends StatelessWidget {
                         },
                         showBookmarkIcon: true,
                         onTap: () {
-                          Get.to(OpenReelsVideo(
-                            clips: controller.clipsList,
-                            initialIndex: index,
-                          ));
+                          Get.to(() => OpenReelsVideo(
+                                clips: controller.clipsList,
+                                initialIndex: index,
+                              ))?.then((_) {
+                            // When returning from reels, trigger a refresh for the specific item
+                            // to ensure view counts are updated in the UI.
+                            controller.fetchSingleClip(clip.clipId).then((updated) {
+                              if (updated != null) {
+                                final idx = controller.clipsList
+                                    .indexWhere((c) => c.clipId == clip.clipId);
+                                if (idx != -1) {
+                                  controller.clipsList[idx] = updated;
+                                  controller.clipsList.refresh();
+                                }
+                              }
+                            });
+                          });
                         },
                       );
                     },

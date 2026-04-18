@@ -145,8 +145,28 @@ class ClipsController extends GetxController {
       print("Error toggling action $type: $e");
       // Optional: re-fetch on error to revert optimistic state
       fetchSingleClip(clipId).then((clip) {
-         if (clip != null) clipsList[index] = clip;
+        if (clip != null) clipsList[index] = clip;
       });
+    }
+  }
+
+  Future<void> incrementViewCount(String clipId) async {
+    try {
+      final response = await CustomerApiService.incrementClipView(clipId);
+      // After successfully recording the view, re-fetch just this clip
+      // to get the latest viewCount and formattedViews from the server.
+      if (response['success'] == true) {
+        final updatedClip = await fetchSingleClip(clipId);
+        if (updatedClip != null) {
+          final index = clipsList.indexWhere((c) => c.clipId == clipId);
+          if (index != -1) {
+            clipsList[index] = updatedClip;
+            clipsList.refresh();
+          }
+        }
+      }
+    } catch (e) {
+      print("Error incrementing view count: $e");
     }
   }
 }

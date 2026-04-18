@@ -10,12 +10,14 @@ class RoomChatScreen extends StatelessWidget {
   final String roomId;
   final String roomName;
   final String roomImage;
+  final bool isArchived;
 
   const RoomChatScreen({
     super.key,
     required this.roomId,
     required this.roomName,
     required this.roomImage,
+    this.isArchived = false,
   });
 
   ImageProvider _buildImageProvider(String imagePath) {
@@ -50,10 +52,17 @@ class RoomChatScreen extends StatelessWidget {
           children: [
             Stack(
               children: [
-                CircleAvatar(
-                  radius: 18.r,
-                  backgroundColor: Colors.white24,
-                  backgroundImage: _buildImageProvider(roomImage),
+                Container(
+                  width: 36.r,
+                  height: 36.r,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white10,
+                    image: DecorationImage(
+                      image: _buildImageProvider(roomImage),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
                 Positioned(
                   right: 0,
@@ -202,14 +211,21 @@ class RoomChatScreen extends StatelessWidget {
           if (!isMe) ...[
             Column(
               children: [
-                CircleAvatar(
-                  radius: 20.r,
-                  backgroundColor: Colors.white24,
-                  backgroundImage: image.isNotEmpty
-                      ? _buildImageProvider(image)
-                      : null,
+                Container(
+                  width: 40.r,
+                  height: 40.r,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white12,
+                    image: image.isNotEmpty
+                        ? DecorationImage(
+                            image: _buildImageProvider(image),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
                   child: image.isEmpty
-                      ? const Icon(Icons.person, color: Colors.white, size: 20)
+                      ? Icon(Icons.person, color: Colors.white54, size: 20.r)
                       : null,
                 ),
                 SizedBox(height: 4.h),
@@ -307,14 +323,21 @@ class RoomChatScreen extends StatelessWidget {
             SizedBox(width: 8.w),
             Column(
               children: [
-                CircleAvatar(
-                  radius: 20.r,
-                  backgroundColor: Colors.white24,
-                  backgroundImage: image.isNotEmpty
-                      ? _buildImageProvider(image)
-                      : null,
+                Container(
+                  width: 40.r,
+                  height: 40.r,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white12,
+                    image: image.isNotEmpty
+                        ? DecorationImage(
+                            image: _buildImageProvider(image),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
                   child: image.isEmpty
-                      ? const Icon(Icons.person, color: Colors.white, size: 20)
+                      ? Icon(Icons.person, color: Colors.white54, size: 20.r)
                       : null,
                 ),
                 SizedBox(height: 4.h),
@@ -336,6 +359,8 @@ class RoomChatScreen extends StatelessWidget {
     Offset position,
     List<ChatMessageReactionModel> messageReactions,
   ) {
+    if (isArchived) return; // Prevent reactions in archived rooms
+    
     final emojis = ["👍", "❤️", "😂", "😮", "😢", "😡"];
     final menuWidth = 300.w;
     final menuHeight = 54.h;
@@ -423,6 +448,26 @@ class RoomChatScreen extends StatelessWidget {
   }
 
   Widget _buildInputBar(RoomChatController controller) {
+    if (isArchived) {
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+        decoration: const BoxDecoration(
+          color: Colors.black26,
+          border: Border(top: BorderSide(color: Colors.white12)),
+        ),
+        child: Center(
+          child: Text(
+            "This room is archived. Messaging is disabled.",
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 14.sp,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
       child: Container(

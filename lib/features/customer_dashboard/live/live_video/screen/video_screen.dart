@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -99,45 +100,57 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
                       topRight: Radius.circular(18),
                     ),
                   ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _titleAndDropdown(replay),
-                        const SizedBox(height: 6),
-                        _viewsRow(replay),
-                        const SizedBox(height: 12),
-                        _actionRow(replay),
-                        const SizedBox(height: 12),
-                        _hashtagsRow(replay),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Comments",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Obx(
-                              () => Text(
-                                commentController?.formattedTotalCount.value ??
-                                    "0",
-                                style: const TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 13,
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      if (commentController != null) {
+                        await commentController!.fetchComments();
+                      }
+                    },
+                    color: Colors.white,
+                    backgroundColor: const Color(0xFF2C2C2C),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _titleAndDropdown(replay),
+                          const SizedBox(height: 6),
+                          _viewsRow(replay),
+                          const SizedBox(height: 12),
+                          _actionRow(replay),
+                          const SizedBox(height: 12),
+                          _hashtagsRow(replay),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Comments",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        _commentsList(replay.replayId),
-                        const SizedBox(height: 20),
-                      ],
+                              Obx(
+                                () => Text(
+                                  commentController
+                                          ?.formattedTotalCount
+                                          .value ??
+                                      "0",
+                                  style: const TextStyle(
+                                    color: Colors.white54,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          _commentsList(replay.replayId),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -393,13 +406,24 @@ class _CommentTile extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 14,
-                backgroundImage: NetworkImage(
-                  comment.user.profilePhoto
-                      .replaceAll('localhost', '10.0.30.59')
-                      .replaceAll('127.0.0.1', '10.0.30.59'),
+              Container(
+                width: 28.r,
+                height: 28.r,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white12,
+                  image: DecorationImage(
+                    image: NetworkImage(
+                      comment.user.profilePhoto
+                          .replaceAll('localhost', '10.0.30.59')
+                          .replaceAll('127.0.0.1', '10.0.30.59'),
+                    ),
+                    fit: BoxFit.cover,
+                  ),
                 ),
+                child: comment.user.profilePhoto.isEmpty
+                    ? const Icon(Icons.person, color: Colors.white54, size: 16)
+                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -549,13 +573,28 @@ class _RepliesList extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 12,
-                    backgroundImage: NetworkImage(
-                      reply.user.profilePhoto
-                          .replaceAll('localhost', '10.0.30.59')
-                          .replaceAll('127.0.0.1', '10.0.30.59'),
+                  Container(
+                    width: 24.r,
+                    height: 24.r,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white12,
+                      image: DecorationImage(
+                        image: NetworkImage(
+                          reply.user.profilePhoto
+                              .replaceAll('localhost', '10.0.30.59')
+                              .replaceAll('127.0.0.1', '10.0.30.59'),
+                        ),
+                        fit: BoxFit.cover,
+                      ),
                     ),
+                    child: reply.user.profilePhoto.isEmpty
+                        ? const Icon(
+                            Icons.person,
+                            color: Colors.white54,
+                            size: 12,
+                          )
+                        : null,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
