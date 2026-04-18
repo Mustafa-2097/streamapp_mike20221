@@ -244,7 +244,8 @@ class ApiService {
     final lowercaseMsg = message.toLowerCase();
     if (lowercaseMsg.contains("premium subscription") ||
         lowercaseMsg.contains("active subscription") ||
-        lowercaseMsg.contains("invalid time value")) {
+        lowercaseMsg.contains("invalid time value") ||
+        lowercaseMsg.contains("inconsistent column data")) {
       return;
     }
 

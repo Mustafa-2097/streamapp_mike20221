@@ -86,13 +86,20 @@ class CommentBottomSheet extends StatelessWidget {
                   ),
                 );
               }
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: controller.commentsList.length,
-                itemBuilder: (context, index) {
-                  final comment = controller.commentsList[index];
-                  return _CommentTile(comment: comment, controller: controller);
-                },
+              return RefreshIndicator(
+                onRefresh: () => controller.fetchComments(),
+                color: Colors.white,
+                backgroundColor: const Color(0xFF2C2C2C),
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: controller.commentsList.length,
+                  itemBuilder: (context, index) {
+                    final comment = controller.commentsList[index];
+                    return _CommentTile(
+                        comment: comment, controller: controller);
+                  },
+                ),
               );
             }),
           ),

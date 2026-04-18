@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../controller/live_tv_controller.dart';
 import '../controller/live_tv_comment_controller.dart';
 import '../model/live_tv_comment_model.dart';
@@ -36,12 +37,14 @@ class _OpenTvsState extends State<OpenTvs> {
     }
 
     if (controller.selectedLiveTv.value != null) {
-      _lastLoadedLink = controller.selectedLiveTv.value!.link;
+      final tv = controller.selectedLiveTv.value!;
+      _lastLoadedLink = tv.link;
       webController.loadRequest(
-        Uri.parse(controller.selectedLiveTv.value!.link),
+        Uri.parse(tv.link),
       );
       commentController = Get.put(
-        LiveTvCommentController(liveTvId: controller.selectedLiveTv.value!.id),
+        LiveTvCommentController(liveTvId: tv.id),
+        tag: tv.id,
       );
     }
   }
@@ -55,10 +58,11 @@ class _OpenTvsState extends State<OpenTvs> {
         webController.loadRequest(Uri.parse(liveTv.link));
         // Reset comment controller for new TV
         if (commentController != null) {
-          Get.delete<LiveTvCommentController>();
+          Get.delete<LiveTvCommentController>(tag: commentController?.liveTvId);
         }
         commentController = Get.put(
           LiveTvCommentController(liveTvId: liveTv.id),
+          tag: liveTv.id,
         );
         setState(() {});
       }
@@ -128,8 +132,17 @@ class _OpenTvsState extends State<OpenTvs> {
                       topRight: Radius.circular(18),
                     ),
                   ),
-                  child: SingleChildScrollView(
-                    child: Column(
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      if (commentController != null) {
+                        await commentController!.fetchComments();
+                      }
+                    },
+                    color: Colors.white,
+                    backgroundColor: const Color(0xFF2C2C2C),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
@@ -226,7 +239,8 @@ class _OpenTvsState extends State<OpenTvs> {
                   ),
                 ),
               ),
-              _commentInputBar(),
+            ),
+            _commentInputBar(),
             ],
           );
         }),
@@ -497,13 +511,24 @@ class _CommentTile extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 14,
-                backgroundImage: NetworkImage(
-                  comment.user.profilePhoto
-                      .replaceAll('localhost', '10.0.30.59')
-                      .replaceAll('127.0.0.1', '10.0.30.59'),
+              Container(
+                width: 32.r,
+                height: 32.r,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white12,
+                  image: DecorationImage(
+                    image: NetworkImage(
+                      comment.user.profilePhoto
+                          .replaceAll('localhost', '10.0.30.59')
+                          .replaceAll('127.0.0.1', '10.0.30.59'),
+                    ),
+                    fit: BoxFit.cover,
+                  ),
                 ),
+                child: comment.user.profilePhoto.isEmpty
+                    ? const Icon(Icons.person, color: Colors.white54, size: 16)
+                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -652,13 +677,25 @@ class _RepliesList extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 12,
-                    backgroundImage: NetworkImage(
-                      reply.user.profilePhoto
-                          .replaceAll('localhost', '10.0.30.59')
-                          .replaceAll('127.0.0.1', '10.0.30.59'),
+                  Container(
+                    width: 24.r,
+                    height: 24.r,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white12,
+                      image: DecorationImage(
+                        image: NetworkImage(
+                          reply.user.profilePhoto
+                              .replaceAll('localhost', '10.0.30.59')
+                              .replaceAll('127.0.0.1', '10.0.30.59'),
+                        ),
+                        fit: BoxFit.cover,
+                      ),
                     ),
+                    child: reply.user.profilePhoto.isEmpty
+                        ? const Icon(Icons.person,
+                            color: Colors.white54, size: 12)
+                        : null,
                   ),
                   const SizedBox(width: 10),
                   Expanded(

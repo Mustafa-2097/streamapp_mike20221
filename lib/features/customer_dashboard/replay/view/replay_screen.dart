@@ -318,13 +318,21 @@ class ReplayScreen extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 20.r,
-                  backgroundImage: item.user.profilePhoto.isNotEmpty
-                      ? NetworkImage(_fixUrl(item.user.profilePhoto))
-                      : null,
+                Container(
+                  width: 40.r,
+                  height: 40.r,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white12,
+                    image: item.user.profilePhoto.isNotEmpty
+                        ? DecorationImage(
+                            image: NetworkImage(_fixUrl(item.user.profilePhoto)),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
                   child: item.user.profilePhoto.isEmpty
-                      ? const Icon(Icons.person)
+                      ? Icon(Icons.person, color: Colors.white54, size: 20.r)
                       : null,
                 ),
                 SizedBox(width: 12.w),

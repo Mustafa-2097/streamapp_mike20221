@@ -42,7 +42,15 @@ class LiveTvCommentController extends GetxController {
       final response = await CustomerApiService.getLiveTvComments(liveTvId);
       if (response['success'] == true) {
         final data = response['data'];
-        final List commentsData = data['comments'] ?? [];
+        
+        // Handle both possible structures: {data: [...]} and {data: {comments: [...]}}
+        List commentsData = [];
+        if (data is List) {
+          commentsData = data;
+        } else if (data is Map && data.containsKey('comments')) {
+          commentsData = data['comments'] ?? [];
+        }
+
         totalComments.value = commentsData.length;
         formattedTotalCount.value = totalComments.value.toString();
 
