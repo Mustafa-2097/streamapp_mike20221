@@ -349,19 +349,12 @@ class _OpenTvsState extends State<OpenTvs> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                commentController!.isPosting.value
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.redAccent,
-                        ),
-                      )
-                    : IconButton(
-                        icon: const Icon(Icons.send, color: Colors.redAccent),
-                        onPressed: commentController!.submitComment,
-                      ),
+                IconButton(
+                  icon: const Icon(Icons.send, color: Colors.redAccent),
+                  onPressed: commentController!.isPosting.value
+                      ? null
+                      : commentController!.submitComment,
+                ),
               ],
             ),
           ],

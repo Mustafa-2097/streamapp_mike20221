@@ -273,7 +273,19 @@ class ReplayScreen extends StatelessWidget {
   Widget _buildReplayItem(ReplayModel item) {
     return GestureDetector(
       onTap: () {
-        Get.to(() => VideoLiveScreen(replayId: item.replayId));
+        Get.to(() => VideoLiveScreen(replayId: item.replayId))?.then((_) {
+          // Refresh this specific replay item to update view counts/likes upon return
+          controller.fetchSingleReplay(item.replayId).then((updated) {
+            if (updated != null) {
+              final index =
+                  controller.replaysList.indexWhere((r) => r.replayId == item.replayId);
+              if (index != -1) {
+                controller.replaysList[index] = updated;
+                controller.replaysList.refresh();
+              }
+            }
+          });
+        });
       },
       child: Container(
         margin: EdgeInsets.only(bottom: 20.h),

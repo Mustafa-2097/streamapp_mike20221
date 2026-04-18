@@ -70,4 +70,16 @@ class ReplayController extends GetxController {
   void changeTab(int index) => selectedTabIndex.value = index;
 
   void removeReplay(int index) => replaysList.removeAt(index);
+
+  Future<ReplayModel?> fetchSingleReplay(String replayId) async {
+    try {
+      final response = await CustomerApiService.getReplayById(replayId);
+      if (response['success'] == true && response['data'] != null) {
+        return ReplayModel.fromJson(response['data']);
+      }
+    } catch (e) {
+      print("Error fetching single replay: $e");
+    }
+    return null;
+  }
 }
