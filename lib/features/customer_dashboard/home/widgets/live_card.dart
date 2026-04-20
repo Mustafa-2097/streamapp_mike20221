@@ -61,12 +61,13 @@ class _LiveCardState extends State<LiveCard> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isLive = _timeLeft == Duration.zero;
     int hours = _timeLeft.inHours;
     int minutes = _timeLeft.inMinutes.remainder(60);
     int seconds = _timeLeft.inSeconds.remainder(60);
 
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: isLive ? widget.onTap : null,
       child: Container(
         width: MediaQuery.of(context).size.width - 32.w,
         height: 199.h,
@@ -143,17 +144,49 @@ class _LiveCardState extends State<LiveCard> {
                   ),
                   Spacer(flex: 1),
 
-                  // Countdown Timer
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildTimeBlock("${hours.toString().padLeft(2, '0')}H"),
-                      SizedBox(width: 4.w),
-                      _buildTimeBlock("${minutes.toString().padLeft(2, '0')}M"),
-                      SizedBox(width: 4.w),
-                      _buildTimeBlock("${seconds.toString().padLeft(2, '0')}S"),
-                    ],
-                  ),
+                  // Countdown Timer or Live Now badge
+                  if (isLive)
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(30.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.red.withOpacity(0.6),
+                            blurRadius: 12,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.circle, color: Colors.white, size: 8.sp),
+                          SizedBox(width: 6.w),
+                          Text(
+                            'LIVE NOW',
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildTimeBlock("${hours.toString().padLeft(2, '0')}H"),
+                        SizedBox(width: 4.w),
+                        _buildTimeBlock("${minutes.toString().padLeft(2, '0')}M"),
+                        SizedBox(width: 4.w),
+                        _buildTimeBlock("${seconds.toString().padLeft(2, '0')}S"),
+                      ],
+                    ),
                   Spacer(flex: 3),
 
                   // Title at Bottom
