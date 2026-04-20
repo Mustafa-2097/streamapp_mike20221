@@ -98,6 +98,9 @@ class ContentSection extends StatelessWidget {
                     title: game.title,
                     description: game.commentary,
                     isLocked: game.isPremium,
+                    opponent01: game.opponent01,
+                    opponent02: game.opponent02,
+                    dateTime: game.dateTime,
                     onTap: () {
                       liveGameController.fetchLiveGameById(game.id);
                       Get.to(() => const OpenLiveGame());
