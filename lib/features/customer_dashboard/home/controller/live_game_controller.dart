@@ -86,6 +86,7 @@ class LiveGameController extends GetxController {
             createdAt: selectedLiveGame.value!.createdAt,
             updatedAt: selectedLiveGame.value!.updatedAt,
             commentCount: selectedLiveGame.value!.commentCount,
+            liveTVId: selectedLiveGame.value!.liveTVId,
           );
           selectedLiveGame.value = updated;
           
@@ -125,6 +126,7 @@ class LiveGameController extends GetxController {
             createdAt: selectedLiveGame.value!.createdAt,
             updatedAt: selectedLiveGame.value!.updatedAt,
             commentCount: selectedLiveGame.value!.commentCount,
+            liveTVId: selectedLiveGame.value!.liveTVId,
           );
           selectedLiveGame.value = updated;
           fetchLiveGames();
@@ -171,6 +173,7 @@ class LiveGameController extends GetxController {
               createdAt: current.createdAt,
               updatedAt: current.updatedAt,
               commentCount: current.commentCount,
+              liveTVId: current.liveTVId,
             );
           }
           fetchLiveGames(); // Refresh home list

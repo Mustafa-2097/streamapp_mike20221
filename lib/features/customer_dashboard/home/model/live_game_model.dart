@@ -19,6 +19,7 @@ class LiveGame {
   final int commentCount;
   final bool liked;
   final bool disliked;
+  final String liveTVId;
 
   LiveGame({
     required this.id,
@@ -41,6 +42,7 @@ class LiveGame {
     required this.commentCount,
     required this.liked,
     required this.disliked,
+    required this.liveTVId,
   });
 
   factory LiveGame.fromJson(Map<String, dynamic> json) {
@@ -73,6 +75,7 @@ class LiveGame {
       commentCount: json['_count']?['comments'] ?? json['comments'] ?? 0,
       liked: json['liked'] ?? false,
       disliked: json['disliked'] ?? false,
+      liveTVId: json['liveTVId'] ?? '',
     );
   }
 }

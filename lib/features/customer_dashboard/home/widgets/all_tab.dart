@@ -101,9 +101,20 @@ class ContentSection extends StatelessWidget {
                     opponent01: game.opponent01,
                     opponent02: game.opponent02,
                     dateTime: game.dateTime,
-                    onTap: () {
-                      liveGameController.fetchLiveGameById(game.id);
-                      Get.to(() => const OpenLiveGame());
+                    onTap: () async {
+                      if (game.liveTVId.isNotEmpty) {
+                        try {
+                          final tv = liveTvController.liveTvs.firstWhere((t) => t.id == game.liveTVId);
+                          liveTvController.selectedLiveTv.value = tv;
+                        } catch (e) {
+                          liveTvController.selectedLiveTv.value = null;
+                          await liveTvController.fetchLiveTvById(game.liveTVId);
+                        }
+                        Get.to(() => OpenTvs());
+                      } else {
+                        liveGameController.fetchLiveGameById(game.id);
+                        Get.to(() => const OpenLiveGame());
+                      }
                     },
                   ),
                 );
