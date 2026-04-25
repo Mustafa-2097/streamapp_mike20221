@@ -8,6 +8,9 @@ import '../controller/live_game_comment_controller.dart';
 import '../model/live_game_model.dart';
 import '../model/live_game_comment_model.dart';
 import '../../profile/controller/profile_controller.dart';
+import '../../subscription/view/subscription_screen.dart';
+import '../../../../core/const/app_colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class OpenLiveGame extends StatefulWidget {
   const OpenLiveGame({super.key});
@@ -126,6 +129,14 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
                 style: TextStyle(color: Colors.white),
               ),
             );
+          }
+
+          final profileController = Get.find<ProfileController>();
+          final isUserPremium = profileController.profile.value?.isPremiumUser ?? false;
+          final bool isLocked = game.isPremium && !isUserPremium;
+
+          if (isLocked) {
+            return _buildPremiumLockedScreen();
           }
 
           return Column(
@@ -521,6 +532,62 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
       child: Text(
         name,
         style: const TextStyle(color: Colors.white, fontSize: 13),
+      ),
+    );
+  }
+
+  Widget _buildPremiumLockedScreen() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(20.w),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.lock_person_rounded,
+                color: AppColors.primaryColor,
+                size: 64.sp,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              "Premium Required",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "This content is only available for premium subscribers. Upgrade your plan to enjoy exclusive live matches.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () => Get.to(() => const SubscriptionPage()),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: const Text(
+                "Upgrade Now",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

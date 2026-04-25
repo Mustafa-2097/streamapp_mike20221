@@ -25,6 +25,7 @@ import '../../live/live_dashboard/controller/live_controller.dart';
 import '../controller/live_tv_controller.dart';
 import '../controller/live_game_controller.dart';
 import '../model/live_tv_model.dart';
+import '../../profile/controller/profile_controller.dart';
 
 class ContentSection extends StatelessWidget {
   ContentSection({super.key});
@@ -39,6 +40,7 @@ class ContentSection extends StatelessWidget {
     );
     final LiveTvController liveTvController = Get.put(LiveTvController());
     final LiveGameController liveGameController = Get.put(LiveGameController());
+    final ProfileController profileController = Get.put(ProfileController());
 
     // Fetch upcoming if empty
     if (liveController.upcomingMatches.isEmpty &&
@@ -83,6 +85,8 @@ class ContentSection extends StatelessWidget {
               itemCount: liveGameController.liveGames.length,
               itemBuilder: (context, index) {
                 final game = liveGameController.liveGames[index];
+                final isUserPremium = profileController.profile.value?.isPremiumUser ?? false;
+                final bool isLocked = game.isPremium && !isUserPremium;
 
                 // Sanitize thumbnail URL
                 final imageUrl = game.thumbnail
@@ -97,11 +101,15 @@ class ContentSection extends StatelessWidget {
                     viewerCount: "${game.viewers}",
                     title: game.title,
                     description: game.commentary,
-                    isLocked: game.isPremium,
+                    isLocked: isLocked,
                     opponent01: game.opponent01,
                     opponent02: game.opponent02,
                     dateTime: game.dateTime,
                     onTap: () async {
+                      if (isLocked) {
+                        _showPremiumRequiredDialog();
+                        return;
+                      }
                       if (game.liveTVId.isNotEmpty) {
                         try {
                           final tv = liveTvController.liveTvs.firstWhere((t) => t.id == game.liveTVId);
@@ -811,6 +819,10 @@ class ContentSection extends StatelessWidget {
   }
 
   Widget _buildTVChannel(LiveTvModel tv) {
+    final profileController = Get.find<ProfileController>();
+    final isUserPremium = profileController.profile.value?.isPremiumUser ?? false;
+    final bool isLocked = tv.isPremium && !isUserPremium;
+
     final imageUrl = tv.thumbnail
         .replaceAll('localhost', '10.0.30.59')
         .replaceAll('127.0.0.1', '10.0.30.59')
@@ -818,33 +830,57 @@ class ContentSection extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
+        if (isLocked) {
+          _showPremiumRequiredDialog();
+          return;
+        }
         final liveTvController = Get.find<LiveTvController>();
         liveTvController.selectedLiveTv.value = tv;
         Get.to(() => OpenTvs());
       },
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.network(
-          imageUrl,
-          width: 90,
-          height: 60,
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Container(
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              imageUrl,
               width: 90,
               height: 60,
-              color: Colors.grey[800],
-              child: const Icon(Icons.tv, color: Colors.white54),
-            );
-          },
-          errorBuilder: (context, error, stackTrace) => Container(
-            width: 90,
-            height: 60,
-            color: Colors.grey[800],
-            child: const Icon(Icons.tv, color: Colors.white54),
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  width: 90,
+                  height: 60,
+                  color: Colors.grey[800],
+                  child: const Icon(Icons.tv, color: Colors.white54),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 90,
+                height: 60,
+                color: Colors.grey[800],
+                child: const Icon(Icons.tv, color: Colors.white54),
+              ),
+            ),
           ),
-        ),
+          if (isLocked)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.lock,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -931,6 +967,93 @@ class ContentSection extends StatelessWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
+    );
+  }
+
+  void _showPremiumRequiredDialog() {
+    Get.dialog(
+      Dialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.lock_person_rounded,
+                  color: AppColors.primaryColor,
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Premium Required",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "This content is only available for premium subscribers. Upgrade your plan to enjoy exclusive live matches and channels.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white54),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Text("Cancel"),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.back();
+                        Get.to(() => const SubscriptionPage());
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Text(
+                        "Upgrade Now",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: true,
     );
   }
 }
