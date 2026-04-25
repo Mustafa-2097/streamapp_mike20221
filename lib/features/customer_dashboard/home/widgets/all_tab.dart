@@ -73,9 +73,11 @@ class ContentSection extends StatelessWidget {
             }
 
             if (liveGameController.liveGames.isEmpty) {
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: _buildPromoCard(),
+              return const Center(
+                child: Text(
+                  "No live games available at the moment",
+                  style: TextStyle(color: Colors.white54),
+                ),
               );
             }
 
