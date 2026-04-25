@@ -12,6 +12,13 @@ class CustomerProfile {
   final String? status;
   final Subscription? subscription;
   final String? stripeCustomerId;
+  
+  bool get isPremiumUser {
+    if (subscription == null) return false;
+    if (subscription!.status.toLowerCase() != 'active') return false;
+    return subscription!.plan?.type.toLowerCase() == 'premium' || 
+           subscription!.plan?.type.toLowerCase() == 'superfan';
+  }
 
   /*
   final String? phone;

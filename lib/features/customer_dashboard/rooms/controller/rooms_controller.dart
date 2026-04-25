@@ -21,7 +21,15 @@ class RoomsController extends GetxController {
 
       if (response['success'] == true) {
         final List data = response['data'] ?? [];
-        roomsList.value = data.map((e) => ChatRoomModel.fromJson(e)).toList();
+        final parsedRooms = data.map((e) => ChatRoomModel.fromJson(e)).toList();
+        
+        // Sort so that archived rooms appear at the bottom
+        parsedRooms.sort((a, b) {
+          if (a.isArchived == b.isArchived) return 0;
+          return a.isArchived ? 1 : -1;
+        });
+
+        roomsList.value = parsedRooms;
       }
     } catch (e) {
       print("Error fetching rooms: $e");

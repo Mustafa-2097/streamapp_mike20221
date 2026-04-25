@@ -15,7 +15,6 @@ import '../../../../core/offline_storage/shared_pref.dart';
 import '../../subscription/view/subscription_screen.dart';
 import '../view/notification_page.dart';
 
-
 class PersonalDetails extends StatelessWidget {
   const PersonalDetails({super.key});
 
@@ -28,7 +27,7 @@ class PersonalDetails extends StatelessWidget {
         children: [
           /// Personal Info Section
           Text(
-            'personal_info'.tr,
+            'Personal Info'.tr,
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w400,

@@ -11,6 +11,7 @@ class LiveTvModel {
   final DateTime updatedAt;
   final int commentCount;
   final dynamic comments;
+  final bool isPremium;
   final bool liked;
   final bool disliked;
 
@@ -26,6 +27,7 @@ class LiveTvModel {
     required this.createdAt,
     required this.updatedAt,
     required this.commentCount,
+    this.isPremium = false,
     this.comments,
     this.liked = false,
     this.disliked = false,
@@ -41,6 +43,7 @@ class LiveTvModel {
       likes: json['likes'] is int ? json['likes'] : (int.tryParse(json['likes']?.toString() ?? '0') ?? 0),
       dislikes: json['dislikes'] is int ? json['dislikes'] : (int.tryParse(json['dislikes']?.toString() ?? '0') ?? 0),
       shares: json['shares'] ?? 0,
+      isPremium: json['isPremium'] ?? false,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
@@ -66,6 +69,7 @@ class LiveTvModel {
       'likes': likes,
       'dislikes': dislikes,
       'shares': shares,
+      'isPremium': isPremium,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'liked': liked,
@@ -84,6 +88,7 @@ class LiveTvModel {
     int? likes,
     int? dislikes,
     int? shares,
+    bool? isPremium,
     DateTime? createdAt,
     DateTime? updatedAt,
     int? commentCount,
@@ -100,6 +105,7 @@ class LiveTvModel {
       likes: likes ?? this.likes,
       dislikes: dislikes ?? this.dislikes,
       shares: shares ?? this.shares,
+      isPremium: isPremium ?? this.isPremium,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       commentCount: commentCount ?? this.commentCount,
