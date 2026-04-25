@@ -46,7 +46,7 @@ class ApiService {
       }
     } catch (e) {
       _showSnackbar(_friendlyError(e));
-      rethrow;
+      return {'success': false, 'message': _friendlyError(e)};
     }
   }
 
@@ -69,7 +69,7 @@ class ApiService {
       }
     } catch (e) {
       _showSnackbar(_friendlyError(e));
-      rethrow;
+      return {'success': false, 'message': _friendlyError(e)};
     }
   }
 
@@ -97,7 +97,7 @@ class ApiService {
       }
     } catch (e) {
       _showSnackbar(_friendlyError(e));
-      rethrow;
+      return {'success': false, 'message': _friendlyError(e)};
     }
   }
 
@@ -125,7 +125,7 @@ class ApiService {
       }
     } catch (e) {
       _showSnackbar(_friendlyError(e));
-      rethrow;
+      return {'success': false, 'message': _friendlyError(e)};
     }
   }
 
@@ -173,7 +173,7 @@ class ApiService {
       }
     } catch (e) {
       _showSnackbar(_friendlyError(e));
-      rethrow;
+      return {'success': false, 'message': _friendlyError(e)};
     }
   }
 
@@ -212,7 +212,7 @@ class ApiService {
       }
     } catch (e) {
       _showSnackbar(_friendlyError(e));
-      rethrow;
+      return {'success': false, 'message': _friendlyError(e)};
     }
   }
 
@@ -233,11 +233,21 @@ class ApiService {
   static void _showSnackbar(String message) {
     final now = DateTime.now();
 
-    // If it's the exact same message within 2 seconds, ignore it
-    if (_lastErrorMessage == message &&
-        _lastErrorTime != null &&
-        now.difference(_lastErrorTime!) < const Duration(seconds: 2)) {
-      return;
+    // Specifically for "No internet connection", be very aggressive about preventing duplicates
+    if (message == 'No internet connection.') {
+      if (Get.isSnackbarOpen) return;
+      if (_lastErrorMessage == message &&
+          _lastErrorTime != null &&
+          now.difference(_lastErrorTime!) < const Duration(seconds: 10)) {
+        return;
+      }
+    } else {
+      // For other messages, use the standard 2-second debounce
+      if (_lastErrorMessage == message &&
+          _lastErrorTime != null &&
+          now.difference(_lastErrorTime!) < const Duration(seconds: 2)) {
+        return;
+      }
     }
 
     // Don't show snackbar for specific messages that should be handled gracefully or are irrelevant to the user
