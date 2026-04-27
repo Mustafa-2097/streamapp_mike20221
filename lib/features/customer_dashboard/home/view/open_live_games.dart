@@ -80,7 +80,22 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
       webController = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setBackgroundColor(const Color(0x00000000))
-        ..loadRequest(Uri.parse(game.link));
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageFinished: (url) {
+              // Inject CSS to make the video full width
+              // Use a local reference to avoid closure issues if necessary,
+              // but here we can just use the instance variable since it's late and initialized.
+              webController?.runJavaScript('''
+                var style = document.createElement('style');
+                style.innerHTML = 'video { width: 100% !important; height: 100% !important; object-fit: contain !important; } body { margin: 0; background: black; display: flex; align-items: center; justify-content: center; height: 100vh; }';
+                document.head.appendChild(style);
+              ''');
+            },
+          ),
+        );
+      
+      webController!.loadRequest(Uri.parse(game.link));
 
       // Initialize comment controller for this game
       if (commentController == null) {
@@ -90,6 +105,11 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
         );
       }
     }
+  }
+
+  void _loadVideo(String url) {
+    if (webController == null) return;
+    webController!.loadRequest(Uri.parse(url));
   }
 
   @override
@@ -116,6 +136,8 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
               centerTitle: true,
             ),
       body: SafeArea(
+        left: false,
+        right: false,
         child: Obx(() {
           if (controller.isLoading.value) {
             return const Center(child: CircularProgressIndicator());
@@ -147,8 +169,8 @@ class _OpenLiveGameState extends State<OpenLiveGame> {
                   SizedBox(
                     height: isFullScreen
                         ? MediaQuery.of(context).size.height
-                        : 240,
-                    width: double.infinity,
+                        : 240.h,
+                    width: MediaQuery.of(context).size.width,
                     child: webController != null
                         ? WebViewWidget(controller: webController!)
                         : const Center(
