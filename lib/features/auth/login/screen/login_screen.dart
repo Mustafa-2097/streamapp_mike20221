@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:testapp/core/common/widgets/custom_back_icon.dart';
 import 'package:testapp/features/auth/forgot_pass/screen/forgot_password_screen.dart';
 import 'package:testapp/features/auth/signup/screen/signup_screen.dart';
 import '../../../../core/common/styles/global_text_style.dart';
@@ -37,9 +36,6 @@ class SignInScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Back Button
-                  CustomBackIcon(onBack: () => Get.back()),
-
                   SizedBox(height: 20),
 
                   Center(child: Image.asset(ImagesPath.logo, width: sw*0.27, fit: BoxFit.cover)),

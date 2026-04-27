@@ -184,6 +184,29 @@ class PersonalDataController extends GetxController {
     showCountryPicker(
       context: context,
       showPhoneCode: false,
+      countryListTheme: CountryListThemeData(
+        // Restrict height to ~55% of screen
+        bottomSheetHeight: MediaQuery.of(context).size.height * 0.55,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        backgroundColor: const Color(0xFF1A1A1A),
+        textStyle: const TextStyle(color: Colors.white, fontSize: 15),
+        searchTextStyle: const TextStyle(color: Colors.white),
+        inputDecoration: InputDecoration(
+          hintText: 'Search country',
+          hintStyle: const TextStyle(color: Colors.white54),
+          prefixIcon: const Icon(Icons.search, color: Colors.white54),
+          filled: true,
+          fillColor: const Color(0xFF2A2A2A),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      ),
       onSelect: (Country country) {
         _rawCountryName.value = country.name;
         selectedCountry.value = "${country.flagEmoji}  ${country.name}";

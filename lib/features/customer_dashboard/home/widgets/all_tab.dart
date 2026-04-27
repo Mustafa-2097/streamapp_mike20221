@@ -306,18 +306,24 @@ class ContentSection extends StatelessWidget {
             );
           }
 
+          final bool isPremium = profileController.profile.value?.isPremiumUser ?? false;
           final bool isPremiumError =
               replayController.errorMessage.value.toLowerCase().contains("premium") ||
               replayController.errorMessage.value.toLowerCase().contains("subscription") ||
               replayController.errorMessage.value.toLowerCase().contains("active");
 
+          // Show premium placeholder if not premium OR if we got a premium-related error
+          if (!isPremium || isPremiumError) {
+             // Only show placeholder if the list is actually empty (which it should be for non-premium)
+             if (replayController.replaysList.isEmpty) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: _buildPremiumReplayCard(),
+                );
+             }
+          }
+
           if (replayController.replaysList.isEmpty) {
-            if (isPremiumError) {
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: _buildPremiumReplayCard(),
-              );
-            }
             return Padding(
               padding: EdgeInsets.symmetric(vertical: 32.h),
               child: const Center(
@@ -355,7 +361,23 @@ class ContentSection extends StatelessWidget {
                     ),
                     child: GestureDetector(
                       onTap: () {
-                        Get.to(VideoLiveScreen(replayId: replay.replayId));
+                        Get.to(() => VideoLiveScreen(replayId: replay.replayId))
+                            ?.then((_) {
+                          // Refresh this specific replay item to update view counts/likes upon return
+                          replayController
+                              .fetchSingleReplay(replay.replayId)
+                              .then((updated) {
+                            if (updated != null) {
+                              final index = replayController.replaysList
+                                  .indexWhere(
+                                      (r) => r.replayId == replay.replayId);
+                              if (index != -1) {
+                                replayController.replaysList[index] = updated;
+                                replayController.replaysList.refresh();
+                              }
+                            }
+                          });
+                        });
                       },
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,12 +510,22 @@ class ContentSection extends StatelessWidget {
                   padding: EdgeInsets.only(right: 12.w),
                   child: GestureDetector(
                     onTap: () {
-                      Get.to(
-                        OpenReelsVideo(
-                          clips: clipsController.clipsList,
-                          initialIndex: index,
-                        ),
-                      );
+                      Get.to(() => OpenReelsVideo(
+                            clips: clipsController.clipsList,
+                            initialIndex: index,
+                          ))?.then((_) {
+                        // Refresh this specific clip to update views/likes on home screen return
+                        clipsController.fetchSingleClip(clip.clipId).then((updated) {
+                          if (updated != null) {
+                            final idx = clipsController.clipsList
+                                .indexWhere((c) => c.clipId == clip.clipId);
+                            if (idx != -1) {
+                              clipsController.clipsList[idx] = updated;
+                              clipsController.clipsList.refresh();
+                            }
+                          }
+                        });
+                      });
                     },
                     child: Container(
                       width: 180.w,

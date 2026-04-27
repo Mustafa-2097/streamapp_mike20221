@@ -27,10 +27,12 @@ class OpenReelsVideo extends StatefulWidget {
 class _OpenReelsVideoState extends State<OpenReelsVideo> {
   late PageController _pageController;
   final RxBool _isMuted = false.obs;
+  final RxInt _activeIndex = 0.obs;
 
   @override
   void initState() {
     super.initState();
+    _activeIndex.value = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
   }
 
@@ -42,27 +44,27 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
 
   @override
   Widget build(BuildContext context) {
-    final clipsController = Get.find<ClipsController>();
     Get.put(BookmarkController());
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          Obx(() {
-            return PageView.builder(
-              scrollDirection: Axis.vertical,
-              controller: _pageController,
-              itemCount: clipsController.clipsList.length,
-              itemBuilder: (context, index) {
-                final clip = clipsController.clipsList[index];
-                return ClipPageView(
-                  clip: clip,
-                  isMuted: _isMuted,
-                );
-              },
-            );
-          }),
+          Obx(() => PageView.builder(
+            scrollDirection: Axis.vertical,
+            controller: _pageController,
+            onPageChanged: (index) => _activeIndex.value = index,
+            itemCount: widget.clips.length,
+            itemBuilder: (context, index) {
+              final clip = widget.clips[index];
+              return ClipPageView(
+                key: ValueKey(clip.clipId), // Stable key to prevent unnecessary resets
+                clip: clip,
+                isMuted: _isMuted,
+                isActive: _activeIndex.value == index,
+              );
+            },
+          )),
 
           // Mute Toggle Button (Top Right Global)
           Positioned(
@@ -96,8 +98,14 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
 class ClipPageView extends StatefulWidget {
   final ClipModel clip;
   final RxBool isMuted;
+  final bool isActive;
 
-  const ClipPageView({super.key, required this.clip, required this.isMuted});
+  const ClipPageView({
+    super.key,
+    required this.clip,
+    required this.isMuted,
+    this.isActive = false,
+  });
 
   @override
   State<ClipPageView> createState() => _ClipPageViewState();
@@ -117,27 +125,56 @@ class _ClipPageViewState extends State<ClipPageView>
   void initState() {
     super.initState();
     _initializeVideo();
-    // React to global mute changes
+    // React to global mute toggle changes
     _muteWorker = ever(widget.isMuted, (bool muted) {
-      _videoController?.setVolume(muted ? 0 : 1.0);
+      if (widget.isActive) {
+        _videoController?.setVolume(muted ? 0.0 : 1.0);
+      }
     });
     // Increment view count when entering the clip
     Get.find<ClipsController>().incrementViewCount(widget.clip.clipId);
   }
 
+  @override
+  void didUpdateWidget(ClipPageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Respond when this page becomes active or inactive
+    if (oldWidget.isActive != widget.isActive) {
+      if (widget.isActive) {
+        // Coming into view: play and restore correct volume
+        _videoController?.play();
+        _videoController?.setVolume(widget.isMuted.value ? 0.0 : 1.0);
+      } else {
+        // Going off screen: pause to release audio focus
+        _videoController?.pause();
+      }
+    }
+  }
+
   void _initializeVideo() {
+    if (widget.clip.videoUrl.isEmpty) {
+      if (mounted) setState(() => _hasError = true);
+      return;
+    }
+
     final videoUrl = UrlHelper.sanitizeUrl(widget.clip.videoUrl);
     debugPrint("Reel Playback Target: $videoUrl");
 
-    _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl))
-      ..initialize()
+    // mixWithOthers: false ensures Android requests audio focus properly
+    _videoController = VideoPlayerController.networkUrl(
+      Uri.parse(videoUrl),
+      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: false),
+    )..initialize()
           .then((_) {
             if (mounted) {
               setState(() {
                 _isInitialized = true;
-                _videoController!.play();
                 _videoController!.setLooping(true);
-                _videoController!.setVolume(widget.isMuted.value ? 0 : 1.0);
+                // Only play + set volume if this page is currently visible
+                if (widget.isActive) {
+                  _videoController!.play();
+                  _videoController!.setVolume(widget.isMuted.value ? 0.0 : 1.0);
+                }
               });
             }
           })
@@ -381,6 +418,16 @@ class _ClipPageViewState extends State<ClipPageView>
           "Unable to play video",
           style: TextStyle(color: Colors.white70, fontSize: 14),
         ),
+        if (widget.clip.videoUrl.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Text(
+              widget.clip.videoUrl.split('/').last,
+              style: const TextStyle(color: Colors.white24, fontSize: 10),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         const SizedBox(height: 16),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: Colors.white10),
