@@ -8,6 +8,7 @@ import 'package:testapp/core/utils/url_helper.dart';
 
 import '../../clips/screen/clips_screen.dart';
 import '../../live/live_dashboard/screen/live_screen.dart';
+import '../../live/live_dashboard/screen/match_details_screen.dart';
 import '../../live/live_video/screen/video_screen.dart';
 import '../../news/view/news_screen.dart';
 import '../../replay/view/replay_screen.dart';
@@ -274,13 +275,27 @@ class ContentSection extends StatelessWidget {
                             size: 28,
                           ),
                         ),
-                        child: UpcomingMatchCard(
-                          homeLogo: match.homeLogo,
-                          awayLogo: match.awayLogo,
-                          league: match.dayHeader, // "Wednesday" or similar
-                          match: "${match.homeTeam} vs ${match.awayTeam}",
-                          time: match.date, // e.g. "20:00"
-                          isBookmarked: isBookmarked,
+                        child: GestureDetector(
+                          onTap: () {
+                            Get.to(
+                              () => MatchDetailsScreen(
+                                matchId: match.id,
+                                homeTeam: match.homeTeam,
+                                awayTeam: match.awayTeam,
+                                homeScore: int.tryParse(match.homeScore) ?? 0,
+                                awayScore: int.tryParse(match.awayScore) ?? 0,
+                                matchTitle: "${match.homeTeam} vs ${match.awayTeam}",
+                              ),
+                            );
+                          },
+                          child: UpcomingMatchCard(
+                            homeLogo: match.homeLogo,
+                            awayLogo: match.awayLogo,
+                            league: match.dayHeader, // "Wednesday" or similar
+                            match: "${match.homeTeam} vs ${match.awayTeam}",
+                            time: match.date, // e.g. "20:00"
+                            isBookmarked: isBookmarked,
+                          ),
                         ),
                       );
                     }),
