@@ -7,6 +7,7 @@ import '../../live/live_video/screen/video_screen.dart';
 import '../controller/replay_controller.dart';
 import '../model/replay_model.dart';
 import '../../subscription/view/subscription_screen.dart';
+import '../../profile/controller/profile_controller.dart';
 
 class ReplayScreen extends StatelessWidget {
   ReplayScreen({super.key}) {
@@ -37,143 +38,146 @@ class ReplayScreen extends StatelessWidget {
                   color: Colors.white,
                   backgroundColor: Colors.black,
                   child: Obx(() {
+                    final profileController = Get.find<ProfileController>();
+                    final bool isPremium = profileController.profile.value?.isPremiumUser ?? false;
+
                     if (controller.isLoading.value && controller.replaysList.isEmpty) {
                       return const Center(
                         child: CircularProgressIndicator(color: Colors.white),
                       );
                     }
 
-                    if (controller.errorMessage.isNotEmpty &&
-                        controller.replaysList.isEmpty) {
-                      final bool isPremiumError = controller.errorMessage.value
-                              .toLowerCase()
-                              .contains("premium") ||
-                          controller.errorMessage.value
-                              .toLowerCase()
-                              .contains("subscription") ||
-                          controller.errorMessage.value
-                              .toLowerCase()
-                              .contains("active");
+                    final bool isPremiumError = controller.errorMessage.value
+                            .toLowerCase()
+                            .contains("premium") ||
+                        controller.errorMessage.value
+                            .toLowerCase()
+                            .contains("subscription") ||
+                        controller.errorMessage.value
+                            .toLowerCase()
+                            .contains("active");
 
+                    // 1. Premium Placeholder
+                    if ((!isPremium || isPremiumError) && controller.replaysList.isEmpty) {
                       return ListView(
                         padding: EdgeInsets.symmetric(horizontal: 24.w),
                         children: [
                           SizedBox(height: 60.h),
-                          if (isPremiumError)
-                            Container(
-                              padding: EdgeInsets.all(24.w),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.03),
-                                borderRadius: BorderRadius.circular(24.r),
-                                border: Border.all(
-                                  color:
-                                      AppColors.primaryColor.withOpacity(0.2),
-                                ),
+                          Container(
+                            padding: EdgeInsets.all(24.w),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.03),
+                              borderRadius: BorderRadius.circular(24.r),
+                              border: Border.all(
+                                color: AppColors.primaryColor.withOpacity(0.2),
                               ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.all(16.w),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryColor
-                                          .withOpacity(0.1),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.lock_person_rounded,
-                                      color: AppColors.primaryColor,
-                                      size: 48.sp,
-                                    ),
+                            ),
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(16.w),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryColor.withOpacity(0.1),
+                                    shape: BoxShape.circle,
                                   ),
-                                  SizedBox(height: 24.h),
-                                  Text(
-                                    "Premium Required",
+                                  child: Icon(
+                                    Icons.lock_person_rounded,
+                                    color: AppColors.primaryColor,
+                                    size: 48.sp,
+                                  ),
+                                ),
+                                SizedBox(height: 24.h),
+                                Text(
+                                  "Premium Required",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 12.h),
+                                Text(
+                                  isPremiumError && controller.errorMessage.value.isNotEmpty
+                                      ? controller.errorMessage.value
+                                      : "Subscribe to watch exclusive match replays and highlights.",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14.sp,
+                                  ),
+                                ),
+                                SizedBox(height: 32.h),
+                                ElevatedButton(
+                                  onPressed: () => Get.to(() => const SubscriptionPage()),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryColor,
+                                    foregroundColor: Colors.black,
+                                    minimumSize: Size(double.infinity, 56.h),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16.r),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: Text(
+                                    "Upgrade to Premium",
                                     style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22.sp,
+                                      fontSize: 16.sp,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  SizedBox(height: 12.h),
-                                  Text(
-                                    controller.errorMessage.value,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14.sp,
-                                    ),
-                                  ),
-                                  SizedBox(height: 32.h),
-                                  ElevatedButton(
-                                    onPressed: () => Get.to(
-                                      () => const SubscriptionPage(),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primaryColor,
-                                      foregroundColor: Colors.black,
-                                      minimumSize: Size(double.infinity, 56.h),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(16.r),
-                                      ),
-                                      elevation: 0,
-                                    ),
-                                    child: Text(
-                                      "Upgrade to Premium",
-                                      style: TextStyle(
-                                        fontSize: 16.sp,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else ...[
-                            Center(
-                              child: Icon(
-                                Icons.error_outline,
-                                color: Colors.white24,
-                                size: 64.sp,
-                              ),
+                                ),
+                              ],
                             ),
-                            SizedBox(height: 24.h),
-                            Text(
-                              controller.errorMessage.value,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SizedBox(height: 32.h),
-                            TextButton(
-                              onPressed: () => controller.fetchReplays(),
-                              child: const Text(
-                                "Retry",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ],
+                          ),
                         ],
                       );
                     }
 
-                    // Filter list based on selected tab
+                    // 2. Generic Error Display
+                    if (controller.errorMessage.isNotEmpty && controller.replaysList.isEmpty) {
+                      return ListView(
+                        padding: EdgeInsets.symmetric(horizontal: 24.w),
+                        children: [
+                          SizedBox(height: 60.h),
+                          Center(
+                            child: Icon(
+                              Icons.error_outline,
+                              color: Colors.white24,
+                              size: 64.sp,
+                            ),
+                          ),
+                          SizedBox(height: 24.h),
+                          Text(
+                            controller.errorMessage.value,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 32.h),
+                          TextButton(
+                            onPressed: () => controller.fetchReplays(),
+                            child: const Text(
+                              "Retry",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    // 3. Filter list based on selected tab
                     final filteredList = controller.replaysList.where((item) {
                       final category = item.category.trim().toUpperCase();
                       final selectedTabIndex = controller.selectedTabIndex.value;
-                      
-                      if (selectedTabIndex == 1) {
-                        return category == "REPLAY" || category == "FULL_GAME";
-                      }
-                      if (selectedTabIndex == 2) {
-                        return category == "FULL_GAME";
-                      }
-                      return true; // "All" tab
+                      if (selectedTabIndex == 1) return category == "REPLAY" || category == "FULL_GAME";
+                      if (selectedTabIndex == 2) return category == "FULL_GAME";
+                      return true;
                     }).toList();
 
+                    // 4. Empty State
                     if (filteredList.isEmpty && !controller.isLoading.value) {
                       return ListView(
                         children: [

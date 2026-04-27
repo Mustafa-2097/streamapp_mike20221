@@ -119,13 +119,7 @@ class SignInController extends GetxController {
         Get.offAll(() => CustomerDashboard());
       } else {
         debugPrint('Login failed: ${response['message']}');
-        Get.snackbar(
-          "Error",
-          response['message'] ?? 'Login failed',
-          backgroundColor: AppColors.primaryColor,
-          colorText: Colors.black,
-          snackPosition: SnackPosition.TOP,
-        );
+        // Error snackbar is already shown by ApiService globally — no duplicate needed
       }
     } catch (e) {
       debugPrint('Exception during sign in: $e');

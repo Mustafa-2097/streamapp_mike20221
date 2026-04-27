@@ -19,16 +19,29 @@ class OpenTvs extends StatefulWidget {
 class _OpenTvsState extends State<OpenTvs> {
   final LiveTvController controller = Get.put(LiveTvController());
   LiveTvCommentController? commentController;
-
-  final WebViewController webController = WebViewController()
-    ..setJavaScriptMode(JavaScriptMode.unrestricted)
-    ..setBackgroundColor(Colors.black);
-
+  late final WebViewController webController;
   String? _lastLoadedLink;
 
   @override
   void initState() {
     super.initState();
+    final vController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.black);
+    
+    vController.setNavigationDelegate(
+      NavigationDelegate(
+        onPageFinished: (url) {
+          // Inject CSS to make the video full width
+          vController.runJavaScript('''
+            var style = document.createElement('style');
+            style.innerHTML = 'video { width: 100% !important; height: 100% !important; object-fit: contain !important; } body { margin: 0; background: black; display: flex; align-items: center; justify-content: center; height: 100vh; }';
+            document.head.appendChild(style);
+          ''');
+        },
+      ),
+    );
+    webController = vController;
     _initSelection();
   }
 
@@ -42,14 +55,16 @@ class _OpenTvsState extends State<OpenTvs> {
     if (controller.selectedLiveTv.value != null) {
       final tv = controller.selectedLiveTv.value!;
       _lastLoadedLink = tv.link;
-      webController.loadRequest(
-        Uri.parse(tv.link),
-      );
+      webController.loadRequest(Uri.parse(tv.link));
       commentController = Get.put(
         LiveTvCommentController(liveTvId: tv.id),
         tag: tv.id,
       );
     }
+  }
+
+  void _loadVideo(String url) {
+    webController.loadRequest(Uri.parse(url));
   }
 
   @override
@@ -58,7 +73,7 @@ class _OpenTvsState extends State<OpenTvs> {
     ever(controller.selectedLiveTv, (liveTv) {
       if (liveTv != null && mounted && liveTv.link != _lastLoadedLink) {
         _lastLoadedLink = liveTv.link;
-        webController.loadRequest(Uri.parse(liveTv.link));
+        _loadVideo(liveTv.link);
         // Reset comment controller for new TV
         if (commentController != null) {
           Get.delete<LiveTvCommentController>(tag: commentController?.liveTvId);
@@ -91,6 +106,8 @@ class _OpenTvsState extends State<OpenTvs> {
         centerTitle: true,
       ),
       body: SafeArea(
+        left: false,
+        right: false,
         child: Obx(() {
           // If we already have a selected live TV, don't show the full-screen loader
           // during background refreshes.
@@ -122,8 +139,8 @@ class _OpenTvsState extends State<OpenTvs> {
             children: [
               /// VIDEO
               SizedBox(
-                height: 240,
-                width: double.infinity,
+                height: 240.h,
+                width: MediaQuery.of(context).size.width,
                 child: WebViewWidget(controller: webController),
               ),
 

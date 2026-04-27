@@ -18,13 +18,27 @@ class VideoLiveScreen extends StatefulWidget {
 class _VideoLiveScreenState extends State<VideoLiveScreen> {
   final VideoLiveController controller = Get.put(VideoLiveController());
   ReplayCommentController? commentController;
-  final WebViewController webController = WebViewController()
-    ..setJavaScriptMode(JavaScriptMode.unrestricted)
-    ..setBackgroundColor(Colors.black);
+  late final WebViewController webController;
 
   @override
   void initState() {
     super.initState();
+    webController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.black)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (url) {
+            // Inject CSS to make the video full width
+            webController.runJavaScript('''
+              var style = document.createElement('style');
+              style.innerHTML = 'video { width: 100% !important; height: 100% !important; object-fit: contain !important; } body { margin: 0; background: black; display: flex; align-items: center; justify-content: center; height: 100vh; }';
+              document.head.appendChild(style);
+            ''');
+          },
+        ),
+      );
+
     if (widget.replayId != null) {
       controller.fetchReplay(widget.replayId!).then((_) {
         if (controller.replay.value != null) {
@@ -37,6 +51,12 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
         ReplayCommentController(replayId: widget.replayId!),
       );
     }
+  }
+
+  void _loadVideo(String url) {
+    // This method is now replaced by loadRequest directly in initState
+    // but kept as a stub or removed if unused.
+    webController.loadRequest(Uri.parse(_fixUrl(url)));
   }
 
   String _fixUrl(String url) {
@@ -59,6 +79,8 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
+        left: false,
+        right: false,
         child: Obx(() {
           if (controller.isLoading.value) {
             return const Center(
@@ -80,8 +102,8 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
             children: [
               // ✅ TOP VIDEO SECTION (WEBVIEW)
               SizedBox(
-                height: 240,
-                width: double.infinity,
+                height: 240.h,
+                width: MediaQuery.of(context).size.width,
                 child: WebViewWidget(controller: webController),
               ),
 

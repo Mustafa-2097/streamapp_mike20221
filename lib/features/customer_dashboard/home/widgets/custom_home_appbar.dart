@@ -45,18 +45,21 @@ class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                 children: [
                   IconButton(
                     onPressed: () => Get.to(() => NotificationPage()),
-                    icon:
-                        const Icon(Icons.notifications_none, color: Colors.white),
+                    icon: const Icon(
+                      Icons.notifications_none,
+                      color: Colors.white,
+                      size: 30,
+                    ),
                   ),
                   if (count > 0)
                     Positioned(
-                      right: 12,
-                      top: 12,
+                      right: 10,
+                      top: 10,
                       child: Container(
                         height: 10,
                         width: 10,
                         decoration: const BoxDecoration(
-                          color: AppColors.primaryColor, // Yellow
+                          color: AppColors.primaryColor,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -83,8 +86,8 @@ class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                 final photoUrl = profileCtrl.profile.value?.profilePhoto;
 
                 return Container(
-                  width: 24.r,
-                  height: 24.r,
+                  width: 38.r,
+                  height: 38.r,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white24,
@@ -96,7 +99,7 @@ class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                         : null,
                   ),
                   child: photoUrl == null || photoUrl.isEmpty
-                      ? Icon(Icons.person, size: 16.r, color: Colors.white)
+                      ? Icon(Icons.person, size: 24.r, color: Colors.white)
                       : null,
                 );
               }),
