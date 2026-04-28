@@ -26,6 +26,8 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
     super.initState();
     // Release background thumbnail decoders before starting full-screen playback
     VideoResourceManager().releaseAllThumbnails();
+    // Suspend new thumbnail initializations while we are in video mode
+    VideoResourceManager().isSuspended = true;
     webController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.black)
@@ -66,6 +68,12 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
     return url
         .replaceAll('localhost', '10.0.30.59')
         .replaceAll('127.0.0.1', '10.0.30.59');
+  }
+
+  @override
+  void dispose() {
+    VideoResourceManager().isSuspended = false;
+    super.dispose();
   }
 
   @override

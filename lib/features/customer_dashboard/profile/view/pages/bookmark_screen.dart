@@ -10,6 +10,7 @@ import '../../../live/live_dashboard/widget/live_upcoming_card.dart';
 import '../../../news/model/news_model.dart';
 import '../../controller/bookmarks_controller.dart';
 import '../../../replay/model/replay_model.dart';
+import '../../../clips/model/clips_model.dart';
 
 class BookmarkScreen extends StatefulWidget {
   const BookmarkScreen({super.key});
@@ -60,6 +61,12 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
               SizedBox(height: 24.h),
               Expanded(
                 child: Obx(() {
+                  // Optimization: Don't rebuild complex lists if we are not the current route
+                  // (e.g. when OpenReelsVideo is on top).
+                  if (!(ModalRoute.of(context)?.isCurrent ?? true)) {
+                    return const SizedBox.shrink();
+                  }
+
                   if (controller.selectedTabIndex.value == 0) {
                     return _buildLiveList(controller);
                   } else if (controller.selectedTabIndex.value == 1) {
@@ -145,7 +152,7 @@ extension on _BookmarkScreenState {
         itemBuilder: (context, index) {
           final item = controller.liveBookmarks[index];
           return Dismissible(
-            key: Key("bookmark_live_${item.id}"),
+            key: ValueKey("bookmark_live_${item.id}"),
             direction: DismissDirection.startToEnd,
             onDismissed: (_) => controller.removeLive(index),
             background: _buildDeleteBackground(),
@@ -178,7 +185,7 @@ extension on _BookmarkScreenState {
         itemBuilder: (context, index) {
           final item = controller.replayBookmarks[index];
           return Dismissible(
-            key: UniqueKey(),
+            key: ValueKey("bookmark_replay_${item.replayId}"),
             direction: DismissDirection.startToEnd,
             onDismissed: (_) => controller.removeReplay(index),
             background: _buildDeleteBackground(),
@@ -220,7 +227,7 @@ extension on _BookmarkScreenState {
         itemBuilder: (context, index) {
           final clip = controller.clipBookmarks[index];
           return Dismissible(
-            key: UniqueKey(),
+            key: ValueKey("bookmark_clip_${clip.clipId}"),
             direction: DismissDirection.startToEnd,
             onDismissed: (_) {
               controller.removeClip(index);
@@ -234,7 +241,7 @@ extension on _BookmarkScreenState {
               onTap: () {
                 Get.to(
                   () => OpenReelsVideo(
-                    clips: controller.clipBookmarks.toList().obs,
+                    clips: controller.clipBookmarks.toList(),
                     initialIndex: index,
                   ),
                 );
@@ -371,7 +378,7 @@ extension on _BookmarkScreenState {
           final article = Article.fromJson(articleMap);
 
           return Dismissible(
-            key: UniqueKey(),
+            key: ValueKey("bookmark_news_${item['id']}"),
             direction: DismissDirection.startToEnd,
             onDismissed: (_) => controller.removeNews(index),
             background: _buildDeleteBackground(),

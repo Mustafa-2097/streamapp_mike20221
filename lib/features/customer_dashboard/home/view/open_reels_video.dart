@@ -35,28 +35,40 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
     super.initState();
     // Release background thumbnail decoders before starting full-screen playback
     VideoResourceManager().releaseAllThumbnails();
+    // Suspend new thumbnail initializations while we are in reels mode
+    VideoResourceManager().isSuspended = true;
+
     _activeIndex.value = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
   }
 
   @override
   void dispose() {
+    // Resume thumbnail initializations
+    VideoResourceManager().isSuspended = false;
     _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    Get.put(BookmarkController());
+    // Ensure BookmarkController is initialized if not already
+    if (!Get.isRegistered<BookmarkController>()) {
+      Get.put(BookmarkController());
+    }
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          Obx(() => PageView.builder(
+          PageView.builder(
             scrollDirection: Axis.vertical,
             controller: _pageController,
-            onPageChanged: (index) => _activeIndex.value = index,
+            onPageChanged: (index) {
+              setState(() {
+                _activeIndex.value = index;
+              });
+            },
             itemCount: widget.clips.length,
             itemBuilder: (context, index) {
               final clip = widget.clips[index];
@@ -67,7 +79,7 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
                 isActive: _activeIndex.value == index,
               );
             },
-          )),
+          ),
 
           // Mute Toggle Button (Top Right Global)
           Positioned(

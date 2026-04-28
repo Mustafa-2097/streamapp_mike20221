@@ -9,6 +9,9 @@ class VideoResourceManager {
 
   final List<VoidCallback> _releaseCallbacks = [];
   final List<VoidCallback> _reInitCallbacks = [];
+  
+  /// Whether thumbnail initialization is currently suspended (e.g. during reels playback).
+  bool isSuspended = false;
 
   /// Register a callback to release a video player's resources.
   void registerThumbnail(VoidCallback release, VoidCallback reInit) {

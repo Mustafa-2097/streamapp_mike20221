@@ -28,7 +28,7 @@ class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
   }
 
   Future<void> _initializeController() async {
-    if (_isInitialized || _isInitializing) return;
+    if (_isInitialized || _isInitializing || VideoResourceManager().isSuspended) return;
     
     _isInitializing = true;
     
