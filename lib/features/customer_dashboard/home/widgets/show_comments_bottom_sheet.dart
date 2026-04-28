@@ -4,8 +4,8 @@ import 'package:testapp/features/customer_dashboard/clips/controller/comment_con
 import 'package:testapp/features/customer_dashboard/clips/model/comment_model.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-void showCommentBottomSheet(BuildContext context, String clipId) {
-  showModalBottomSheet(
+Future<void> showCommentBottomSheet(BuildContext context, String clipId) async {
+  await showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,

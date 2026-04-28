@@ -278,8 +278,10 @@ class _ClipPageViewState extends State<ClipPageView>
                 isActive: widget.clip.userStatus.isBookmarked,
                 activeColor: Colors.amber,
                 onTap: () {
-                  widget.clip.userStatus.isBookmarked =
-                      !widget.clip.userStatus.isBookmarked;
+                  setState(() {
+                    widget.clip.userStatus.isBookmarked =
+                        !widget.clip.userStatus.isBookmarked;
+                  });
                   Get.find<ClipsController>().clipsList.refresh();
                   Get.find<BookmarkController>().toggleClip(widget.clip);
                 },
@@ -289,10 +291,13 @@ class _ClipPageViewState extends State<ClipPageView>
                 icon: Icons.thumb_up,
                 label: widget.clip.engagement.likes.toString(),
                 isActive: widget.clip.userStatus.isLiked,
-                onTap: () => Get.find<ClipsController>().toggleAction(
-                  widget.clip.clipId,
-                  "LIKE",
-                ),
+                onTap: () {
+                  Get.find<ClipsController>().toggleAction(
+                    widget.clip.clipId,
+                    "LIKE",
+                  );
+                  setState(() {});
+                },
               ),
               const SizedBox(height: 20),
               _buildSideButton(
@@ -300,17 +305,32 @@ class _ClipPageViewState extends State<ClipPageView>
                 label: widget.clip.engagement.dislikes.toString(),
                 isActive: widget.clip.userStatus.isDisliked,
                 activeColor: Colors.redAccent,
-                onTap: () => Get.find<ClipsController>().toggleAction(
-                  widget.clip.clipId,
-                  "DISLIKE",
-                ),
+                onTap: () {
+                  Get.find<ClipsController>().toggleAction(
+                    widget.clip.clipId,
+                    "DISLIKE",
+                  );
+                  setState(() {});
+                },
               ),
               const SizedBox(height: 20),
               _buildIconButton(
                 Icons.chat_bubble_rounded,
                 widget.clip.engagement.comments.toString(),
-                onTap: () =>
-                    showCommentBottomSheet(context, widget.clip.clipId),
+                onTap: () async {
+                  await showCommentBottomSheet(context, widget.clip.clipId);
+                  final updatedClip = await Get.find<ClipsController>()
+                      .fetchSingleClip(widget.clip.clipId);
+                  if (updatedClip != null) {
+                    final idx = Get.find<ClipsController>()
+                        .clipsList
+                        .indexWhere((c) => c.clipId == widget.clip.clipId);
+                    if (idx != -1) {
+                      Get.find<ClipsController>().clipsList[idx] = updatedClip;
+                      Get.find<ClipsController>().clipsList.refresh();
+                    }
+                  }
+                },
               ),
               const SizedBox(height: 20),
               _buildIconButton(
@@ -484,7 +504,7 @@ class _ClipPageViewState extends State<ClipPageView>
     return SideButton(
       icon: icon,
       label: label,
-      initialIsActive: isActive,
+      isActive: isActive,
       activeColor: activeColor ?? const Color.fromARGB(255, 14, 126, 255),
       onTap: onTap,
     );
@@ -526,7 +546,7 @@ class SideButton extends StatefulWidget {
   final double size;
   final Color activeColor;
   final Color inactiveColor;
-  final bool initialIsActive;
+  final bool isActive;
   final VoidCallback? onTap;
 
   const SideButton({
@@ -536,7 +556,7 @@ class SideButton extends StatefulWidget {
     this.size = 32,
     this.activeColor = const Color.fromARGB(255, 14, 126, 255),
     this.inactiveColor = Colors.white,
-    this.initialIsActive = false,
+    this.isActive = false,
     this.onTap,
   });
 
@@ -581,7 +601,7 @@ class _SideButtonState extends State<SideButton>
             scale: _scaleAnimation,
             child: Icon(
               widget.icon,
-              color: widget.initialIsActive
+              color: widget.isActive
                   ? widget.activeColor
                   : widget.inactiveColor,
               size: widget.size,

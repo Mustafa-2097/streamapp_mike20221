@@ -88,7 +88,8 @@ class ContentSection extends StatelessWidget {
               itemCount: liveGameController.liveGames.length,
               itemBuilder: (context, index) {
                 final game = liveGameController.liveGames[index];
-                final isUserPremium = profileController.profile.value?.isPremiumUser ?? false;
+                final isUserPremium =
+                    profileController.profile.value?.isPremiumUser ?? false;
                 final bool isLocked = game.isPremium && !isUserPremium;
 
                 // Sanitize thumbnail URL
@@ -115,7 +116,9 @@ class ContentSection extends StatelessWidget {
                       }
                       if (game.liveTVId.isNotEmpty) {
                         try {
-                          final tv = liveTvController.liveTvs.firstWhere((t) => t.id == game.liveTVId);
+                          final tv = liveTvController.liveTvs.firstWhere(
+                            (t) => t.id == game.liveTVId,
+                          );
                           liveTvController.selectedLiveTv.value = tv;
                         } catch (e) {
                           liveTvController.selectedLiveTv.value = null;
@@ -284,7 +287,8 @@ class ContentSection extends StatelessWidget {
                                 awayTeam: match.awayTeam,
                                 homeScore: int.tryParse(match.homeScore) ?? 0,
                                 awayScore: int.tryParse(match.awayScore) ?? 0,
-                                matchTitle: "${match.homeTeam} vs ${match.awayTeam}",
+                                matchTitle:
+                                    "${match.homeTeam} vs ${match.awayTeam}",
                               ),
                             );
                           },
@@ -321,21 +325,28 @@ class ContentSection extends StatelessWidget {
             );
           }
 
-          final bool isPremium = profileController.profile.value?.isPremiumUser ?? false;
+          final bool isPremium =
+              profileController.profile.value?.isPremiumUser ?? false;
           final bool isPremiumError =
-              replayController.errorMessage.value.toLowerCase().contains("premium") ||
-              replayController.errorMessage.value.toLowerCase().contains("subscription") ||
-              replayController.errorMessage.value.toLowerCase().contains("active");
+              replayController.errorMessage.value.toLowerCase().contains(
+                "premium",
+              ) ||
+              replayController.errorMessage.value.toLowerCase().contains(
+                "subscription",
+              ) ||
+              replayController.errorMessage.value.toLowerCase().contains(
+                "active",
+              );
 
           // Show premium placeholder if not premium OR if we got a premium-related error
           if (!isPremium || isPremiumError) {
-             // Only show placeholder if the list is actually empty (which it should be for non-premium)
-             if (replayController.replaysList.isEmpty) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: _buildPremiumReplayCard(),
-                );
-             }
+            // Only show placeholder if the list is actually empty (which it should be for non-premium)
+            if (replayController.replaysList.isEmpty) {
+              return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: _buildPremiumReplayCard(),
+              );
+            }
           }
 
           if (replayController.replaysList.isEmpty) {
@@ -376,22 +387,25 @@ class ContentSection extends StatelessWidget {
                     ),
                     child: GestureDetector(
                       onTap: () {
-                        Get.to(() => VideoLiveScreen(replayId: replay.replayId))
-                            ?.then((_) {
+                        Get.to(
+                          () => VideoLiveScreen(replayId: replay.replayId),
+                        )?.then((_) {
                           // Refresh this specific replay item to update view counts/likes upon return
                           replayController
                               .fetchSingleReplay(replay.replayId)
                               .then((updated) {
-                            if (updated != null) {
-                              final index = replayController.replaysList
-                                  .indexWhere(
-                                      (r) => r.replayId == replay.replayId);
-                              if (index != -1) {
-                                replayController.replaysList[index] = updated;
-                                replayController.replaysList.refresh();
-                              }
-                            }
-                          });
+                                if (updated != null) {
+                                  final index = replayController.replaysList
+                                      .indexWhere(
+                                        (r) => r.replayId == replay.replayId,
+                                      );
+                                  if (index != -1) {
+                                    replayController.replaysList[index] =
+                                        updated;
+                                    replayController.replaysList.refresh();
+                                  }
+                                }
+                              });
                         });
                       },
                       child: Column(
@@ -525,15 +539,20 @@ class ContentSection extends StatelessWidget {
                   padding: EdgeInsets.only(right: 12.w),
                   child: GestureDetector(
                     onTap: () {
-                      Get.to(() => OpenReelsVideo(
-                            clips: clipsController.clipsList,
-                            initialIndex: index,
-                          ))?.then((_) {
+                      Get.to(
+                        () => OpenReelsVideo(
+                          clips: clipsController.clipsList,
+                          initialIndex: index,
+                        ),
+                      )?.then((_) {
                         // Refresh this specific clip to update views/likes on home screen return
-                        clipsController.fetchSingleClip(clip.clipId).then((updated) {
+                        clipsController.fetchSingleClip(clip.clipId).then((
+                          updated,
+                        ) {
                           if (updated != null) {
-                            final idx = clipsController.clipsList
-                                .indexWhere((c) => c.clipId == clip.clipId);
+                            final idx = clipsController.clipsList.indexWhere(
+                              (c) => c.clipId == clip.clipId,
+                            );
                             if (idx != -1) {
                               clipsController.clipsList[idx] = updated;
                               clipsController.clipsList.refresh();
@@ -869,7 +888,8 @@ class ContentSection extends StatelessWidget {
 
   Widget _buildTVChannel(LiveTvModel tv) {
     final profileController = Get.find<ProfileController>();
-    final isUserPremium = profileController.profile.value?.isPremiumUser ?? false;
+    final isUserPremium =
+        profileController.profile.value?.isPremiumUser ?? false;
     final bool isLocked = tv.isPremium && !isUserPremium;
 
     final imageUrl = tv.thumbnail
@@ -921,11 +941,7 @@ class ContentSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Center(
-                  child: Icon(
-                    Icons.lock,
-                    color: Colors.white,
-                    size: 20,
-                  ),
+                  child: Icon(Icons.lock, color: Colors.white, size: 20),
                 ),
               ),
             ),
@@ -1023,9 +1039,7 @@ class ContentSection extends StatelessWidget {
     Get.dialog(
       Dialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
