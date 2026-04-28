@@ -5,6 +5,7 @@ import 'package:testapp/core/const/app_colors.dart';
 import 'package:testapp/features/customer_dashboard/home/widgets/upcoming_match_card.dart';
 import 'package:testapp/features/customer_dashboard/clips/widgets/video_thumbnail_widget.dart';
 import 'package:testapp/core/utils/url_helper.dart';
+import 'package:testapp/core/utils/video_resource_manager.dart';
 
 import '../../clips/screen/clips_screen.dart';
 import '../../live/live_dashboard/screen/live_screen.dart';
@@ -93,10 +94,7 @@ class ContentSection extends StatelessWidget {
                 final bool isLocked = game.isPremium && !isUserPremium;
 
                 // Sanitize thumbnail URL
-                final imageUrl = game.thumbnail
-                    .replaceAll('localhost', '10.0.30.59')
-                    .replaceAll('127.0.0.1', '10.0.30.59')
-                    .replaceFirst('undefined/', 'http://10.0.30.59:8000/');
+                final imageUrl = UrlHelper.sanitizeUrl(game.thumbnail);
 
                 return Padding(
                   padding: EdgeInsets.only(right: 12.w),
@@ -371,9 +369,7 @@ class ContentSection extends StatelessWidget {
                   : replayController.replaysList.length,
               itemBuilder: (context, index) {
                 final replay = replayController.replaysList[index];
-                final imageUrl = replay.thumbnailUrl
-                    .replaceAll('localhost', '10.0.30.59')
-                    .replaceAll('127.0.0.1', '10.0.30.59');
+                final imageUrl = UrlHelper.sanitizeUrl(replay.thumbnailUrl);
 
                 return Padding(
                   padding: EdgeInsets.only(right: 12.w),
@@ -390,6 +386,8 @@ class ContentSection extends StatelessWidget {
                         Get.to(
                           () => VideoLiveScreen(replayId: replay.replayId),
                         )?.then((_) {
+                          // Re-initialize released thumbnails
+                          VideoResourceManager().reInitializeThumbnails();
                           // Refresh this specific replay item to update view counts/likes upon return
                           replayController
                               .fetchSingleReplay(replay.replayId)
@@ -506,7 +504,10 @@ class ContentSection extends StatelessWidget {
         SizedBox(height: 24.h),
 
         // Clips Section
-        _sectionName('Clips', () => Get.to(() => ClipsScreen())),
+        _sectionName('Clips', () {
+          VideoResourceManager().releaseAllThumbnails();
+          Get.to(() => ClipsScreen());
+        }),
         SizedBox(height: 16.h),
 
         // Horizontal Clips List
@@ -545,6 +546,8 @@ class ContentSection extends StatelessWidget {
                           initialIndex: index,
                         ),
                       )?.then((_) {
+                        // Re-initialize released thumbnails
+                        VideoResourceManager().reInitializeThumbnails();
                         // Refresh this specific clip to update views/likes on home screen return
                         clipsController.fetchSingleClip(clip.clipId).then((
                           updated,

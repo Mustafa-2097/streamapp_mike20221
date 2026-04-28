@@ -9,6 +9,7 @@ import '../../clips/model/clips_model.dart';
 import '../../clips/controller/clips_controller.dart';
 import '../../profile/controller/bookmarks_controller.dart';
 import 'package:testapp/core/utils/url_helper.dart';
+import 'package:testapp/core/utils/video_resource_manager.dart';
 
 class OpenReelsVideo extends StatefulWidget {
   final List<ClipModel> clips;
@@ -32,6 +33,8 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
   @override
   void initState() {
     super.initState();
+    // Release background thumbnail decoders before starting full-screen playback
+    VideoResourceManager().releaseAllThumbnails();
     _activeIndex.value = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
   }
@@ -272,20 +275,20 @@ class _ClipPageViewState extends State<ClipPageView>
             children: [
               // _buildProfileIcon(),
               // const SizedBox(height: 25),
-              _buildSideButton(
-                icon: Icons.bookmark,
-                label: "",
-                isActive: widget.clip.userStatus.isBookmarked,
-                activeColor: Colors.amber,
-                onTap: () {
-                  setState(() {
-                    widget.clip.userStatus.isBookmarked =
-                        !widget.clip.userStatus.isBookmarked;
-                  });
-                  Get.find<ClipsController>().clipsList.refresh();
-                  Get.find<BookmarkController>().toggleClip(widget.clip);
-                },
-              ),
+              Obx(() {
+                final bool isBookmarked = Get.find<BookmarkController>().isBookmarked(widget.clip);
+                return _buildSideButton(
+                  icon: Icons.bookmark,
+                  label: "",
+                  isActive: isBookmarked,
+                  activeColor: Colors.amber,
+                  onTap: () {
+                    // Optimistic update of the local object is still good for immediate feedback
+                    // but the Obx will primarily rely on BookmarkController
+                    Get.find<BookmarkController>().toggleClip(widget.clip);
+                  },
+                );
+              }),
               const SizedBox(height: 20),
               _buildSideButton(
                 icon: Icons.thumb_up,

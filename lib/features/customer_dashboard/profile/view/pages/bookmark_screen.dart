@@ -149,9 +149,7 @@ extension on _BookmarkScreenState {
             direction: DismissDirection.startToEnd,
             onDismissed: (_) => controller.removeLive(index),
             background: _buildDeleteBackground(),
-            child: LiveUpcomingCard(
-              match: item,
-            ),
+            child: LiveUpcomingCard(match: item),
           );
         },
       );
@@ -236,7 +234,7 @@ extension on _BookmarkScreenState {
               onTap: () {
                 Get.to(
                   () => OpenReelsVideo(
-                    clips: controller.clipBookmarks,
+                    clips: controller.clipBookmarks.toList().obs,
                     initialIndex: index,
                   ),
                 );
