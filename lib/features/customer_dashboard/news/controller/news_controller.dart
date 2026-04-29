@@ -232,8 +232,6 @@ class NewsController extends GetxController {
         // Update local article if it exists in newsList
         int index = newsList.indexWhere((a) => a.id == newsId);
         if (index != -1) {
-          newsList[index].commentCount =
-              (newsList[index].commentCount ?? 0) + 1;
           newsList.refresh();
         }
         return newComment;

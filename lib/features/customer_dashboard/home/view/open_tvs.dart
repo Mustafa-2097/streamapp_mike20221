@@ -9,6 +9,17 @@ import '../../profile/controller/profile_controller.dart';
 import '../../subscription/view/subscription_screen.dart';
 import '../../../../core/const/app_colors.dart';
 
+String _getTimeAgo(DateTime dateTime) {
+  final duration = DateTime.now().difference(dateTime);
+  if (duration.inDays >= 365) return "${(duration.inDays / 365).floor()}y ago";
+  if (duration.inDays >= 30) return "${(duration.inDays / 30).floor()}mo ago";
+  if (duration.inDays >= 7) return "${(duration.inDays / 7).floor()}w ago";
+  if (duration.inDays >= 1) return "${duration.inDays}d ago";
+  if (duration.inHours >= 1) return "${duration.inHours}h ago";
+  if (duration.inMinutes >= 1) return "${duration.inMinutes}m ago";
+  return "Just now";
+}
+
 class OpenTvs extends StatefulWidget {
   OpenTvs({super.key});
 
@@ -186,10 +197,10 @@ class _OpenTvsState extends State<OpenTvs> {
                                   ),
                                 ),
                               ),
-                              const Icon(
-                                Icons.keyboard_arrow_down,
-                                color: Colors.white70,
-                              ),
+                              // const Icon(
+                              //   Icons.keyboard_arrow_down,
+                              //   color: Colors.white70,
+                              // ),
                             ],
                           ),
 
@@ -652,50 +663,55 @@ class _CommentTile extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _actionIcon(
-                          comment.userStatus.isLiked
-                              ? Icons.thumb_up
-                              : Icons.thumb_up_alt_outlined,
-                          comment.likeCount.toString(),
-                          comment.userStatus.isLiked
-                              ? Colors.redAccent
-                              : Colors.grey,
-                          () => controller.toggleCommentAction(
-                            comment.commentId,
-                            "LIKE",
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        _actionIcon(
-                          comment.userStatus.isDisliked
-                              ? Icons.thumb_down
-                              : Icons.thumb_down_alt_outlined,
-                          comment.dislikeCount.toString(),
-                          comment.userStatus.isDisliked
-                              ? Colors.redAccent
-                              : Colors.grey,
-                          () => controller.toggleCommentAction(
-                            comment.commentId,
-                            "DISLIKE",
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        GestureDetector(
-                          onTap: () => controller.startReply(comment),
-                          child: const Text(
-                            "Reply",
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 4),
+                    Text(
+                      _getTimeAgo(comment.createdAt),
+                      style: const TextStyle(color: Colors.white38, fontSize: 10),
                     ),
+                    const SizedBox(height: 8),
+                    // Row(
+                    //   children: [
+                    //     _actionIcon(
+                    //       comment.userStatus.isLiked
+                    //           ? Icons.thumb_up
+                    //           : Icons.thumb_up_alt_outlined,
+                    //       comment.likeCount.toString(),
+                    //       comment.userStatus.isLiked
+                    //           ? Colors.redAccent
+                    //           : Colors.grey,
+                    //       () => controller.toggleCommentAction(
+                    //         comment.commentId,
+                    //         "LIKE",
+                    //       ),
+                    //     ),
+                    //     const SizedBox(width: 16),
+                    //     _actionIcon(
+                    //       comment.userStatus.isDisliked
+                    //           ? Icons.thumb_down
+                    //           : Icons.thumb_down_alt_outlined,
+                    //       comment.dislikeCount.toString(),
+                    //       comment.userStatus.isDisliked
+                    //           ? Colors.redAccent
+                    //           : Colors.grey,
+                    //       () => controller.toggleCommentAction(
+                    //         comment.commentId,
+                    //         "DISLIKE",
+                    //       ),
+                    //     ),
+                    //     const SizedBox(width: 20),
+                    //     GestureDetector(
+                    //       onTap: () => controller.startReply(comment),
+                    //       child: const Text(
+                    //         "Reply",
+                    //         style: TextStyle(
+                    //           color: Colors.grey,
+                    //           fontSize: 12,
+                    //           fontWeight: FontWeight.w600,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
 
                     // Inner Replies
                     if (comment.replies.isNotEmpty)
@@ -822,40 +838,45 @@ class _RepliesList extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            _replyActionIcon(
-                              reply.userStatus.isLiked
-                                  ? Icons.thumb_up
-                                  : Icons.thumb_up_alt_outlined,
-                              reply.likeCount.toString(),
-                              reply.userStatus.isLiked
-                                  ? Colors.redAccent
-                                  : Colors.grey,
-                              () => controller.toggleCommentAction(
-                                reply.commentId,
-                                "LIKE",
-                                parentId: parentCommentId,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            _replyActionIcon(
-                              reply.userStatus.isDisliked
-                                  ? Icons.thumb_down
-                                  : Icons.thumb_down_alt_outlined,
-                              reply.dislikeCount.toString(),
-                              reply.userStatus.isDisliked
-                                  ? Colors.redAccent
-                                  : Colors.grey,
-                              () => controller.toggleCommentAction(
-                                reply.commentId,
-                                "DISLIKE",
-                                parentId: parentCommentId,
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 2),
+                        Text(
+                          _getTimeAgo(reply.createdAt),
+                          style: const TextStyle(color: Colors.white38, fontSize: 9),
                         ),
+                        const SizedBox(height: 6),
+                        // Row(
+                        //   children: [
+                        //     _replyActionIcon(
+                        //       reply.userStatus.isLiked
+                        //           ? Icons.thumb_up
+                        //           : Icons.thumb_up_alt_outlined,
+                        //       reply.likeCount.toString(),
+                        //       reply.userStatus.isLiked
+                        //           ? Colors.redAccent
+                        //           : Colors.grey,
+                        //       () => controller.toggleCommentAction(
+                        //         reply.commentId,
+                        //         "LIKE",
+                        //         parentId: parentCommentId,
+                        //       ),
+                        //     ),
+                        //     const SizedBox(width: 12),
+                        //     _replyActionIcon(
+                        //       reply.userStatus.isDisliked
+                        //           ? Icons.thumb_down
+                        //           : Icons.thumb_down_alt_outlined,
+                        //       reply.dislikeCount.toString(),
+                        //       reply.userStatus.isDisliked
+                        //           ? Colors.redAccent
+                        //           : Colors.grey,
+                        //       () => controller.toggleCommentAction(
+                        //         reply.commentId,
+                        //         "DISLIKE",
+                        //         parentId: parentCommentId,
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
                       ],
                     ),
                   ),
