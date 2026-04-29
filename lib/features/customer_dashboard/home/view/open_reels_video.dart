@@ -73,7 +73,9 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
             itemBuilder: (context, index) {
               final clip = widget.clips[index];
               return ClipPageView(
-                key: ValueKey(clip.clipId), // Stable key to prevent unnecessary resets
+                key: ValueKey(
+                  clip.clipId,
+                ), // Stable key to prevent unnecessary resets
                 clip: clip,
                 isMuted: _isMuted,
                 isActive: _activeIndex.value == index,
@@ -85,16 +87,18 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
           Positioned(
             top: 50,
             right: 15,
-            child: Obx(() => IconButton(
-              icon: Icon(
-                _isMuted.value ? Icons.volume_off : Icons.volume_up,
-                color: Colors.white,
-                size: 28,
+            child: Obx(
+              () => IconButton(
+                icon: Icon(
+                  _isMuted.value ? Icons.volume_off : Icons.volume_up,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                onPressed: () => _isMuted.value = !_isMuted.value,
               ),
-              onPressed: () => _isMuted.value = !_isMuted.value,
-            )),
+            ),
           ),
-          
+
           // Back Button (Top Left Global)
           Positioned(
             top: 50,
@@ -176,31 +180,35 @@ class _ClipPageViewState extends State<ClipPageView>
     debugPrint("Reel Playback Target: $videoUrl");
 
     // mixWithOthers: false ensures Android requests audio focus properly
-    _videoController = VideoPlayerController.networkUrl(
-      Uri.parse(videoUrl),
-      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: false),
-    )..initialize()
-          .then((_) {
-            if (mounted) {
-              setState(() {
-                _isInitialized = true;
-                _videoController!.setLooping(true);
-                // Only play + set volume if this page is currently visible
-                if (widget.isActive) {
-                  _videoController!.play();
-                  _videoController!.setVolume(widget.isMuted.value ? 0.0 : 1.0);
+    _videoController =
+        VideoPlayerController.networkUrl(
+            Uri.parse(videoUrl),
+            videoPlayerOptions: VideoPlayerOptions(mixWithOthers: false),
+          )
+          ..initialize()
+              .then((_) {
+                if (mounted) {
+                  setState(() {
+                    _isInitialized = true;
+                    _videoController!.setLooping(true);
+                    // Only play + set volume if this page is currently visible
+                    if (widget.isActive) {
+                      _videoController!.play();
+                      _videoController!.setVolume(
+                        widget.isMuted.value ? 0.0 : 1.0,
+                      );
+                    }
+                  });
+                }
+              })
+              .catchError((error) {
+                debugPrint("Reel Loading Error: $error");
+                if (mounted) {
+                  setState(() {
+                    _hasError = true;
+                  });
                 }
               });
-            }
-          })
-          .catchError((error) {
-            debugPrint("Reel Loading Error: $error");
-            if (mounted) {
-              setState(() {
-                _hasError = true;
-              });
-            }
-          });
   }
 
   @override
@@ -282,87 +290,106 @@ class _ClipPageViewState extends State<ClipPageView>
         Positioned(
           right: 10,
           bottom: 100,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // _buildProfileIcon(),
-              // const SizedBox(height: 25),
-              Obx(() {
-                final bool isBookmarked = Get.find<BookmarkController>().isBookmarked(widget.clip);
-                return _buildSideButton(
-                  icon: Icons.bookmark,
-                  label: "",
-                  isActive: isBookmarked,
-                  activeColor: Colors.amber,
-                  onTap: () {
-                    // Optimistic update of the local object is still good for immediate feedback
-                    // but the Obx will primarily rely on BookmarkController
-                    Get.find<BookmarkController>().toggleClip(widget.clip);
-                  },
-                );
-              }),
-              const SizedBox(height: 20),
-              _buildSideButton(
-                icon: Icons.thumb_up,
-                label: widget.clip.engagement.likes.toString(),
-                isActive: widget.clip.userStatus.isLiked,
-                onTap: () {
-                  Get.find<ClipsController>().toggleAction(
-                    widget.clip.clipId,
-                    "LIKE",
-                  );
-                  setState(() {});
-                },
-              ),
-              const SizedBox(height: 20),
-              _buildSideButton(
-                icon: Icons.thumb_down,
-                label: widget.clip.engagement.dislikes.toString(),
-                isActive: widget.clip.userStatus.isDisliked,
-                activeColor: Colors.redAccent,
-                onTap: () {
-                  Get.find<ClipsController>().toggleAction(
-                    widget.clip.clipId,
-                    "DISLIKE",
-                  );
-                  setState(() {});
-                },
-              ),
-              const SizedBox(height: 20),
-              _buildIconButton(
-                Icons.chat_bubble_rounded,
-                widget.clip.engagement.comments.toString(),
-                onTap: () async {
-                  await showCommentBottomSheet(context, widget.clip.clipId);
-                  final updatedClip = await Get.find<ClipsController>()
-                      .fetchSingleClip(widget.clip.clipId);
-                  if (updatedClip != null) {
-                    final idx = Get.find<ClipsController>()
-                        .clipsList
-                        .indexWhere((c) => c.clipId == widget.clip.clipId);
-                    if (idx != -1) {
-                      Get.find<ClipsController>().clipsList[idx] = updatedClip;
-                      Get.find<ClipsController>().clipsList.refresh();
-                    }
+          child: Obx(() {
+            // Find the latest clip state from the controller for optimistic updates
+            // (if it's in the list) or use the initial widget.clip
+            final latestClip = Get.find<ClipsController>().clipsList.firstWhere(
+              (c) => c.clipId == widget.clip.clipId,
+              orElse: () => widget.clip,
+            );
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // _buildProfileIcon(),
+                // const SizedBox(height: 25),
+                Builder(
+                  builder: (context) {
+                    final bool isBookmarked = Get.find<BookmarkController>()
+                        .isBookmarked(latestClip);
+                    return _buildSideButton(
+                      icon: Icons.bookmark,
+                      label: "",
+                      isActive: isBookmarked,
+                      activeColor: Colors.amber,
+                      onTap: () {
+                        Get.find<BookmarkController>().toggleClip(latestClip);
+                      },
+                    );
                   }
-                },
-              ),
-              const SizedBox(height: 20),
-              _buildIconButton(
-                Icons.reply,
-                widget.clip.engagement.shares.toString(),
-                isMirrored: true,
-                onTap: () {
-                  final shareLink = UrlHelper.sanitizeUrl(widget.clip.shareUrl);
-                  Share.share("${widget.clip.title}\n\n$shareLink");
-                  Get.find<ClipsController>().toggleAction(
-                    widget.clip.clipId,
-                    "SHARE",
-                  );
-                },
-              ),
-            ],
-          ),
+                ),
+                const SizedBox(height: 20),
+                _buildSideButton(
+                  icon: Icons.thumb_up,
+                  label: latestClip.engagement.likes.toString(),
+                  isActive: latestClip.userStatus.isLiked,
+                  onTap: () {
+                    Get.find<ClipsController>().toggleAction(
+                      latestClip.clipId,
+                      "LIKE",
+                      clipData: latestClip,
+                    );
+                    setState(() {});
+                  },
+                ),
+                const SizedBox(height: 20),
+                _buildSideButton(
+                  icon: Icons.thumb_down,
+                  label: latestClip.engagement.dislikes.toString(),
+                  isActive: latestClip.userStatus.isDisliked,
+                  activeColor: Colors.redAccent,
+                  onTap: () {
+                    Get.find<ClipsController>().toggleAction(
+                      latestClip.clipId,
+                      "DISLIKE",
+                      clipData: latestClip,
+                    );
+                    setState(() {});
+                  },
+                ),
+                const SizedBox(height: 20),
+                _buildIconButton(
+                  Icons.chat_bubble_rounded,
+                  latestClip.engagement.comments.toString(),
+                  onTap: () async {
+                    await showCommentBottomSheet(context, latestClip.clipId);
+                    final updatedClip = await Get.find<ClipsController>()
+                        .fetchSingleClip(latestClip.clipId);
+                    if (updatedClip != null) {
+                      final idx = Get.find<ClipsController>().clipsList
+                          .indexWhere((c) => c.clipId == latestClip.clipId);
+                      if (idx != -1) {
+                        Get.find<ClipsController>().clipsList[idx] = updatedClip;
+                        Get.find<ClipsController>().clipsList.refresh();
+                      }
+                      setState(() {
+                         // Update local widget.clip if not in list
+                         if (idx == -1) {
+                            widget.clip.engagement.comments = updatedClip.engagement.comments;
+                         }
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 20),
+                _buildIconButton(
+                  Icons.reply,
+                  latestClip.engagement.shares.toString(),
+                  isMirrored: true,
+                  onTap: () {
+                    final shareLink = UrlHelper.sanitizeUrl(latestClip.shareUrl);
+                    Share.share("${latestClip.title}\n\n$shareLink");
+                    Get.find<ClipsController>().toggleAction(
+                      latestClip.clipId,
+                      "SHARE",
+                      clipData: latestClip,
+                    );
+                    setState(() {});
+                  },
+                ),
+              ],
+            );
+          }),
         ),
 
         // 7. Info Overlay
@@ -397,25 +424,27 @@ class _ClipPageViewState extends State<ClipPageView>
               const SizedBox(height: 10),
               Row(
                 children: [
-                    Container(
-                      width: 24.r,
-                      height: 24.r,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white24,
-                        image: widget.clip.user.profilePhoto.isNotEmpty
-                            ? DecorationImage(
-                                image: NetworkImage(
-                                  UrlHelper.sanitizeUrl(widget.clip.user.profilePhoto),
+                  Container(
+                    width: 24.r,
+                    height: 24.r,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white24,
+                      image: widget.clip.user.profilePhoto.isNotEmpty
+                          ? DecorationImage(
+                              image: NetworkImage(
+                                UrlHelper.sanitizeUrl(
+                                  widget.clip.user.profilePhoto,
                                 ),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
-                      ),
-                      child: widget.clip.user.profilePhoto.isEmpty
-                          ? Icon(Icons.person, color: Colors.white70, size: 14.r)
+                              ),
+                              fit: BoxFit.cover,
+                            )
                           : null,
                     ),
+                    child: widget.clip.user.profilePhoto.isEmpty
+                        ? Icon(Icons.person, color: Colors.white70, size: 14.r)
+                        : null,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     widget.clip.user.name,
