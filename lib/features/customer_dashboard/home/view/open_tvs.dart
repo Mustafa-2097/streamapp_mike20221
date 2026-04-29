@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -32,6 +33,7 @@ class _OpenTvsState extends State<OpenTvs> {
   LiveTvCommentController? commentController;
   late final WebViewController webController;
   String? _lastLoadedLink;
+  bool isFullScreen = false;
 
   @override
   void initState() {
@@ -74,6 +76,36 @@ class _OpenTvsState extends State<OpenTvs> {
     }
   }
 
+  void _toggleFullScreen() {
+    setState(() {
+      isFullScreen = !isFullScreen;
+    });
+
+    if (isFullScreen) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } else {
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: SystemUiOverlay.values,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
+    super.dispose();
+  }
+
   void _loadVideo(String url) {
     webController.loadRequest(Uri.parse(url));
   }
@@ -99,9 +131,11 @@ class _OpenTvsState extends State<OpenTvs> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
+      appBar: isFullScreen
+          ? null
+          : AppBar(
+              backgroundColor: Colors.black,
+              elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Get.back(),
@@ -152,13 +186,41 @@ class _OpenTvsState extends State<OpenTvs> {
             children: [
               /// VIDEO
               SizedBox(
-                height: 240.h,
+                height: isFullScreen
+                    ? MediaQuery.of(context).size.height
+                    : 240.h,
                 width: MediaQuery.of(context).size.width,
-                child: WebViewWidget(controller: webController),
+                child: Stack(
+                  children: [
+                    WebViewWidget(controller: webController),
+                    Positioned(
+                      bottom: 10,
+                      right: 10,
+                      child: GestureDetector(
+                        onTap: _toggleFullScreen,
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: Colors.black26,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Icon(
+                            isFullScreen
+                                ? Icons.fullscreen_exit
+                                : Icons.fullscreen,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               /// DETAILS
-              Expanded(
+              if (!isFullScreen)
+                Expanded(
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
@@ -295,7 +357,7 @@ class _OpenTvsState extends State<OpenTvs> {
                   ),
                 ),
               ),
-              _commentInputBar(),
+              if (!isFullScreen) _commentInputBar(),
             ],
           );
         }),
