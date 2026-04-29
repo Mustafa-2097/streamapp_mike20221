@@ -6,6 +6,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../controller/video_controller.dart';
 import '../../../replay/controller/replay_comment_controller.dart';
 import '../../../replay/model/replay_comment_model.dart';
+import 'package:testapp/core/utils/video_resource_manager.dart';
 
 class VideoLiveScreen extends StatefulWidget {
   final String? replayId;
@@ -23,6 +24,10 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
   @override
   void initState() {
     super.initState();
+    // Release background thumbnail decoders before starting full-screen playback
+    VideoResourceManager().releaseAllThumbnails();
+    // Suspend new thumbnail initializations while we are in video mode
+    VideoResourceManager().isSuspended = true;
     webController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.black)
@@ -63,6 +68,12 @@ class _VideoLiveScreenState extends State<VideoLiveScreen> {
     return url
         .replaceAll('localhost', '10.0.30.59')
         .replaceAll('127.0.0.1', '10.0.30.59');
+  }
+
+  @override
+  void dispose() {
+    VideoResourceManager().isSuspended = false;
+    super.dispose();
   }
 
   @override

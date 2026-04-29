@@ -104,7 +104,6 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
           optimisticComment,
         );
       }
-      currentArticle.commentCount = (currentArticle.commentCount ?? 0) + 1;
       _commentController.clear();
       replyingToComment = null;
     });
@@ -143,7 +142,6 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
             tempId,
           );
         }
-        currentArticle.commentCount = (currentArticle.commentCount ?? 0) - 1;
         _commentController.text = originalText; // Restore text for another try
       });
 
@@ -221,11 +219,21 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   }
 
   Future<void> _handleToggleBookmark() async {
+    // --- OPTIMISTIC UI: INSTANT FEEDBACK ---
+    final originalStatus = currentArticle.isBookmarked;
+    setState(() {
+      currentArticle.isBookmarked = !(originalStatus ?? false);
+    });
+
     final newStatus = await controller.toggleBookmark(currentArticle.id!);
     if (newStatus != null) {
-      setState(() {
-        currentArticle.isBookmarked = newStatus;
-      });
+      // Success: Sync with exact server status if different
+      if (currentArticle.isBookmarked != newStatus) {
+        setState(() {
+          currentArticle.isBookmarked = newStatus;
+        });
+      }
+
       // Refresh Bookmark Screen if controller is active
       try {
         if (Get.isRegistered<BookmarkController>()) {
@@ -234,6 +242,18 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
       } catch (e) {
         debugPrint("BookmarkController not found: $e");
       }
+    } else {
+      // Error: Rollback UI
+      setState(() {
+        currentArticle.isBookmarked = originalStatus;
+      });
+      Get.snackbar(
+        "Sync Error",
+        "Failed to update bookmark status on server.",
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.primaryColor,
+        colorText: Colors.black,
+      );
     }
   }
 
@@ -465,7 +485,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                     const SizedBox(height: 30),
                     Center(
                       child: Text(
-                        "Comments (${currentArticle.commentCount ?? 0})",
+                        "Comments (${currentArticle.totalComments})",
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,

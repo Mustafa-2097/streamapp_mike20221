@@ -9,6 +9,17 @@ import '../../profile/controller/profile_controller.dart';
 import '../../subscription/view/subscription_screen.dart';
 import '../../../../core/const/app_colors.dart';
 
+String _getTimeAgo(DateTime dateTime) {
+  final duration = DateTime.now().difference(dateTime);
+  if (duration.inDays >= 365) return "${(duration.inDays / 365).floor()}y ago";
+  if (duration.inDays >= 30) return "${(duration.inDays / 30).floor()}mo ago";
+  if (duration.inDays >= 7) return "${(duration.inDays / 7).floor()}w ago";
+  if (duration.inDays >= 1) return "${duration.inDays}d ago";
+  if (duration.inHours >= 1) return "${duration.inHours}h ago";
+  if (duration.inMinutes >= 1) return "${duration.inMinutes}m ago";
+  return "Just now";
+}
+
 class OpenTvs extends StatefulWidget {
   OpenTvs({super.key});
 
@@ -28,7 +39,7 @@ class _OpenTvsState extends State<OpenTvs> {
     final vController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.black);
-    
+
     vController.setNavigationDelegate(
       NavigationDelegate(
         onPageFinished: (url) {
@@ -111,7 +122,8 @@ class _OpenTvsState extends State<OpenTvs> {
         child: Obx(() {
           // If we already have a selected live TV, don't show the full-screen loader
           // during background refreshes.
-          if (controller.isLoading.value && controller.selectedLiveTv.value == null) {
+          if (controller.isLoading.value &&
+              controller.selectedLiveTv.value == null) {
             return const Center(
               child: CircularProgressIndicator(color: Colors.redAccent),
             );
@@ -128,7 +140,8 @@ class _OpenTvsState extends State<OpenTvs> {
 
           final liveTv = controller.selectedLiveTv.value!;
           final profileController = Get.find<ProfileController>();
-          final isUserPremium = profileController.profile.value?.isPremiumUser ?? false;
+          final isUserPremium =
+              profileController.profile.value?.isPremiumUser ?? false;
           final bool isLocked = liveTv.isPremium && !isUserPremium;
 
           if (isLocked) {
@@ -170,104 +183,119 @@ class _OpenTvsState extends State<OpenTvs> {
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                liveTv.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  liveTv.title,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              // const Icon(
+                              //   Icons.keyboard_arrow_down,
+                              //   color: Colors.white70,
+                              // ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          const Text(
+                            "Live • Streaming",
+                            style: TextStyle(
+                              color: Colors.white54,
+                              fontSize: 12,
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          /// Action Row (Like, Dislike, Share)
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: 60,
+                                child: _actionItem(
+                                  icon: liveTv.liked
+                                      ? Icons.thumb_up
+                                      : Icons.thumb_up_alt_outlined,
+                                  label: _formatCount(liveTv.likes),
+                                  color: liveTv.liked
+                                      ? const Color.fromARGB(255, 14, 126, 255)
+                                      : Colors.white70,
+                                  onTap: () => controller.toggleLike(liveTv.id),
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              SizedBox(
+                                width: 60,
+                                child: _actionItem(
+                                  icon: liveTv.disliked
+                                      ? Icons.thumb_down
+                                      : Icons.thumb_down_alt_outlined,
+                                  label: _formatCount(liveTv.dislikes),
+                                  color: liveTv.disliked
+                                      ? Colors.redAccent
+                                      : Colors.white70,
+                                  onTap: () =>
+                                      controller.toggleDislike(liveTv.id),
+                                ),
+                              ),
+                              // const SizedBox(width: 20),
+                              // SizedBox(
+                              //   width: 60,
+                              //   child: _actionItem(
+                              //     icon: Icons.share_outlined,
+                              //     label: "Share",
+                              //     onTap: () => controller.shareLiveTv(liveTv.id),
+                              //   ),
+                              // ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Comments",
+                                style: TextStyle(
                                   color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ),
-                            const Icon(
-                              Icons.keyboard_arrow_down,
-                              color: Colors.white70,
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 6),
-
-                        const Text(
-                          "Live • Streaming",
-                          style: TextStyle(color: Colors.white54, fontSize: 12),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        /// Action Row (Like, Dislike, Share)
-                        Row(
-                          children: [
-                            SizedBox(
-                              width: 60,
-                              child: _actionItem(
-                                icon: liveTv.liked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
-                                label: _formatCount(liveTv.likes),
-                                color: liveTv.liked ? const Color.fromARGB(255, 14, 126, 255) : Colors.white70,
-                                onTap: () => controller.toggleLike(liveTv.id),
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            SizedBox(
-                              width: 60,
-                              child: _actionItem(
-                                icon: liveTv.disliked ? Icons.thumb_down : Icons.thumb_down_alt_outlined,
-                                label: _formatCount(liveTv.dislikes),
-                                color: liveTv.disliked ? Colors.redAccent : Colors.white70,
-                                onTap: () => controller.toggleDislike(liveTv.id),
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            SizedBox(
-                              width: 60,
-                              child: _actionItem(
-                                icon: Icons.share_outlined,
-                                label: "Share",
-                                onTap: () => controller.shareLiveTv(liveTv.id),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Comments",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Obx(
-                              () => Text(
-                                commentController?.formattedTotalCount.value ?? "0",
-                                style: const TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 13,
+                              Obx(
+                                () => Text(
+                                  commentController
+                                          ?.formattedTotalCount
+                                          .value ??
+                                      "0",
+                                  style: const TextStyle(
+                                    color: Colors.white54,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
 
-                        const SizedBox(height: 10),
-                        _commentsList(),
-                      ],
+                          const SizedBox(height: 10),
+                          _commentsList(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            _commentInputBar(),
+              _commentInputBar(),
             ],
           );
         }),
@@ -287,10 +315,7 @@ class _OpenTvsState extends State<OpenTvs> {
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(color: color, fontSize: 11),
-          ),
+          Text(label, style: TextStyle(color: color, fontSize: 11)),
         ],
       ),
     );
@@ -326,7 +351,10 @@ class _OpenTvsState extends State<OpenTvs> {
           children: [
             if (commentController!.replyingToCommentId.value.isNotEmpty)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.05),
@@ -554,7 +582,10 @@ class _OpenTvsState extends State<OpenTvs> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
                 foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
@@ -632,50 +663,55 @@ class _CommentTile extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _actionIcon(
-                          comment.userStatus.isLiked
-                              ? Icons.thumb_up
-                              : Icons.thumb_up_alt_outlined,
-                          comment.likeCount.toString(),
-                          comment.userStatus.isLiked
-                              ? Colors.redAccent
-                              : Colors.grey,
-                          () => controller.toggleCommentAction(
-                            comment.commentId,
-                            "LIKE",
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        _actionIcon(
-                          comment.userStatus.isDisliked
-                              ? Icons.thumb_down
-                              : Icons.thumb_down_alt_outlined,
-                          comment.dislikeCount.toString(),
-                          comment.userStatus.isDisliked
-                              ? Colors.redAccent
-                              : Colors.grey,
-                          () => controller.toggleCommentAction(
-                            comment.commentId,
-                            "DISLIKE",
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        GestureDetector(
-                          onTap: () => controller.startReply(comment),
-                          child: const Text(
-                            "Reply",
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 4),
+                    Text(
+                      _getTimeAgo(comment.createdAt),
+                      style: const TextStyle(color: Colors.white38, fontSize: 10),
                     ),
+                    const SizedBox(height: 8),
+                    // Row(
+                    //   children: [
+                    //     _actionIcon(
+                    //       comment.userStatus.isLiked
+                    //           ? Icons.thumb_up
+                    //           : Icons.thumb_up_alt_outlined,
+                    //       comment.likeCount.toString(),
+                    //       comment.userStatus.isLiked
+                    //           ? Colors.redAccent
+                    //           : Colors.grey,
+                    //       () => controller.toggleCommentAction(
+                    //         comment.commentId,
+                    //         "LIKE",
+                    //       ),
+                    //     ),
+                    //     const SizedBox(width: 16),
+                    //     _actionIcon(
+                    //       comment.userStatus.isDisliked
+                    //           ? Icons.thumb_down
+                    //           : Icons.thumb_down_alt_outlined,
+                    //       comment.dislikeCount.toString(),
+                    //       comment.userStatus.isDisliked
+                    //           ? Colors.redAccent
+                    //           : Colors.grey,
+                    //       () => controller.toggleCommentAction(
+                    //         comment.commentId,
+                    //         "DISLIKE",
+                    //       ),
+                    //     ),
+                    //     const SizedBox(width: 20),
+                    //     GestureDetector(
+                    //       onTap: () => controller.startReply(comment),
+                    //       child: const Text(
+                    //         "Reply",
+                    //         style: TextStyle(
+                    //           color: Colors.grey,
+                    //           fontSize: 12,
+                    //           fontWeight: FontWeight.w600,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
 
                     // Inner Replies
                     if (comment.replies.isNotEmpty)
@@ -769,8 +805,11 @@ class _RepliesList extends StatelessWidget {
                       ),
                     ),
                     child: reply.user.profilePhoto.isEmpty
-                        ? const Icon(Icons.person,
-                            color: Colors.white54, size: 12)
+                        ? const Icon(
+                            Icons.person,
+                            color: Colors.white54,
+                            size: 12,
+                          )
                         : null,
                   ),
                   const SizedBox(width: 10),
@@ -799,40 +838,45 @@ class _RepliesList extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            _replyActionIcon(
-                              reply.userStatus.isLiked
-                                  ? Icons.thumb_up
-                                  : Icons.thumb_up_alt_outlined,
-                              reply.likeCount.toString(),
-                              reply.userStatus.isLiked
-                                  ? Colors.redAccent
-                                  : Colors.grey,
-                              () => controller.toggleCommentAction(
-                                reply.commentId,
-                                "LIKE",
-                                parentId: parentCommentId,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            _replyActionIcon(
-                              reply.userStatus.isDisliked
-                                  ? Icons.thumb_down
-                                  : Icons.thumb_down_alt_outlined,
-                              reply.dislikeCount.toString(),
-                              reply.userStatus.isDisliked
-                                  ? Colors.redAccent
-                                  : Colors.grey,
-                              () => controller.toggleCommentAction(
-                                reply.commentId,
-                                "DISLIKE",
-                                parentId: parentCommentId,
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 2),
+                        Text(
+                          _getTimeAgo(reply.createdAt),
+                          style: const TextStyle(color: Colors.white38, fontSize: 9),
                         ),
+                        const SizedBox(height: 6),
+                        // Row(
+                        //   children: [
+                        //     _replyActionIcon(
+                        //       reply.userStatus.isLiked
+                        //           ? Icons.thumb_up
+                        //           : Icons.thumb_up_alt_outlined,
+                        //       reply.likeCount.toString(),
+                        //       reply.userStatus.isLiked
+                        //           ? Colors.redAccent
+                        //           : Colors.grey,
+                        //       () => controller.toggleCommentAction(
+                        //         reply.commentId,
+                        //         "LIKE",
+                        //         parentId: parentCommentId,
+                        //       ),
+                        //     ),
+                        //     const SizedBox(width: 12),
+                        //     _replyActionIcon(
+                        //       reply.userStatus.isDisliked
+                        //           ? Icons.thumb_down
+                        //           : Icons.thumb_down_alt_outlined,
+                        //       reply.dislikeCount.toString(),
+                        //       reply.userStatus.isDisliked
+                        //           ? Colors.redAccent
+                        //           : Colors.grey,
+                        //       () => controller.toggleCommentAction(
+                        //         reply.commentId,
+                        //         "DISLIKE",
+                        //         parentId: parentCommentId,
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
                       ],
                     ),
                   ),

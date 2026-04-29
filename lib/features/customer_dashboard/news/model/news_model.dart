@@ -109,6 +109,27 @@ class Article {
     commentCount ??= comments?.length ?? 0;
   }
 
+  int get totalComments {
+    int count = 0;
+    if (comments == null || comments!.isEmpty) return commentCount ?? 0;
+    
+    for (var comment in comments!) {
+      count += 1; // Count the comment itself
+      count += _countReplies(comment);
+    }
+    return count;
+  }
+
+  int _countReplies(Comment comment) {
+    int count = 0;
+    if (comment.replies == null) return 0;
+    for (var reply in comment.replies!) {
+      count += 1;
+      count += _countReplies(reply);
+    }
+    return count;
+  }
+
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;

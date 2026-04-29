@@ -495,14 +495,14 @@ class RoomChatScreen extends StatelessWidget {
                 },
               ),
             ),
-            IconButton(
-              onPressed: () {},
-              icon: Icon(
-                Icons.emoji_emotions_outlined,
-                color: Colors.white70,
-                size: 24.sp,
-              ),
-            ),
+            // IconButton(
+            //   onPressed: () {},
+            //   icon: Icon(
+            //     Icons.emoji_emotions_outlined,
+            //     color: Colors.white70,
+            //     size: 24.sp,
+            //   ),
+            // ),
             IconButton(
               onPressed: () => controller.sendMessage(),
               icon: Icon(

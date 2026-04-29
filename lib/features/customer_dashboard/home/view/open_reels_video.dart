@@ -9,6 +9,7 @@ import '../../clips/model/clips_model.dart';
 import '../../clips/controller/clips_controller.dart';
 import '../../profile/controller/bookmarks_controller.dart';
 import 'package:testapp/core/utils/url_helper.dart';
+import 'package:testapp/core/utils/video_resource_manager.dart';
 
 class OpenReelsVideo extends StatefulWidget {
   final List<ClipModel> clips;
@@ -32,28 +33,42 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
   @override
   void initState() {
     super.initState();
+    // Release background thumbnail decoders before starting full-screen playback
+    VideoResourceManager().releaseAllThumbnails();
+    // Suspend new thumbnail initializations while we are in reels mode
+    VideoResourceManager().isSuspended = true;
+
     _activeIndex.value = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
   }
 
   @override
   void dispose() {
+    // Resume thumbnail initializations
+    VideoResourceManager().isSuspended = false;
     _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    Get.put(BookmarkController());
+    // Ensure BookmarkController is initialized if not already
+    if (!Get.isRegistered<BookmarkController>()) {
+      Get.put(BookmarkController());
+    }
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          Obx(() => PageView.builder(
+          PageView.builder(
             scrollDirection: Axis.vertical,
             controller: _pageController,
-            onPageChanged: (index) => _activeIndex.value = index,
+            onPageChanged: (index) {
+              setState(() {
+                _activeIndex.value = index;
+              });
+            },
             itemCount: widget.clips.length,
             itemBuilder: (context, index) {
               final clip = widget.clips[index];
@@ -64,7 +79,7 @@ class _OpenReelsVideoState extends State<OpenReelsVideo> {
                 isActive: _activeIndex.value == index,
               );
             },
-          )),
+          ),
 
           // Mute Toggle Button (Top Right Global)
           Positioned(
@@ -272,27 +287,32 @@ class _ClipPageViewState extends State<ClipPageView>
             children: [
               // _buildProfileIcon(),
               // const SizedBox(height: 25),
-              _buildSideButton(
-                icon: Icons.bookmark,
-                label: "",
-                isActive: widget.clip.userStatus.isBookmarked,
-                activeColor: Colors.amber,
-                onTap: () {
-                  widget.clip.userStatus.isBookmarked =
-                      !widget.clip.userStatus.isBookmarked;
-                  Get.find<ClipsController>().clipsList.refresh();
-                  Get.find<BookmarkController>().toggleClip(widget.clip);
-                },
-              ),
+              Obx(() {
+                final bool isBookmarked = Get.find<BookmarkController>().isBookmarked(widget.clip);
+                return _buildSideButton(
+                  icon: Icons.bookmark,
+                  label: "",
+                  isActive: isBookmarked,
+                  activeColor: Colors.amber,
+                  onTap: () {
+                    // Optimistic update of the local object is still good for immediate feedback
+                    // but the Obx will primarily rely on BookmarkController
+                    Get.find<BookmarkController>().toggleClip(widget.clip);
+                  },
+                );
+              }),
               const SizedBox(height: 20),
               _buildSideButton(
                 icon: Icons.thumb_up,
                 label: widget.clip.engagement.likes.toString(),
                 isActive: widget.clip.userStatus.isLiked,
-                onTap: () => Get.find<ClipsController>().toggleAction(
-                  widget.clip.clipId,
-                  "LIKE",
-                ),
+                onTap: () {
+                  Get.find<ClipsController>().toggleAction(
+                    widget.clip.clipId,
+                    "LIKE",
+                  );
+                  setState(() {});
+                },
               ),
               const SizedBox(height: 20),
               _buildSideButton(
@@ -300,17 +320,32 @@ class _ClipPageViewState extends State<ClipPageView>
                 label: widget.clip.engagement.dislikes.toString(),
                 isActive: widget.clip.userStatus.isDisliked,
                 activeColor: Colors.redAccent,
-                onTap: () => Get.find<ClipsController>().toggleAction(
-                  widget.clip.clipId,
-                  "DISLIKE",
-                ),
+                onTap: () {
+                  Get.find<ClipsController>().toggleAction(
+                    widget.clip.clipId,
+                    "DISLIKE",
+                  );
+                  setState(() {});
+                },
               ),
               const SizedBox(height: 20),
               _buildIconButton(
                 Icons.chat_bubble_rounded,
                 widget.clip.engagement.comments.toString(),
-                onTap: () =>
-                    showCommentBottomSheet(context, widget.clip.clipId),
+                onTap: () async {
+                  await showCommentBottomSheet(context, widget.clip.clipId);
+                  final updatedClip = await Get.find<ClipsController>()
+                      .fetchSingleClip(widget.clip.clipId);
+                  if (updatedClip != null) {
+                    final idx = Get.find<ClipsController>()
+                        .clipsList
+                        .indexWhere((c) => c.clipId == widget.clip.clipId);
+                    if (idx != -1) {
+                      Get.find<ClipsController>().clipsList[idx] = updatedClip;
+                      Get.find<ClipsController>().clipsList.refresh();
+                    }
+                  }
+                },
               ),
               const SizedBox(height: 20),
               _buildIconButton(
@@ -484,7 +519,7 @@ class _ClipPageViewState extends State<ClipPageView>
     return SideButton(
       icon: icon,
       label: label,
-      initialIsActive: isActive,
+      isActive: isActive,
       activeColor: activeColor ?? const Color.fromARGB(255, 14, 126, 255),
       onTap: onTap,
     );
@@ -526,7 +561,7 @@ class SideButton extends StatefulWidget {
   final double size;
   final Color activeColor;
   final Color inactiveColor;
-  final bool initialIsActive;
+  final bool isActive;
   final VoidCallback? onTap;
 
   const SideButton({
@@ -536,7 +571,7 @@ class SideButton extends StatefulWidget {
     this.size = 32,
     this.activeColor = const Color.fromARGB(255, 14, 126, 255),
     this.inactiveColor = Colors.white,
-    this.initialIsActive = false,
+    this.isActive = false,
     this.onTap,
   });
 
@@ -581,7 +616,7 @@ class _SideButtonState extends State<SideButton>
             scale: _scaleAnimation,
             child: Icon(
               widget.icon,
-              color: widget.initialIsActive
+              color: widget.isActive
                   ? widget.activeColor
                   : widget.inactiveColor,
               size: widget.size,
