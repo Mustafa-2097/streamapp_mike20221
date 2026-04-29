@@ -11,7 +11,7 @@ class ClipsController extends GetxController {
   var isLoading = false.obs;
   var isLoadingMore = false.obs;
   var clipsList = <ClipModel>[].obs;
-  
+
   var currentPage = 1;
   var hasMore = true.obs;
 
@@ -35,23 +35,25 @@ class ClipsController extends GetxController {
     try {
       final String url = "${ApiEndpoints.clips}?page=$currentPage";
       print("Fetching clips from: $url");
-      
+
       final response = await CustomerApiService.getClips(page: currentPage);
       print("Clips API Response received: $response");
-      
+
       if (response['success'] == true) {
         final List data = response['data'] ?? [];
         final meta = response['meta'] ?? {};
-        
-        final List<ClipModel> fetchedClips = data.map((e) => ClipModel.fromJson(e)).toList();
+
+        final List<ClipModel> fetchedClips = data
+            .map((e) => ClipModel.fromJson(e))
+            .toList();
         print("Fetched ${fetchedClips.length} clips");
-        
+
         if (fetchedClips.isEmpty && !isLoadMore) {
           hasMore.value = false;
         } else {
           clipsList.addAll(fetchedClips);
           currentPage++;
-          
+
           if (clipsList.length >= (meta['total'] ?? 0)) {
             hasMore.value = false;
           }
@@ -59,14 +61,18 @@ class ClipsController extends GetxController {
       } else {
         String errorMsg = response['message'] ?? 'Unknown error';
         print("Clips API failed with message: $errorMsg");
-        Get.snackbar("Error", errorMsg, backgroundColor: AppColors.primaryColor, colorText: Colors.black, snackPosition: SnackPosition.TOP);
+        Get.snackbar(
+          "Error",
+          errorMsg,
+          backgroundColor: AppColors.primaryColor,
+          colorText: Colors.black,
+          snackPosition: SnackPosition.TOP,
+        );
       }
     } catch (e) {
       print("Exception in fetchClips: $e");
       // ApiService already shows a snackbar for network/http errors
     } finally {
-
-
       isLoading.value = false;
       isLoadingMore.value = false;
     }
@@ -88,12 +94,16 @@ class ClipsController extends GetxController {
     return null;
   }
 
-  Future<void> toggleAction(String clipId, String type) async {
+  Future<void> toggleAction(
+    String clipId,
+    String type, {
+    ClipModel? clipData,
+  }) async {
     final index = clipsList.indexWhere((c) => c.clipId == clipId);
-    if (index == -1) return;
 
-    final clip = clipsList[index];
-    
+    final clip = index != -1 ? clipsList[index] : clipData;
+    if (clip == null) return;
+
     // Optimistic Update: Update locally immediately
     if (type == "LIKE") {
       if (clip.userStatus.isLiked) {
@@ -103,7 +113,10 @@ class ClipsController extends GetxController {
         // If it was disliked, untoggle dislike first
         if (clip.userStatus.isDisliked) {
           clip.userStatus.isDisliked = false;
-          clip.engagement.dislikes = (clip.engagement.dislikes - 1).clamp(0, 999999);
+          clip.engagement.dislikes = (clip.engagement.dislikes - 1).clamp(
+            0,
+            999999,
+          );
         }
         clip.userStatus.isLiked = true;
         clip.engagement.likes++;
@@ -111,7 +124,10 @@ class ClipsController extends GetxController {
     } else if (type == "DISLIKE") {
       if (clip.userStatus.isDisliked) {
         clip.userStatus.isDisliked = false;
-        clip.engagement.dislikes = (clip.engagement.dislikes - 1).clamp(0, 999999);
+        clip.engagement.dislikes = (clip.engagement.dislikes - 1).clamp(
+          0,
+          999999,
+        );
       } else {
         // If it was liked, untoggle like first
         if (clip.userStatus.isLiked) {
@@ -124,9 +140,11 @@ class ClipsController extends GetxController {
     } else if (type == "SHARE") {
       clip.engagement.shares++;
     }
-    
+
     // Refresh the list to trigger Obx
-    clipsList.refresh();
+    if (index != -1) {
+      clipsList.refresh();
+    }
 
     try {
       final response = await CustomerApiService.performClipAction(
@@ -138,14 +156,38 @@ class ClipsController extends GetxController {
       if (response['success'] == true) {
         final updatedClip = await fetchSingleClip(clipId);
         if (updatedClip != null) {
-          clipsList[index] = updatedClip;
+          if (index != -1) {
+            clipsList[index] = updatedClip;
+            clipsList.refresh();
+          }
+          if (clipData != null && index == -1) {
+            clipData.userStatus.isLiked = updatedClip.userStatus.isLiked;
+            clipData.userStatus.isDisliked = updatedClip.userStatus.isDisliked;
+            clipData.engagement.likes = updatedClip.engagement.likes;
+            clipData.engagement.dislikes = updatedClip.engagement.dislikes;
+            clipData.engagement.shares = updatedClip.engagement.shares;
+            clipData.engagement.comments = updatedClip.engagement.comments;
+          }
         }
       }
     } catch (e) {
       print("Error toggling action $type: $e");
       // Optional: re-fetch on error to revert optimistic state
-      fetchSingleClip(clipId).then((clip) {
-        if (clip != null) clipsList[index] = clip;
+      fetchSingleClip(clipId).then((fetchedClip) {
+        if (fetchedClip != null) {
+          if (index != -1) {
+            clipsList[index] = fetchedClip;
+            clipsList.refresh();
+          }
+          if (clipData != null && index == -1) {
+            clipData.userStatus.isLiked = fetchedClip.userStatus.isLiked;
+            clipData.userStatus.isDisliked = fetchedClip.userStatus.isDisliked;
+            clipData.engagement.likes = fetchedClip.engagement.likes;
+            clipData.engagement.dislikes = fetchedClip.engagement.dislikes;
+            clipData.engagement.shares = fetchedClip.engagement.shares;
+            clipData.engagement.comments = fetchedClip.engagement.comments;
+          }
+        }
       });
     }
   }
