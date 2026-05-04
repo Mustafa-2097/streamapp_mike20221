@@ -54,6 +54,10 @@ class ContentSection extends StatelessWidget {
     if (liveTvController.liveTvs.isEmpty && !liveTvController.isLoading.value) {
       liveTvController.fetchLiveTvs();
     }
+
+    if (newsController.newsList.isEmpty && !newsController.isLoading.value) {
+      newsController.fetchNews();
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -637,7 +641,7 @@ class ContentSection extends StatelessWidget {
 
         // Latest News Section
         Obx(() {
-          if (newsController.isLoading.value) {
+          if (newsController.isLoading.value && newsController.newsList.isEmpty) {
             return SizedBox(
               height: 120.h,
               child: const Center(

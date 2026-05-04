@@ -33,6 +33,7 @@ dependencies:
   image_picker:
   http_parser:
   socket_io_client: 2.0.3
+  get_thumbnail_video: ^0.7.3
 
 
 

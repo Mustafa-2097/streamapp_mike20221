@@ -305,6 +305,14 @@ class ReplayScreen extends StatelessWidget {
                     height: 200.h,
                     width: double.infinity,
                     fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: 200.h,
+                        width: double.infinity,
+                        color: Colors.grey[850],
+                      );
+                    },
                     errorBuilder: (context, error, stackTrace) => Container(
                       height: 200.h,
                       width: double.infinity,

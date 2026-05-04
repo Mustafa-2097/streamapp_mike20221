@@ -70,7 +70,7 @@ class VideoLiveController extends GetxController {
         }
       }
     } else if (type == "SHARE") {
-      engagement.shares++;
+      // engagement.shares++; // Remove optimistic update
     }
 
     replay.refresh();

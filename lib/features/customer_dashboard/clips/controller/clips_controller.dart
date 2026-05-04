@@ -138,7 +138,7 @@ class ClipsController extends GetxController {
         clip.engagement.dislikes++;
       }
     } else if (type == "SHARE") {
-      clip.engagement.shares++;
+      // clip.engagement.shares++; // Remove optimistic update
     }
 
     // Refresh the list to trigger Obx

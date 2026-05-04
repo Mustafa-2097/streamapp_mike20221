@@ -73,12 +73,6 @@ class NewsController extends GetxController {
   void removeNews(int index) => newsData.removeAt(index);
 
   Future<void> fetchNews({bool isLoadMore = false}) async {
-    final token = await SharedPreferencesHelper.getToken();
-    if (token == null || token.isEmpty) {
-      debugPrint("NewsController: No token found. Skipping fetch.");
-      return;
-    }
-
     if (isLoading.value || isLoadingMore.value) return;
     if (isLoadMore && !hasMore.value) return;
 

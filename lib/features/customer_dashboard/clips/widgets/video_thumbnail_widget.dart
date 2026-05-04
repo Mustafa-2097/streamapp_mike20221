@@ -1,7 +1,8 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'package:get_thumbnail_video/index.dart';
+import 'package:get_thumbnail_video/video_thumbnail.dart';
 import 'package:testapp/core/utils/url_helper.dart';
-import 'package:testapp/core/utils/video_resource_manager.dart';
 
 class VideoThumbnailWidget extends StatefulWidget {
   final String videoUrl;
@@ -12,133 +13,63 @@ class VideoThumbnailWidget extends StatefulWidget {
 }
 
 class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
-  static int _concurrentInitializations = 0;
-  static const int _maxConcurrent = 3;
-
-  VideoPlayerController? _controller;
-  bool _isInitialized = false;
+  static final Map<String, Uint8List> _thumbnailCache = {};
+  
+  Uint8List? _thumbnailData;
+  bool _isLoading = true;
   bool _hasError = false;
-  bool _isInitializing = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeController();
-    VideoResourceManager().registerThumbnail(_releaseResources, _reInitialize);
+    _generateThumbnail();
   }
 
-  Future<void> _initializeController() async {
-    if (_isInitialized || _isInitializing || VideoResourceManager().isSuspended) return;
-    
-    _isInitializing = true;
-    
-    try {
-      await _waitForSlot();
-      
-      // Check if we were unmounted while waiting for a slot
-      if (!mounted) {
-        _concurrentInitializations = (_concurrentInitializations - 1).clamp(0, _maxConcurrent);
-        _isInitializing = false;
-        return;
-      }
-      
-      final sanitizedUrl = UrlHelper.sanitizeUrl(widget.videoUrl);
-      final controller = VideoPlayerController.networkUrl(Uri.parse(sanitizedUrl));
-      _controller = controller;
+  Future<void> _generateThumbnail() async {
+    final sanitizedUrl = UrlHelper.sanitizeUrl(widget.videoUrl);
 
-      await controller.initialize();
-      
-      // Successfully initialized
+    // Check cache first
+    if (_thumbnailCache.containsKey(sanitizedUrl)) {
       if (mounted) {
-        controller.setVolume(0);
-        controller.play();
-        controller.addListener(_videoListener);
-
         setState(() {
-          _isInitialized = true;
-          _hasError = false;
-          _isInitializing = false;
+          _thumbnailData = _thumbnailCache[sanitizedUrl];
+          _isLoading = false;
         });
-      } else {
-        controller.dispose();
-        _isInitializing = false;
       }
-    } catch (error) {
-      debugPrint("Thumbnail Loading Error: $error");
+      return;
+    }
+
+    try {
+      final uint8list = await VideoThumbnail.thumbnailData(
+        video: sanitizedUrl,
+        imageFormat: ImageFormat.JPEG,
+        maxWidth: 400,
+        quality: 50,
+      );
+
+      if (mounted) {
+        if (uint8list != null) {
+          _thumbnailCache[sanitizedUrl] = uint8list;
+        }
+        setState(() {
+          _thumbnailData = uint8list;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("VideoThumbnailWidget Error: $e");
       if (mounted) {
         setState(() {
           _hasError = true;
-          _isInitialized = false;
-          _isInitializing = false;
+          _isLoading = false;
         });
-      } else {
-        _isInitializing = false;
       }
-    } finally {
-      // We must decrement the counter once the "heavy" initialization work is done
-      // (even if it failed or the widget was disposed).
-      _concurrentInitializations = (_concurrentInitializations - 1).clamp(0, _maxConcurrent);
     }
-  }
-
-  Future<void> _waitForSlot() async {
-    while (_concurrentInitializations >= _maxConcurrent) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (!mounted) return;
-    }
-    _concurrentInitializations++;
-  }
-
-  void _releaseResources() {
-    if (mounted && _isInitialized && _controller != null) {
-      _controller!.pause();
-      _controller!.dispose();
-      _controller = null;
-      setState(() {
-        _isInitialized = false;
-      });
-    }
-  }
-
-  void _reInitialize() {
-    if (mounted && !_isInitialized) {
-      _initializeController();
-    }
-  }
-
-  void _videoListener() {
-    final controller = _controller;
-    if (controller != null && controller.value.isPlaying) {
-      controller.pause();
-      controller.removeListener(_videoListener);
-    }
-  }
-
-  @override
-  void dispose() {
-    VideoResourceManager().unregisterThumbnail(_releaseResources, _reInitialize);
-    final controller = _controller;
-    if (controller != null) {
-      controller.dispose();
-      _controller = null;
-    }
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_hasError) {
-      return Container(
-        color: Colors.grey[900],
-        child: const Icon(
-          Icons.play_circle_outline,
-          color: Colors.white24,
-          size: 40,
-        ),
-      );
-    }
-
-    if (!_isInitialized) {
+    if (_isLoading) {
       return Container(
         color: Colors.grey.shade900,
         child: const Center(
@@ -150,17 +81,27 @@ class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
       );
     }
 
-    final controller = _controller;
-    if (controller == null) return const SizedBox.shrink();
+    if (_hasError || _thumbnailData == null) {
+      return Container(
+        color: Colors.grey[900],
+        child: const Center(
+          child: Icon(
+            Icons.play_circle_outline,
+            color: Colors.white24,
+            size: 40,
+          ),
+        ),
+      );
+    }
 
     return SizedBox.expand(
       child: FittedBox(
         fit: BoxFit.cover,
         clipBehavior: Clip.hardEdge,
-        child: SizedBox(
-          width: controller.value.size.width,
-          height: controller.value.size.height,
-          child: VideoPlayer(controller),
+        child: Image.memory(
+          _thumbnailData!,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
         ),
       ),
     );

@@ -80,7 +80,7 @@ class LiveMatchesController extends GetxController {
 
   void _setupSocketListeners() {
     _socketService.on("matches:live", (data) {
-      debugPrint("Socket: Live matches (matches:live) received: $data");
+      debugPrint("Socket: Live matches (matches:live) received.");
       try {
         if (data is List) {
           final newMatches = data.map((e) => MatchModel.fromJson(e)).toList();
